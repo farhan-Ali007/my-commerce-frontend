@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.image-zoom-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .banner-link {
+    max-width: 90%;
+    overflow-wrap: break-word;
+  }
+}
+
+.image-zoom-container img {
+  transition: transform 0.3s ease;
+  transform-origin: center center;
+}
+
+.image-zoom-container:hover img {
+  transform: none; /* Adjust the zoom level as needed */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Add to your global styles or Tailwind config */
+::-webkit-scrollbar {
+  display: none;
+}
+

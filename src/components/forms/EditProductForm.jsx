@@ -1,0 +1,529 @@
+import React, { useState, useEffect } from "react";
+import { IoAddCircle, IoTrash } from 'react-icons/io5';
+
+const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categories, tags, brands }) => {
+
+    console.log("Default values for product---------->", defaultValues);
+
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        weight: "",
+        images: [],
+        category: "",
+        price: "",
+        salePrice: null,
+        brand: "",
+        stock: "",
+        tags: [],
+        variants: [{ name: "", values: [{ value: "", image: "" }] }],
+    });
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [freeShipping, setFreeShipping] = useState(false);
+
+    useEffect(() => {
+        if (defaultValues) {
+            // Transform defaultValues to match the formData structure
+            const transformedVariants = defaultValues.variants.map(variant => ({
+                name: variant.name,
+                values: variant.values.map(val => ({
+                    value: val.value,
+                    image: val.image
+                }))
+            }));
+
+            setFreeShipping(defaultValues.freeShipping || false);
+
+            setFormData({
+                ...defaultValues,
+                variants: transformedVariants,
+                brand: defaultValues.brand?.name || ""
+            });
+
+            // Handle images (either URL or File object)
+            setImagePreviews(defaultValues.images.map((img) => {
+                if (typeof img === 'string') {
+                    // If it's a URL, return it as is
+                    return img;
+                } else if (img instanceof File) {
+                    // If it's a File object, create an object URL
+                    return URL.createObjectURL(img);
+                }
+                return null; // Handle other cases if necessary
+            }));
+        }
+    }, [defaultValues]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+
+        // Filter out duplicates based on file name
+        const newImages = files.filter(
+            (file) => !formData.images.some((img) =>
+                typeof img === "string" ? false : img.name === file.name
+            )
+        );
+
+        // Append new images
+        setFormData((prev) => ({
+            ...prev,
+            images: [...prev.images, ...newImages],
+        }));
+
+        // Update image previews
+        setImagePreviews((prev) => [
+            ...prev,
+            ...newImages.map((file) => URL.createObjectURL(file)),
+        ]);
+    };
+
+    const handleImageRemove = (index) => {
+        // Remove both the preview and the actual image
+        setFormData((prev) => ({
+            ...prev,
+            images: prev.images.filter((_, i) => i !== index),
+        }));
+        setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleVariantChange = (variantIndex, valueIndex, field, value) => {
+        const updatedVariants = [...formData.variants];
+        updatedVariants[variantIndex].values[valueIndex][field] = value;
+        setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+    };
+
+    const addVariant = () => {
+        setFormData((prev) => ({
+            ...prev,
+            variants: [...prev.variants, { name: "", values: [{ value: "", image: "" }] }]
+        }));
+    };
+
+    const removeVariant = (index) => {
+        setFormData((prev) => ({
+            ...prev,
+            variants: prev.variants.filter((_, i) => i !== index),
+        }));
+    };
+
+    const addVariantValue = (variantIndex) => {
+        const updatedVariants = [...formData.variants];
+        updatedVariants[variantIndex].values.push({ value: "", image: "" });
+        setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+    };
+
+    const removeVariantValue = (variantIndex, valueIndex) => {
+        const updatedVariants = [...formData.variants];
+        updatedVariants[variantIndex].values = updatedVariants[variantIndex].values.filter((_, i) => i !== valueIndex);
+        setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+    };
+
+    const handleTagSelect = (tag) => {
+        setFormData((prev) => ({
+            ...prev,
+            tags: [...prev.tags, tag],
+        }));
+    };
+
+    const handleTagRemove = (tag) => {
+        setFormData((prev) => ({
+            ...prev,
+            tags: prev.tags.filter((t) => t !== tag),
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        const submissionData = new FormData();
+        submissionData.append("title", formData.title);
+        submissionData.append("description", formData.description);
+        submissionData.append("price", formData.price);
+        submissionData.append("salePrice", formData.salePrice);
+        submissionData.append("weight", formData.weight);
+        submissionData.append("brand", formData.brand);
+        submissionData.append("stock", formData.stock);
+
+        // Handle category
+        if (typeof formData.category === "object") {
+            submissionData.append("category", JSON.stringify(formData.category));
+        } else {
+            submissionData.append("category", formData.category);
+        }
+
+        // Add tags
+        submissionData.append("tags", (formData.tags || []).map(tag => tag.name).join(','));
+
+        // Add variants and their images
+        const variantsWithImages = formData.variants.map((variant, variantIndex) => {
+            const variantData = {
+                name: variant.name,
+                values: variant.values.map((val, valueIndex) => {
+                    const valueData = {
+                        value: val.value,
+                    };
+
+                    if (val.image && val.image instanceof File) {
+                        submissionData.append(`variantImages`, val.image, `${variant.name}-${val.value}-${val.image.name}`); // Include variant name and value in filename
+                        valueData.image = val.image.name; // Store original filename for reference
+                    } else if (typeof val.image === 'string') {
+                        valueData.image = val.image; // Keep existing image URL
+                    }
+
+                    return valueData;
+                })
+            };
+
+            return variantData;
+        });
+        submissionData.append("variants", JSON.stringify(variantsWithImages));
+
+        // Add new images
+        formData.images.forEach((image) => {
+            if (image instanceof File) {
+                submissionData.append("images", image); // Send new files
+            }
+        });
+
+        // Add existing image references as JSON
+        const existingImageUrls = formData.images.filter((image) => typeof image === "string");
+        submissionData.append("existingImages", JSON.stringify(existingImageUrls));
+
+        // Log submission data
+        for (let [key, value] of submissionData.entries()) {
+            console.log(`${key}:`, value);
+        }
+        console.log("Data being sent to backend ------>", submissionData);
+
+        // Call the onSubmit function passed as a prop
+        onSubmit(submissionData);
+        setTimeout(() => {
+            resetForm();
+        }, 7000);
+    };
+
+    const resetForm = () => {
+        setFormData({
+            title: "",
+            description: "",
+            weight: "",
+            images: [],
+            category: "",
+            price: "",
+            salePrice: "",
+            brand: "",
+            stock: "",
+            tags: [],
+            variants: [{ name: "", values: [{ value: "", image: "" }] }],
+        });
+
+        // Revoke image URLs to free memory
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        setImagePreviews([]);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="max-w-[600px] md:w-[800px] my-4 mx-auto p-6 bg-white shadow-lg rounded-lg">
+            <h2 className="text-2xl text-center font-semibold mb-4 text-main">{formTitle}</h2>
+
+            {/* Title */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Title</label>
+                <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+            </div>
+
+            {/* Description */}
+            <div className="mb-4 min-h-20">
+                <label className="block font-medium mb-2">Description</label>
+                <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    className="w-full h-30 md:h-40 border px-4 py-4 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+            </div>
+
+            {/* Weight */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Weight</label>
+                <input
+                    type="number"
+                    name="weight"
+                    value={formData.weight}
+                    placeholder="weight in kgs..."
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+            </div>
+
+            {/* Brand */}
+            {/* <div className="mb-4">
+                <label className="block font-medium mb-2">Brand</label>
+                <input
+                    type="text"
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+            </div> */}
+
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Brand</label>
+                <select
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                >
+                    <option value="">{defaultValues?.brand.name}</option>
+                    {brands?.map((brand, index) => (
+                        <option key={index} value={brand?.name}>{brand?.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Category */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Category</label>
+                <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                >
+                    <option value="">{defaultValues?.category.name}</option>
+                    {categories?.map((category, index) => (
+                        <option key={index} value={category?.name}>{category?.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Tags Selection */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Tags</label>
+                <div className="flex flex-wrap gap-2">
+                    {tags?.map((tag, index) => (
+                        <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleTagSelect(tag)}
+                            className={`px-4 py-2 rounded-full border-2 border-gray-300 ${formData?.tags?.includes(tag) ? 'bg-gray-300 text-black' : 'bg-white text-black'}`}
+                        >
+                            {tag?.name}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="mt-2 flex flex-wrap gap-2">
+                    {formData?.tags?.map((tag, index) => (
+                        <div key={index} className="flex items-center gap-2 bg-main opacity-90 text-white px-4 py-1 rounded-full">
+                            <span>{tag?.name}</span> {/* Access the name property of the tag */}
+                            <button
+                                type="button"
+                                onClick={() => handleTagRemove(tag)}
+                                className="text-sm font-semibold"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+            </div>
+
+            {/* Price */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Price</label>
+                <input
+                    type="text"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+            </div>
+
+            {/* Sale Price */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Sale Price</label>
+                <input
+                    type="text"
+                    name="salePrice"
+                    value={formData.salePrice}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+            </div>
+
+            {/* Variants */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Variants</label>
+                {formData.variants.map((variant, variantIndex) => (
+                    <div key={variantIndex} className="border p-4 mb-4 rounded-md">
+                        <div className="mb-2">
+                            <input
+                                type="text"
+                                placeholder="Name Color, size etc."
+                                value={variant.name}
+                                onChange={(e) => {
+                                    const updatedVariants = [...formData.variants];
+                                    updatedVariants[variantIndex].name = e.target.value;
+                                    setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+                                }}
+                                className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
+                            />
+                        </div>
+                        {variant.values.map((value, valueIndex) => (
+                            <div key={valueIndex} className="mb-2">
+                                <input
+                                    type="text"
+                                    placeholder="Variant Value"
+                                    value={value.value || ""}
+                                    onChange={(e) => handleVariantChange(variantIndex, valueIndex, "value", e.target.value)}
+                                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
+                                />
+                                <div className="mb-2">
+                                    <label className="block font-medium mb-2">Variant Image</label>
+                                    <input
+                                        type="file"
+                                        name="image"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                const updatedVariants = [...formData.variants];
+                                                updatedVariants[variantIndex].values[valueIndex].image = file;
+                                                setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+                                            }
+                                        }}
+                                        className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                                    />
+                                    {value.image && (
+                                        <div className="mt-2">
+                                            <img
+                                                src={value.image instanceof File ? URL.createObjectURL(value.image) : value.image}
+                                                alt="Variant Preview"
+                                                className="w-20 h-20 object-cover"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeVariantValue(variantIndex, valueIndex)}
+                                        className="flex items-center gap-1 bg-red-500 text-white px-4 py-1 rounded-md ml-2"
+                                    >
+                                        <IoTrash /> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => addVariantValue(variantIndex)}
+                                className="flex items-center gap-1 bg-blue-500 text-white px-4 py-1 rounded-md"
+                            >
+                                <IoAddCircle /> Add Value
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => removeVariant(variantIndex)}
+                                className="flex items-center gap-1 bg-red-500 text-white px-4 py-1 rounded-md ml-2"
+                            >
+                                <IoTrash /> Remove Variant
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    onClick={addVariant}
+                    className="flex items-center gap-1 bg-blue-500 text-white px-4 py-2 rounded-md"
+                >
+                    <IoAddCircle /> Add Variant
+                </button>
+            </div>
+
+            {/* Stock */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Stock</label>
+                <input
+                    type="text"
+                    name="stock"
+                    value={formData.stock}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+            </div>
+
+            {/* Product Images */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Product Images</label>
+                <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+                <div className="mt-2 flex gap-2">
+                    {imagePreviews.map((image, index) => (
+                        <div key={index} className="relative">
+                            <img
+                                src={image}
+                                alt={`Preview ${index}`}
+                                className="w-20 h-20 object-cover rounded-md"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => handleImageRemove(index)}
+                                className="absolute top-0 right-0 bg-red-500 text-white rounded-full text-sm p-1"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Free shipping */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">
+                    <input
+                        type="checkbox"
+                        checked={freeShipping}
+                        onChange={(e) => setFreeShipping(e.target.checked)}
+                        className="mr-2"
+                    />
+                    Free Shipping
+                </label>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-center">
+                <button
+                    type="submit"
+                    className="bg-main opacity-70 hover:opacity-90 w-full text-white px-8 py-2 rounded-md"
+                >
+                    {buttonText}
+                </button>
+            </div>
+        </form>
+    );
+};
+
+export default EditProductForm;
