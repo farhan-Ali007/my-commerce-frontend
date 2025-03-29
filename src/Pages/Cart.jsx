@@ -204,7 +204,7 @@ const Cart = () => {
                                             {product.selectedVariants.map((variant, index) => (
                                                 <div
                                                     key={index}
-                                                    className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-lg shadow-sm"
+                                                    className="flex items-center gap-2 bg-gray-100 px-3 py-1  shadow-sm"
                                                 >
                                                     <span className="text-main font-medium uppercase">{variant?.values}</span>
                                                     {/* <button

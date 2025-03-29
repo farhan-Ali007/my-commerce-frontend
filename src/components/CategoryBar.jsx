@@ -104,16 +104,16 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                         >
                             <div
                                 className={`flex items-center gap-1 cursor-pointer ${isCategoryActive(category)
-                                        ? "bg-blue-500 "
-                                        : ""
+                                    ? "text-gray-700 "
+                                    : ""
                                     }`}
                                 onClick={(e) => handleCategoryClick(category, e)}
                                 onMouseEnter={(e) => handleCategoryHover(category, e)}
                             >
                                 <div
                                     className={`text-white p-1 font-semibold text-xl capitalize hover:text-gray-300 ${isCategoryActive(category)
-                                            ? "text-gray-900"
-                                            : ""
+                                        ? "text-gray-900"
+                                        : ""
                                         }`}
                                     onClick={() => navigateTo(`/category/${category.slug}`)}
                                 >
@@ -168,10 +168,10 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                             {modalState.selectedCategory?.subcategories.map((subcategory) => (
                                 <div
                                     key={subcategory._id}
-                                    className="p-2 bg-white rounded cursor-pointer"
+                                    className="p-2 bg-white rounded cursor-pointer hover:bg-main hover:border-l-4 border-main hover:bg-opacity-20 transition-colors duration-200"
                                     onClick={() => handleSubcategoryClick(subcategory)}
                                 >
-                                    <span className="text-gray-500 font-bold capitalize hover:text-main">{subcategory.name}</span>
+                                    <span className="font-bold capitalize text-main">{subcategory.name}</span>
                                 </div>
                             ))}
                         </div>

@@ -222,7 +222,7 @@ const Shop = () => {
                             onChange={handleCategoryChange}
                             className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
                         >
-                            <option value="" disabled>Select Category</option>
+                            <option value="" disabled>Select</option>
                             {categories?.map((cat) => (
                                 <option key={cat._id} value={cat.name}>
                                     {cat.name}

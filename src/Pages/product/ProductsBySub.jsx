@@ -29,7 +29,7 @@ const ProductsBySub = () => {
     return (
         <div className="w-full min-h-screen px-4 md:px-8">
             {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-extrabold text-center text-main my-6 capitalize">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-center text-main mt-6 mb-3 capitalize">
                 {subcategorySlug.replace(/-/g, ' ')}
             </h1>
 

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { AiOutlineShopping } from 'react-icons/ai';
 import { CgMenu } from 'react-icons/cg';
 import { FaUserShield, FaMobileAlt } from "react-icons/fa";
-import { GrSearch } from "react-icons/gr";
+import {FiSearch} from 'react-icons/fi'
 import { IoCartOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ import NavDrawer from './drawers/NavDrawer';
 
 const Navbar = () => {
     const location = useLocation();
-    const hideCategoryBarOn = ['/admin-dashboard', '/shop', '/category/:categorySlug', '/cart/checkout', '*', '/add-product', '/edit-product']
+    const hideCategoryBarOn = ['/admin-dashboard', '/shop', '/order-history', '/category/:categorySlug', '/cart/checkout', '*', '/add-product', '/edit-product']
     const cart = useSelector((state) => state.cart);
     const searchState = useSelector((state) => state.search);
     const selectedCategories = useSelector((state) => state.selectedCategories.selectedCategories);
@@ -135,8 +135,8 @@ const Navbar = () => {
     return (
         <>
             <div className="bg-gradient-to-r from-[#020024]  via-[#090979] to-[#00d4ff] text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center">
-                <div className="mb-2 md:mb-0 pr-3">
-                    <Marquee speed={50} gradient={false}>Welcome to our store! Enjoy the best deals.</Marquee>
+                <div className="mb-2 md:mb-0 pr-3 ">
+                    <Marquee className='text-sm font-bold' speed={50} gradient={false}>Welcome to our store! Enjoy the best deals.</Marquee>
                 </div>
                 <div className="flex gap-4 justify-center text-sm md:text-base">
                     <Link to="/about" className=" hover:text-white no-underline hover:underline text-gray-200">About Us</Link>
@@ -148,7 +148,7 @@ const Navbar = () => {
             <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0 py-0 md:py-2">
                 <div className="container min-w-auto mx-auto px-4 md:px-2 lg:px-4 pt-2 pb-0 flex flex-col items-center lg:flex-row justify-between relative z-10">
                     <div className="flex items-center justify-between w-full pr-0 md:pr-2 lg:pr-0">
-                        <CgMenu className="text-2xl md:hidden cursor-pointer" onClick={toggleDrawer} />
+                        <CgMenu className="text-2xl md:hidden text-main font-bold cursor-pointer" onClick={toggleDrawer} />
                         <a href="/" className="flex-shrink-0 bg-contain">
                             <img src="/logo.png" alt="Logo" className="w-full h-12 md:h-14" />
                         </a>
@@ -189,8 +189,8 @@ const Navbar = () => {
                     </div>
                 </div>
                 {/* Search bar */}
-                <div className="container px-2 pt-2 md:pt-0 mb-3  md:mb-0 md:absolute top-3 md:top-5 lg:top-4" ref={searchBarRef}>
-                    <div className="relative flex items-center bg-gray-100 rounded-full shadow-md w-full md:max-w-sm lg:max-w-md mx-auto z-10">
+                <div className="container px-2 pt-2 md:pt-0 mb-3  md:mb-0 md:absolute top-3 md:top-5 rounded-full lg:top-4" ref={searchBarRef}>
+                    <div className="relative flex items-center bg-gray-50 rounded-full shadow-md w-full md:max-w-sm lg:max-w-md mx-auto z-10">
                         <input
                             type="text"
                             placeholder="Search product here..."
@@ -199,7 +199,9 @@ const Navbar = () => {
                             onKeyDown={handleSearchKeyDown}
                             onChange={handleSearchChange}
                         />
-                        <GrSearch className="absolute right-3 font-extrabold h-4 w-4 md:h-4 md:w-4 lg:h-5 lg:w-5 rounded-full text-main" />
+                        <div className="absolute right-1 lg:right-1 h-8 w-8 md:h-7 md:w-7 lg:h-9 lg:w-9 bg-main text-white flex items-center justify-center rounded-full transition-transform transform hover:scale-105">
+                            <FiSearch className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6" />
+                        </div>
                     </div>
                 </div>
 

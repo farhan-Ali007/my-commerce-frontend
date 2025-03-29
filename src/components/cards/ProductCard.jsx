@@ -83,7 +83,7 @@ const ProductCard = ({ product }) => {
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }} 
+            viewport={{ once: true, amount: 0.2 }}
             whileHover="hover"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -94,7 +94,7 @@ const ProductCard = ({ product }) => {
                     src={isHovered && images[1] ? images[1] : images[0]}
                     alt={title}
                     variants={imageVariants}
-                    whileHover="hover" 
+                    whileHover="hover"
                 />
             </Link>
 
@@ -118,8 +118,8 @@ const ProductCard = ({ product }) => {
                         {totalReviews > 0 && <span className="text-gray-500 text-sm ml-2 font-bold">({totalReviews})</span>}
                     </div>
                 </div>
-                <div className="flex items-center justify-between">
-                    <p className="text-gray-900 text-base font-medium">
+                <div className="flex items-center gap-x-2 flex-nowrap">
+                    <p className="text-gray-900 text-sm font-medium">
                         Rs.{' '}
                         {salePrice ? (
                             <span className="line-through text-gray-400 text-sm">{price}</span>
@@ -128,7 +128,8 @@ const ProductCard = ({ product }) => {
                         )}{' '}
                         {salePrice}
                     </p>
-                    {off && <p className="p-1 border-2 text-sm border-main">{off}% Off</p>}
+                    {off && <p className="p-1 border-2 text-center text-xs sm:text-sm border-main">{off}% Off</p>
+                    }
                 </div>
             </div>
         </motion.div>

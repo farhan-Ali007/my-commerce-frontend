@@ -28,7 +28,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
             <div className="p-4">
                 <div className='flex justify-between items-center'>
                     <div>
-                        <h2 className="text-xl font-bold mb-4">Categories</h2>
+                        <h2 className="text-xl font-bold mb-4 text-main">Categories</h2>
                     </div>
                     <div>
                         <IoIosClose className='font-extrabold mb-2 text-main' size={40} onClick={closeDrawer} />
@@ -37,7 +37,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                 {categories.map((category) => (
                     <div key={category._id} className="mb-2">
                         <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleCategoryExpansion(category._id)}>
-                            <Link to={`/category/${category.name}`} className="text-gray-700 no-underline font-bold capitalize">
+                            <Link to={`/category/${category.name}`} className="text-gray-700 text-base no-underline font-bold capitalize">
                                 {category.name}
                             </Link>
                             {category?.subcategories.length > 0 && (
@@ -58,7 +58,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                                         <Link
                                             key={subcategory._id}
                                             to={`/category/${category.slug}/subcategory/${subcategory.slug}`}
-                                            className="block capitalize mb-2 text-gray-700 no-underline hover:text-main py-1 pl-2 rounded"
+                                            className="block capitalize mb-2 bg-main bg-opacity-10 border-main border-l-4 no-underline text-main py-1 pl-2 rounded"
                                         >
                                             {subcategory.name}
                                         </Link>

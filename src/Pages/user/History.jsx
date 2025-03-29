@@ -32,9 +32,9 @@ const History = () => {
   if (loading) return <p className="font-medium text-xl text-center">Loading...</p>;
 
   return (
-    <div className="p-4 md:p-6 lg:p-6 min-h-screen">
-      <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 mt-3 text-center">
-        Order History{" "}
+    <div className=" px-4 py-4 md:px-6 lg:px-6  min-h-screen">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-0 md:mb-3 lg:mb-4 mt-1 text-center">
+        Order History {" "}
         <p>
           <Link to="/shop" className="text-main underline">Continue</Link>
         </p>
@@ -65,8 +65,20 @@ const History = () => {
                       <td className="border border-gray-300 px-4 py-2">{order._id}</td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 px-4 py-2">Status</td>
-                      <td className="border border-gray-300 px-4 py-2 text-main font-bold">{order?.status}</td>
+                      <td className="border border-gray-300 font-bold px-4 py-2">Status</td>
+                      <td
+                        className={`border border-gray-300 px-4 py-2 p-1 font-bold text-white ${order?.status === "Pending"
+                          ? "bg-blue-500"
+                          : order?.status === "Delivered"
+                            ? "bg-green-500"
+                            : order?.status === "Cancelled"
+                              ? "bg-red-500"
+                              : "bg-gray-500"
+                          }`}
+                      >
+                        {order?.status}
+                      </td>
+
                     </tr>
                     <tr>
                       <td className="border border-gray-300 px-4 py-2">Products</td>
@@ -74,11 +86,11 @@ const History = () => {
                         {order?.cartSummary?.map((product, productIndex) => (
                           <div key={productIndex} className="mb-4">
                             <div>
-                              <strong>Title:</strong> {truncateTitle(product.product?.title, 25)}
+                              <strong>Title:</strong> {truncateTitle(product.product?.title, 30)}
                             </div>
                             <div>
                               {product.selectedVariants.map((variant, variantIndex) => (
-                                <div key={variantIndex}>
+                                <div key={variantIndex} className="capitalize">
                                   <strong>{variant.name}:</strong> {variant.values.join(", ")}
                                 </div>
                               ))}
