@@ -66,7 +66,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
                 </div>
                 <Link
                     to="/cart"
-                    className="bg-main opacity-70 text-white font-bold py-2 my-1 px-4 text-center hover:opacity-90"
+                    className="bg-main no-underline opacity-70 text-white font-bold py-2 my-1 px-4 text-center hover:opacity-90"
                     onClick={() => setIsDrawerOpen(false)}
                 >
                     Go to Cart

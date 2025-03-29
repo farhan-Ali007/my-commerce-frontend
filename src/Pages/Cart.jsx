@@ -23,7 +23,6 @@ const Cart = () => {
         setCartData(cartItems);
     }, [cartItems]);
 
-    const totalQty = cartData?.reduce((prev, curr) => prev + curr.count, 0) || 0;
 
     const getEffectivePrice = (product) => {
         if (!product) {
@@ -60,10 +59,12 @@ const Cart = () => {
     const handleRemoveVariant = (productId, variantValue) => {
         dispatch(removeVariant({ productId, variantValue }));
     };
+
     const handleClearCart = async () => {
         try {
             dispatch(clearCartRedux());
             setData({ products: [] });
+            setCartData([])
             toast.success('Cart cleared successfully.');
         } catch (error) {
             console.log('Error in clearing the cart', error);
@@ -74,13 +75,17 @@ const Cart = () => {
     // Check if any product has freeShipping set to true
     const hasFreeShipping = cartItems.some(item => item.freeShipping);
 
-    // Calculate delivery charges
-    const deliveryCharges = hasFreeShipping ? 200 : cartItems.reduce((total, item) => total + item.deliveryCharges, 0);
-
     const totalPrice = cartData.reduce(
         (prev, curr) => prev + curr.count * (curr.salePrice != null ? curr.salePrice : curr.price),
         0
     );
+
+    const deliveryCharges = cartData.length === 0 || totalPrice >= 2000
+    ? 0
+    : cartData.every(item => item.freeShipping)  // If all products have freeShipping
+    ? 0
+    : 200; // Flat delivery charge if any product has freeShipping false
+
 
     const totalBill = totalPrice + deliveryCharges;
 
@@ -201,13 +206,13 @@ const Cart = () => {
                                                     key={index}
                                                     className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-lg shadow-sm"
                                                 >
-                                                    <span className="text-main font-medium">{variant?.values}</span>
-                                                    <button
+                                                    <span className="text-main font-medium uppercase">{variant?.values}</span>
+                                                    {/* <button
                                                         onClick={() => handleRemoveVariant(product.productId, variant?.values)}
                                                         className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 p-1 rounded-full"
                                                     >
                                                         ✕
-                                                    </button>
+                                                    </button> */}
                                                 </div>
                                             ))}
                                         </div>
@@ -220,19 +225,19 @@ const Cart = () => {
                 </div>
 
                 {/* Summary */}
-                <div className="w-full lg:w-[40%] flex mt-2 md:mt-0 flex-col items-center">
+                <div className="w-full lg:w-[40%] flex mt-2 md:mt-0 flex-col items-center ">
                     <h2 className="font-extrabold text-2xl md:text-2xl lg:text-3xl text-main mb-4 lg:mb-2 py-0 md:py-4 lg:py-4">
                         Summary
                     </h2>
-                    <div className="mt-0 lg:mt-2 w-full max-h-auto max-w-sm shadow-lg hover:shadow-2xl rounded items-center ">
-                        <div className="h-43 p-1 w-full gap-2 md:p-4 lg:p-4">
+                    <div className="mt-0 lg:mt-2 mb-4 md:mb-0 w-full max-h-auto max-w-sm shadow-lg hover:shadow-2xl rounded items-center relative md:sticky top-20">
+                        <div className="h-52 mb-16 md:pb-0  p-1 w-full gap-2 md:p-4 lg:p-4">
                             <div className="flex items-center my-1 md:my-2 lg:md-2 justify-between px-4 gap-2 font-medium text-lg text-slate-600">
                                 <p>SubTotal</p>
                                 <p>{totalPrice}</p>
                             </div>
                             <div className="flex items-center my-1 md:my-2 lg:md-2 justify-between px-4 gap-4 font-medium text-lg text-slate-600">
                                 <p>Delivery Charges</p>
-                                <p>{deliveryCharges ? deliveryCharges : 0}</p>
+                                <p>{deliveryCharges}</p>
                             </div>
                             <hr></hr>
                             <div className="flex items-center text-main my-1 md:my-2 lg:md-2 justify-between px-4 gap-4 font-medium text-lg ">
@@ -244,7 +249,7 @@ const Cart = () => {
                                 // to={user ? "/cart/checkout" : "/login"}
                                 // state={{ from: location.pathname }}
                                 onClick={handleCheckout}
-                                className="bg-main opacity-70 hover:opacity-90 my-1 md:my-2 lg:md-2 mx-2 ml-0 lg:mx-2  hover:bg-main opacity-6 p-2 text-white w-full mt-2 inline-block text-center"
+                                className="bg-main opacity-70 no-underline hover:opacity-90 my-1 md:my-2 lg:md-2 mx-2 ml-0 lg:mx-2  hover:bg-main opacity-6 p-2 text-white w-full mt-2 inline-block text-center"
                             >
                                 Proceed to Payment
                             </Link>

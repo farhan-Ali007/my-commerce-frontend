@@ -99,9 +99,9 @@ export const getRelatedProducts = async (categoryId, excludeProductId) => {
     }
 }
 
-export const getBestSellers = async () => {
+export const getBestSellers = async (page = 1, limit = 6) => {
     try {
-        const response = await axios.get(`${BASE_URL}/product/best-sellers`)
+        const response = await axios.get(`${BASE_URL}/product/best-sellers?page=${page}&limit=${limit}`);
         return response?.data;
     } catch (error) {
         console.log("Error in getting best sellers", error)

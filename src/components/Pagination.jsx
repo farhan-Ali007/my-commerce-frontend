@@ -15,7 +15,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     };
 
     return (
-        <div className="flex justify-center items-center space-x-4 mt-8 mb-4 underline underline-offset-4 ">
+        <div className="flex justify-center items-center space-x-4 mt-8 mb-4">
             <button
                 onClick={handlePreviousPage}
                 className="px-2 py-2 font-roboto bg-main bg-opacity-60 hover:opacity-80 text-black text-opacity-100 rounded-full disabled:opacity-50"

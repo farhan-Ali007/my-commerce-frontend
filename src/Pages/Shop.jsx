@@ -24,7 +24,7 @@ const Shop = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [brandFilter, setBrandFilter] = useState(null);
-    const [priceRange, setPriceRange] = useState([100, 10000]);
+    const [priceRange, setPriceRange] = useState([0, 10000]);
     const [brands, setBrands] = useState([]);
 
     // Fetch all categories
@@ -174,7 +174,7 @@ const Shop = () => {
     return (
         <div className="max-w-screen mx-2 md:mx-5 flex flex-col md:flex-row">
             {/* Sidebar Filters */}
-            <div className="w-full h-full md:w-1/4 mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md sticky md:top-20 mb-0 md:mb-2 lg:mb-2">
+            <div className="w-full h-full md:w-1/4 mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
                 {/* Price Range Filter */}
                 <div className="mb-2 md:mb-3 w-full hidden md:block">
                     <h4 className="text-lg font-bold mb-1 font-space">Price Range</h4>
@@ -191,44 +191,53 @@ const Shop = () => {
                             <span>Rs {priceRange[0]}</span>
                             <span>Rs {priceRange[1]}</span>
                         </div>
+                        {/* <button
+                                onClick={applyPriceRangeFilter}
+                                className="mt-2 w-auto bg-main bg-opacity-70 text-white rounded-lg p-2 hover:bg-opacity-90"
+                            >
+                                Filter
+                            </button> */}
                     </div>
                 </div>
+                <div className="flex md:flex-col gap-2 items-center md:items-start">
+                    {/* Sort Filter */}
+                    <div className="mb-2 md:mb-3 w-1/2 md:w-full">
+                        <h4 className="text-lg font-bold mb-1 font-space">Sort By Price</h4>
+                        <select
+                            value={priceFilter || ""}
+                            onChange={handlePriceChange}
+                            className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
+                        >
+                            <option value="" disabled>Select</option>
+                            <option value="low">Low to High</option>
+                            <option value="high">High to Low</option>
+                        </select>
+                    </div>
 
-                {/* Price Filter */}
-                <div className="mb-2 md:mb-3">
-                    <h4 className="text-lg font-bold mb-1 font-space">Filter By Price</h4>
-                    <select
-                        value={priceFilter || ""}
-                        onChange={handlePriceChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
-                    >
-                        <option value="">Select</option>
-                        <option value="low">Low to High</option>
-                        <option value="high">High to Low</option>
-                    </select>
-                </div>
-
-                {/* Category Filter */}
-                <div className="mb-2 md:mb-3">
-                    <h4 className="text-lg font-bold mb-2 font-space">Filter By Category</h4>
-                    <select
-                        value={categoryFilter[0] || ""}
-                        onChange={handleCategoryChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
-                    >
-                        <option value="">All Categories</option>
-                        {categories?.map((cat) => (
-                            <option key={cat._id} value={cat.name}>
-                                {cat.name}
-                            </option>
-                        ))}
-                    </select>
+                    {/* Category Filter */}
+                    <div className="mb-2 md:mb-3 w-1/2 md:w-full">
+                        <h4 className="text-lg font-bold mb-2 font-space">Filter By Category</h4>
+                        <select
+                            value={categoryFilter[0] || ""}
+                            onChange={handleCategoryChange}
+                            className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
+                        >
+                            <option value="" disabled>Select Category</option>
+                            {categories?.map((cat) => (
+                                <option key={cat._id} value={cat.name}>
+                                    {cat.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 {/* Brand Filter */}
                 <div className="mb-2 md:mb-3">
                     <h4 className="text-lg font-bold mb-2 font-space">Filter By Brand</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-2">
+
+                    {/* Grid layout for brands (hidden on mobile, visible on md and larger screens) */}
+                    <div className="hidden md:grid grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-2">
                         {brands?.map((brand) => (
                             <label key={brand._id} className="flex items-center">
                                 <input
@@ -242,6 +251,22 @@ const Shop = () => {
                                 {brand.name}
                             </label>
                         ))}
+                    </div>
+
+                    {/* Dropdown for brands (visible only on mobile screens) */}
+                    <div className="md:hidden">
+                        <select
+                            value={brandFilter || ""}
+                            onChange={handleBrandChange}
+                            className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
+                        >
+                            <option value="" disabled>Select Brand</option>
+                            {brands?.map((brand) => (
+                                <option key={brand._id} value={brand.name}>
+                                    {brand.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -283,7 +308,7 @@ const Shop = () => {
                         onChange={handleRatingChange}
                         className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
                     >
-                        <option value="">All Ratings</option>
+                        <option value="" disabled>All Ratings</option>
                         {[5, 4, 3, 2, 1].map((rating) => (
                             <option key={rating} value={rating}>
                                 {rating} Stars

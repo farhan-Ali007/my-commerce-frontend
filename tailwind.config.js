@@ -12,7 +12,7 @@ export default {
         space: ['Space Grotesk', 'sans-serif']
       },
       colors: {
-        main: "#9E005D"
+        main: "#0286DD" //#9E005D
       },
       opacity: {
         10: '0.1',

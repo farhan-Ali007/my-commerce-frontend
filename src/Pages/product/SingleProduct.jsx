@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { toast } from 'react-hot-toast';
-import { FaChevronLeft, FaChevronRight, FaChevronUp, FaChevronDown } from "react-icons/fa6";
-import { FaWhatsapp } from 'react-icons/fa6';
+import { FaChevronDown, FaChevronLeft, FaChevronRight, FaChevronUp, FaWhatsapp } from "react-icons/fa6";
 import { TiShoppingCart } from "react-icons/ti";
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import CartDrawer from "../../components/drawers/CartDrawer";
 import ReviewForm from "../../components/forms/ReviewForm";
 import RelatedProducts from "../../components/RelatedProducts";
@@ -20,6 +19,7 @@ const SingleProduct = () => {
     const { user } = useSelector((state) => state.auth);
     const userId = user?._id;
     const [product, setProduct] = useState({});
+    const [originalPrice, setOriginalPrice] = useState(0); 
     const [productVariants, setProductVariants] = useState([])
     const [totalPages, setTotalPages] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -32,6 +32,28 @@ const SingleProduct = () => {
     const [zoomStyle, setZoomStyle] = useState({});
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const imageRef = useRef(null);
+
+    // Calculate current price based on selected variants
+    const currentPrice = useMemo(() => {
+        if (!product) return 0;
+        
+        // If no variants selected, return sale price or regular price
+        if (Object.keys(selectedVariants).length === 0) {
+            return product.salePrice || product.price;
+        }
+        
+        // Check if any selected variant affects price
+        for (const [name, value] of Object.entries(selectedVariants)) {
+            const variant = product.variants?.find(v => v.name === name);
+            const variantValue = variant?.values?.find(v => v.value === value);
+            if (variantValue?.price) {
+                return variantValue.price;
+            }
+        }
+        
+        // Default to sale price or regular price
+        return product.salePrice || product.price;
+    }, [selectedVariants, product]);
 
     const handleMouseMove = (e) => {
         if (imageRef.current) {
@@ -46,7 +68,7 @@ const SingleProduct = () => {
                 mouseY,
                 backgroundX,
                 backgroundY,
-                top: e.clientY - 50, // Adjust for magnifying glass size
+                top: e.clientY - 50,
                 left: e.clientX - 50,
             });
         }
@@ -61,7 +83,10 @@ const SingleProduct = () => {
     const scrollThumbnails = (direction) => {
         if (thumbnailRef.current) {
             const scrollAmount = 100;
-            thumbnailRef.current.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
+            thumbnailRef.current.scrollBy({ 
+                left: direction === "left" ? -scrollAmount : scrollAmount, 
+                behavior: "smooth" 
+            });
         }
     };
 
@@ -80,9 +105,9 @@ const SingleProduct = () => {
         try {
             setLoading(true);
             const response = await getProductBySlug(slug);
-            // console.log("Products------->", response?.product)
             setProduct(response?.product);
-            setProductVariants(response?.product?.variants)
+            setOriginalPrice(response?.product?.salePrice || response?.product?.price);
+            setProductVariants(response?.product?.variants || []);
             setLoading(false);
         } catch (error) {
             setLoading(false);
@@ -101,7 +126,7 @@ const SingleProduct = () => {
     }, [product, slug]);
 
     useEffect(() => {
-        if (product?.images?.length > 0) {
+        if (product?.images?.length > 0 && !selectedImage) {
             setSelectedImage(product.images[0]);
         }
     }, [product]);
@@ -113,7 +138,7 @@ const SingleProduct = () => {
     const handleWhatsAppOrder = () => {
         const phoneNumber = "923277053836";
         const productLink = window.location.href;
-        const message = `Hello Etimad, I want to buy:\n\n*${product?.title}*\n*Price:* Rs ${product.salePrice ? product.salePrice : product.price}\n*URL:* ${productLink}\n\nThank you!`;
+        const message = `Hello Etimad, I want to buy:\n\n*${product?.title}*\n*Price:* Rs ${currentPrice}\n*URL:* ${productLink}\n\nThank you!`;
         const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
     };
@@ -129,31 +154,76 @@ const SingleProduct = () => {
     };
 
     const handleVariantChange = (variantName, value) => {
-        setSelectedVariants((prev) => ({
-            ...prev,
-            [variantName]: value,
-        }));
+        // Check if the clicked variant is already selected
+        if (selectedVariants[variantName] === value) {
+            // Deselect the variant
+            const updatedVariants = { ...selectedVariants };
+            delete updatedVariants[variantName];
+            setSelectedVariants(updatedVariants);
+            
+            // Reset the image to the default product image
+            setSelectedImage(product.images[0]);
+        } else {
+            // Select the variant
+            const updatedVariants = { ...selectedVariants, [variantName]: value };
+            setSelectedVariants(updatedVariants);
+
+            // Find the selected variant object
+            const selectedVariant = product.variants?.find(
+                (variant) => variant.name === variantName
+            );
+
+            // Find the selected value object within the variant
+            const selectedValue = selectedVariant?.values.find(
+                (val) => val.value === value
+            );
+
+            // Update the selected image if the variant value has an image
+            if (selectedValue?.image) {
+                setSelectedImage(selectedValue.image);
+            } else if (selectedVariant?.image) {
+                setSelectedImage(selectedVariant.image);
+            }
+        }
     };
 
     const prepareVariantsForBackend = () => {
-        return Object.entries(selectedVariants).map(([variantName, values]) => ({
+        return Object.entries(selectedVariants).map(([variantName, value]) => ({
             name: variantName,
-            values,
+            values: [value],
         }));
     };
 
     const handleAddToCart = async () => {
         const variantsForBackend = prepareVariantsForBackend();
+        let selectedVariantImage = product.images[0]; // Default to the first product image
+
+        // Loop through the selected variants to find the correct image
+        for (const [variantName, value] of Object.entries(selectedVariants)) {
+            const selectedVariant = product.variants?.find((variant) => variant.name === variantName);
+            if (selectedVariant) {
+                const selectedValue = selectedVariant.values.find((val) => val.value === value);
+                if (selectedValue?.image) {
+                    selectedVariantImage = selectedValue.image;
+                    break;
+                } else if (selectedVariant?.image) {
+                    selectedVariantImage = selectedVariant.image;
+                    break;
+                }
+            }
+        }
+
         const cartItem = {
             productId: product?._id,
             title: product?.title,
-            price: product.salePrice ? product.salePrice : product.price,
-            image: product?.images[0],
+            price: currentPrice,
+            image: selectedVariantImage || product?.images[0],
             count: selectedQuantity,
             selectedVariants: variantsForBackend,
             freeShipping: product?.freeShipping,
             deliveryCharges: product?.deliveryCharges
         };
+
         try {
             dispatch(addToCart(cartItem));
             setIsDrawerOpen(true);
@@ -164,19 +234,32 @@ const SingleProduct = () => {
     };
 
     const handleByNow = async () => {
-        // if (!user) {
-        //     toast.error("Please log in to proceed.");
-        //     return;
-        // }
-
         const variantsForBackend = prepareVariantsForBackend();
+        let selectedVariantImage = product.images[0];
+
+        for (const [variantName, value] of Object.entries(selectedVariants)) {
+            const selectedVariant = product.variants?.find((variant) => variant.name === variantName);
+            if (selectedVariant) {
+                const selectedValue = selectedVariant.values.find((val) => val.value === value);
+                if (selectedValue?.image) {
+                    selectedVariantImage = selectedValue.image;
+                    break;
+                } else if (selectedVariant?.image) {
+                    selectedVariantImage = selectedVariant.image;
+                    break;
+                }
+            }
+        }
+
         const cartItem = {
             productId: product?._id,
             title: product?.title,
-            price: product.salePrice ? product.salePrice : product.price,
-            image: product?.images[0],
+            price: currentPrice,
+            image: selectedVariantImage || product?.images[0],
             count: selectedQuantity,
             selectedVariants: variantsForBackend,
+            freeShipping: product?.freeShipping,
+            deliveryCharges: product?.deliveryCharges
         };
 
         try {
@@ -205,7 +288,7 @@ const SingleProduct = () => {
             <div className="flex flex-col md:flex-row gap-10">
                 {/* Product Images */}
                 <div className="w-full md:w-1/2 flex flex-col md:flex-row">
-                    {/* Main Image First on Mobile, Second on Large Screens */}
+                    {/* Main Image */}
                     <div className="relative flex-1 order-1 md:order-2 mt-4 md:mt-0 md:ml-4">
                         <div
                             className="overflow-hidden aspect-square h-[300px] w-[300px] border border-red-100 mx-auto relative"
@@ -218,7 +301,6 @@ const SingleProduct = () => {
                                 alt={product?.title || "Product Image"}
                                 loading="lazy"
                                 className="w-full h-full object-contain cursor-pointer"
-                                style={{ transform: zoomStyle.transform, transformOrigin: zoomStyle.transformOrigin }}
                             />
                             {zoomStyle.backgroundX !== undefined && (
                                 <div
@@ -244,16 +326,14 @@ const SingleProduct = () => {
                         </div>
                     </div>
 
-                    {/* Thumbnail List (Order Before Main Image on Large Screens) */}
-                    <div className="relative md:w-20 flex order-2  items-center md:order-1 flex-row md:flex-col mt-4 md:mt-0">
-                        {/* Scroll Buttons for Large Screens */}
+                    {/* Thumbnail List */}
+                    <div className="relative md:w-20 flex order-2 items-center md:order-1 max-h-72 flex-row md:flex-col mt-4 md:mt-0">
                         <button
                             onClick={() => scrollThumbnails("up")}
                             className="hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 bg-none text-main font-semibold "
                         >
                             <FaChevronUp strokeWidth={24} />
                         </button>
-                        {/* Scroll Buttons for Large Screens */}
                         <button
                             onClick={() => scrollThumbnails("down")}
                             className="hidden md:block absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-none text-main font-semibold "
@@ -282,8 +362,6 @@ const SingleProduct = () => {
                             ))}
                         </div>
 
-
-                        {/* Scroll Buttons for Mobile Screens */}
                         <button
                             onClick={() => scrollThumbnails("left")}
                             className="md:hidden absolute left-0 top-1/2 transform -translate-y-1/2 bg-none text-main font-semibold "
@@ -299,47 +377,40 @@ const SingleProduct = () => {
                     </div>
                 </div>
 
-
-
                 {/* Product Details */}
                 <div className="w-full md:w-1/2 ml-0 md:ml-5 py-4 max-w-screen-xl">
-                    <h1 className="text-4xl font-space font-semibold text-gray-900 mb-3">
+                    <h1 className="text-2xl md:text-3xl font-space capitalize font-semibold text-gray-900 mb-2">
                         {product?.title || "Product Title"}
                     </h1>
-                    {product?.brand && (
-                        <p className="text-sm text-gray-700 mb-2">
-                            <strong>Brand:</strong> {product.brand?.name}
-                        </p>
-                    )}
                     {product?.category?.name && (
                         <p className="text-sm text-gray-700">
                             <strong>Category:</strong> {product.category.name}
                         </p>
                     )}
-                    <p className="text-sm text-gray-600">
-                        {showFullDescription
-                            ? product?.description
-                            : product?.description?.slice(0, 200) + "..."}
-                    </p>
+                    <p className="text-base pl-2 md:pl-0 text-black"
+                        dangerouslySetInnerHTML={{
+                            __html: showFullDescription
+                                ? product?.description
+                                : product?.description?.slice(0, 100) + "..."
+                        }}
+                    />
                     <button
                         onClick={toggleDescription}
                         className="text-main text-sm mb-2 font-semibold"
                     >
                         {showFullDescription ? "See less" : "See more"}
                     </button>
-                    {product?.price && (
-                        <p className=" text-xl md:text-2xl font-poppins font-semibold mb-3">
-                            {product.salePrice ? (
-                                <>
-                                    <span className="text-gray-500 line-through text-sm">Rs. {product.price}</span>
-                                    <span className="text-main ml-2">Rs. {product.salePrice}</span>
-                                </>
-                            ) : (
-                                <span>Rs. {product.price}</span>
-                            )}
-                        </p>
-                    )}
-
+                    <p className="text-xl md:text-2xl font-poppins font-semibold mb-3">
+                        {product.salePrice && currentPrice === originalPrice ? (
+                            <>
+                                <span className="text-gray-500 line-through decoration-1 text-base">Rs. {product.price}</span>
+                                <span className="text-main ml-2">Rs. {currentPrice}</span>
+                            </>
+                        ) : (
+                            <span>Rs. {currentPrice}</span>
+                        )}
+                    </p>
+                    
                     {/* Quantity Selector */}
                     {product?.stock && (
                         <div className="flex items-center gap-4 mb-3">
@@ -365,7 +436,7 @@ const SingleProduct = () => {
                     {productVariants && productVariants.length > 0 ? (
                         productVariants.map((variant, index) => (
                             <div key={index} className="mb-3 gap-2">
-                                <h3 className="text-md font-semibold text-main font-poppins">
+                                <h3 className="text-md capitalize font-semibold text-main font-poppins">
                                     {variant.name}
                                 </h3>
                                 <div className="flex gap-2 items-center">
@@ -373,7 +444,7 @@ const SingleProduct = () => {
                                         <button
                                             key={idx}
                                             onClick={() => handleVariantChange(variant.name, value.value)}
-                                            className={`px-4 py-2 rounded-lg border ${selectedVariants[variant.name] === value.value
+                                            className={`px-4 py-2 capitalize  border ${selectedVariants[variant.name] === value.value
                                                 ? "bg-main text-white"
                                                 : "bg-gray-200"
                                                 }`}
@@ -390,16 +461,14 @@ const SingleProduct = () => {
                     <div>
                         <div className="flex w-full flex-col md:flex-row md:justify-start gap-4">
                             <Link
-                                // to={user ? "/cart/checkout" : "/login"}
-                                // state={{ from: location.pathname }}
                                 onClick={handleByNow}
-                                className="bg-main opacity-70 text-sm lg:text-base  w-full md:w-auto  md:flex-2 text-center hover:opacity-90 text-white font-bold py-2 px-6"
+                                className="bg-main opacity-70 no-underline text-sm lg:text-base  w-full md:w-auto  md:flex-2 text-center hover:opacity-90 text-white font-bold py-2 px-6"
                             >
                                 Buy Now
                             </Link>
                             <Link
                                 onClick={handleAddToCart}
-                                className="bg-main opacity-70  w-full md:w-auto  gap-1 text-sm lg:text-base flex items-center justify-center  hover:bg-main hover:opacity-90 text-white font-bold py-2 px-6 "
+                                className="bg-main opacity-70 no-underline  w-full md:w-auto  gap-1 text-sm lg:text-base flex items-center justify-center  hover:bg-main hover:opacity-90 text-white font-bold py-2 px-6 "
                             >
                                 <TiShoppingCart className="text-xl" />
                                 Add to Cart
@@ -407,7 +476,7 @@ const SingleProduct = () => {
                         </div>
                         <button
                             onClick={handleWhatsAppOrder}
-                            className="bg-green-600 my-3 max-w-screen-md hover:bg-green-800 text-white font-bold py-2 px-8 gap-2  flex items-center justify-center  text-base md:text-xl">
+                            className="bg-green-600 my-3 w-full sm:w-auto md:max-w-screen-md hover:bg-green-800 text-white font-bold py-2 px-8 gap-2  flex items-center justify-center  text-base md:text-xl">
                             <FaWhatsapp className="text-2xl" /> Order via WhatsApp
                         </button>
                     </div>
@@ -427,4 +496,4 @@ const SingleProduct = () => {
     );
 };
 
-export default SingleProduct;
+export default React.memo(SingleProduct);

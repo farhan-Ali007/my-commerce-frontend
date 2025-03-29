@@ -24,7 +24,6 @@ const Categories = () => {
         fetchAllCategories();
     }, []);
 
-    // Animation variants for the grid items
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {

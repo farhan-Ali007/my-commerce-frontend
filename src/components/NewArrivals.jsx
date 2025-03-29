@@ -60,9 +60,9 @@ const NewArrivals = () => {
     // React Slick settings
     const settings = {
         dots: false,
-        infinite: true,
+        infinite: false,
         speed: 500,
-        autoplay:true,
+        autoplay: true,
         autoplaySpeed: 4000,
         slidesToShow: 6, // Number of products to show at once
         slidesToScroll: 2,

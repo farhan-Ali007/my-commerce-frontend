@@ -1,13 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react'; // Import useState
 import { Link } from 'react-router-dom';
 import { truncateTitle } from '../../helpers/truncateTitle';
-import { TbTruckDelivery } from "react-icons/tb";
-
+import { TbTruckDelivery } from 'react-icons/tb';
+import { motion } from 'framer-motion'; // Import motion from Framer Motion
 
 const ProductCard = ({ product }) => {
     const { images, title, averageRating, price, salePrice, slug, freeShipping } = product;
     const off = salePrice && Math.floor(((price - salePrice) / price) * 100);
     const totalReviews = product?.reviews?.length;
+
+    // State to track hover
+    const [isHovered, setIsHovered] = useState(false);
+
+    // Animation Variants
+    const cardVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+        hover: { scale: 1.05, transition: { duration: 0.3 } }, // Hover animation
+    };
+
+    const imageVariants = {
+        hover: { scale: 1.1, transition: { duration: 0.3 } }, // Image hover animation
+    };
 
     const renderStars = (rating) => {
         const stars = [];
@@ -64,31 +78,40 @@ const ProductCard = ({ product }) => {
     };
 
     return (
-        <div className="max-w-sm bg-white overflow-hidden hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col items-stretch relative">
+        <motion.div
+            className="max-w-sm bg-white overflow-hidden shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow  duration-300 flex flex-col items-stretch relative"
+            variants={cardVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }} 
+            whileHover="hover"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
             <Link to={`/product/${slug}`} className="overflow-hidden w-full mb-4 aspect-square">
-                <img
-                    className="w-full h-full object-cover transform transition-transform duration-300 hover:scale-110"
-                    src={images[0]}
+                <motion.img
+                    className="w-full h-full object-cover transform transition-transform duration-300"
+                    src={isHovered && images[1] ? images[1] : images[0]}
                     alt={title}
+                    variants={imageVariants}
+                    whileHover="hover" 
                 />
             </Link>
 
             {/* Free Shipping Tag */}
             {freeShipping && (
-                <span className="absolute top-0 right-0 bg-green-600 flex items-center gap-1 text-white text-xs font-semibold px-2 py-1 shadow-md">
-                    <TbTruckDelivery size={20}/>  Free Shipping
-                </span>
+                <motion.span
+                    className="absolute top-0 right-0 bg-green-600 rounded-s-sm  flex items-center gap-1 text-white text-sm font-semibold px-2 py-1 shadow-md"
+                    initial={{ opacity: 0, y: -20 }}
+                    whileInView={{ opacity: 1, y: 0, transition: { duration: 0.5 } }}
+                    viewport={{ once: true, amount: 0.2 }}
+                >
+                    <TbTruckDelivery size={20} /> Free Shipping
+                </motion.span>
             )}
 
-            {/* {off && (
-                <span className="absolute top-2 right-2 bg-red-600 bg-opacity-90 text-white text-sm rounded-full h-12 w-12 flex flex-col items-center justify-center animate-custom-bounce">
-                    <span className="text-sm font-bold">{off}%</span>
-                    <span className="text-[10px] md:text-xs">Off</span>
-                </span>
-            )} */}
-
             <div className="mx-2 justify-start font-roboto mb-4">
-                <h2 className="font-bold text-base md:text-lg mb-2">{truncateTitle(title, 50)}</h2>
+                <h2 className="font-semibold text-base md:text-lg mb-2">{truncateTitle(title, 50)}</h2>
                 <div className="flex items-center mb-1 gap-1">
                     <div className="flex items-center gap-1">
                         {renderStars(averageRating || 0)}
@@ -96,7 +119,7 @@ const ProductCard = ({ product }) => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <p className="text-gray-900 text-base font-semibold">
+                    <p className="text-gray-900 text-base font-medium">
                         Rs.{' '}
                         {salePrice ? (
                             <span className="line-through text-gray-400 text-sm">{price}</span>
@@ -105,19 +128,10 @@ const ProductCard = ({ product }) => {
                         )}{' '}
                         {salePrice}
                     </p>
-                    {off && <p className='p-1 border-2 text-sm border-main'>{off}% Off</p>}
+                    {off && <p className="p-1 border-2 text-sm border-main">{off}% Off</p>}
                 </div>
             </div>
-
-            {/* <div className="flex justify-start items-center mb-2 gap-2 px-3">
-                <Link
-                    to={`/product/${slug}`}
-                    className="w-auto opacity-70 hover:opacity-90 text-main hover:text-white hover:bg-main border-2 border-main font-bold py-2 px-6 md:px-7"
-                >
-                    Shop
-                </Link>
-            </div> */}
-        </div>
+        </motion.div>
     );
 };
 

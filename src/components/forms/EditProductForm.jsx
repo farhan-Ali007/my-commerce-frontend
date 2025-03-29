@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { IoAddCircle, IoTrash } from 'react-icons/io5';
+import ReactQuill from "react-quill";
+import 'react-quill/dist/quill.snow.css';
 
 const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categories, tags, brands }) => {
 
@@ -8,6 +10,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
     const [formData, setFormData] = useState({
         title: "",
         description: "",
+        longDescription: "",
         weight: "",
         images: [],
         category: "",
@@ -16,7 +19,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         brand: "",
         stock: "",
         tags: [],
-        variants: [{ name: "", values: [{ value: "", image: "" }] }],
+        variants: [{ name: "", values: [{ value: "", image: "", price: "" }] }],
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [freeShipping, setFreeShipping] = useState(false);
@@ -28,7 +31,8 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                 name: variant.name,
                 values: variant.values.map(val => ({
                     value: val.value,
-                    image: val.image
+                    image: val.image,
+                    price: val.price
                 }))
             }));
 
@@ -143,6 +147,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         const submissionData = new FormData();
         submissionData.append("title", formData.title);
         submissionData.append("description", formData.description);
+        submissionData.append("longDescription", formData.longDescription)
         submissionData.append("price", formData.price);
         submissionData.append("salePrice", formData.salePrice);
         submissionData.append("weight", formData.weight);
@@ -160,33 +165,36 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         submissionData.append("tags", (formData.tags || []).map(tag => tag.name).join(','));
 
         // Add variants and their images
-        const variantsWithImages = formData.variants.map((variant, variantIndex) => {
-            const variantData = {
-                name: variant.name,
-                values: variant.values.map((val, valueIndex) => {
-                    const valueData = {
-                        value: val.value,
-                    };
+        if (JSON.stringify(formData.variants) !== JSON.stringify(defaultValues.variants)) {
+            const variantsWithImages = formData.variants.map((variant, variantIndex) => {
+                const variantData = {
+                    name: variant.name,
+                    values: variant.values.map((val, valueIndex) => {
+                        const valueData = {
+                            value: val.value,
+                            price: val.price, // Include price in the variant data
+                        };
 
-                    if (val.image && val.image instanceof File) {
-                        submissionData.append(`variantImages`, val.image, `${variant.name}-${val.value}-${val.image.name}`); // Include variant name and value in filename
-                        valueData.image = val.image.name; // Store original filename for reference
-                    } else if (typeof val.image === 'string') {
-                        valueData.image = val.image; // Keep existing image URL
-                    }
+                        if (val.image && val.image instanceof File) {
+                            submissionData.append(`variantImages`, val.image, `${variant.name}-${val.value}-${val.image.name}`);
+                            valueData.image = val.image.name;
+                        } else if (typeof val.image === 'string') {
+                            valueData.image = val.image;
+                        }
 
-                    return valueData;
-                })
-            };
+                        return valueData;
+                    })
+                };
 
-            return variantData;
-        });
-        submissionData.append("variants", JSON.stringify(variantsWithImages));
+                return variantData;
+            });
+            submissionData.append("variants", JSON.stringify(variantsWithImages));
+        }
 
         // Add new images
         formData.images.forEach((image) => {
             if (image instanceof File) {
-                submissionData.append("images", image); // Send new files
+                submissionData.append("images", image);
             }
         });
 
@@ -194,13 +202,6 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         const existingImageUrls = formData.images.filter((image) => typeof image === "string");
         submissionData.append("existingImages", JSON.stringify(existingImageUrls));
 
-        // Log submission data
-        for (let [key, value] of submissionData.entries()) {
-            console.log(`${key}:`, value);
-        }
-        console.log("Data being sent to backend ------>", submissionData);
-
-        // Call the onSubmit function passed as a prop
         onSubmit(submissionData);
         setTimeout(() => {
             resetForm();
@@ -211,6 +212,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         setFormData({
             title: "",
             description: "",
+            longDescription: "",
             weight: "",
             images: [],
             category: "",
@@ -225,6 +227,31 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         // Revoke image URLs to free memory
         imagePreviews.forEach((url) => URL.revokeObjectURL(url));
         setImagePreviews([]);
+    };
+
+    const handlePaste = (event) => {
+        event.preventDefault();
+        const clipboardData = event.clipboardData || window.clipboardData;
+        const pastedHTML = clipboardData.getData("text/html");
+        const plainText = clipboardData.getData("text/plain");
+
+        const quill = quillRef.current.getEditor();
+        const range = quill.getSelection();
+
+        if (pastedHTML) {
+            quill.clipboard.dangerouslyPasteHTML(range.index, pastedHTML.trim());
+        } else if (plainText) {
+            quill.clipboard.dangerouslyPasteHTML(range.index, plainText.replace(/\n/g, "<br>"));
+        }
+    };
+
+
+    const handleDescriptionChange = (value) => {
+        setFormData((prev) => ({ ...prev, description: value }));
+    };
+
+    const handleLongDescriptionChange = (value) => {
+        setFormData((prev) => ({ ...prev, longDescription: value }));
     };
 
     return (
@@ -243,15 +270,51 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                 />
             </div>
 
+
             {/* Description */}
-            <div className="mb-4 min-h-20">
-                <label className="block font-medium mb-2">Description</label>
-                <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="w-full h-30 md:h-40 border px-4 py-4 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
-                />
+            <div className="mb-4">
+                <label className="block font-medium mb-2 text-main">Description</label>
+                <div className="h-56 ">
+                    <ReactQuill
+                        value={formData.description}
+                        onChange={handleDescriptionChange}
+                        className="flex-1 h-36 md:h-[10rem]"
+                        modules={{
+                            toolbar: [
+                                [{ 'font': [] }],
+                                [{ 'size': ['small', false, 'large', 'huge'] }],
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                ['link'],
+                                ['clean']
+                            ],
+                        }}
+                        onPaste={handlePaste}
+                    />
+                </div>
+            </div>
+
+            {/* Long Description */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2 text-main">Long Description</label>
+                <div className="h-80">
+                    <ReactQuill
+                        value={formData.longDescription}
+                        onChange={handleLongDescriptionChange}
+                        className="flex-1 h-[16rem] md:h-[18rem]"
+                        modules={{
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                ['link'],
+                                ['clean']
+                            ],
+                        }}
+                        onPaste={handlePaste}
+                    />
+                </div>
             </div>
 
             {/* Weight */}
@@ -268,16 +331,6 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
             </div>
 
             {/* Brand */}
-            {/* <div className="mb-4">
-                <label className="block font-medium mb-2">Brand</label>
-                <input
-                    type="text"
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleChange}
-                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
-                />
-            </div> */}
 
             <div className="mb-4">
                 <label className="block font-medium mb-2">Brand</label>
@@ -382,7 +435,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                                     updatedVariants[variantIndex].name = e.target.value;
                                     setFormData((prev) => ({ ...prev, variants: updatedVariants }));
                                 }}
-                                className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
+                                className="w-full border font-bold text-main px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
                             />
                         </div>
                         {variant.values.map((value, valueIndex) => (
@@ -392,6 +445,13 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                                     placeholder="Variant Value"
                                     value={value.value || ""}
                                     onChange={(e) => handleVariantChange(variantIndex, valueIndex, "value", e.target.value)}
+                                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Price"
+                                    value={value.price || ""}
+                                    onChange={(e) => handleVariantChange(variantIndex, valueIndex, "price", e.target.value)}
                                     className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
                                 />
                                 <div className="mb-2">
@@ -423,6 +483,13 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                                 <div className="flex justify-end">
                                     <button
                                         type="button"
+                                        onClick={() => addVariantValue(variantIndex)}
+                                        className="flex items-center gap-1 bg-blue-500 text-white px-4 py-1 rounded-md"
+                                    >
+                                        <IoAddCircle /> Add Value
+                                    </button>
+                                    <button
+                                        type="button"
                                         onClick={() => removeVariantValue(variantIndex, valueIndex)}
                                         className="flex items-center gap-1 bg-red-500 text-white px-4 py-1 rounded-md ml-2"
                                     >
@@ -432,13 +499,6 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                             </div>
                         ))}
                         <div className="flex justify-end">
-                            <button
-                                type="button"
-                                onClick={() => addVariantValue(variantIndex)}
-                                className="flex items-center gap-1 bg-blue-500 text-white px-4 py-1 rounded-md"
-                            >
-                                <IoAddCircle /> Add Value
-                            </button>
                             <button
                                 type="button"
                                 onClick={() => removeVariant(variantIndex)}

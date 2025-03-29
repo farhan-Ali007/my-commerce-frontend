@@ -103,7 +103,7 @@ const CreateProduct = () => {
   };
 
   return (
-    <div className="max-w-[800px]  mx-auto p-6">
+    <div className="max-w-[800px]  mx-auto p-1 md:p-4 lg:p-6">
       {loading && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 bg-opacity-75"

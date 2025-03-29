@@ -8,6 +8,26 @@
   box-sizing: border-box;
 }
 
+ul {
+  list-style-type: disc;
+}
+
+ol{
+  list-style-type: decimal;
+}
+a {
+  text-decoration: underline;
+  color: cornflowerblue;
+}
+
+.ql-container {
+  height: 100% !important;
+}
+
+.ql-editor {
+  min-height: 100% !important;
+}
+
 .image-zoom-container {
   position: relative;
   overflow: hidden;
@@ -28,12 +48,14 @@
 }
 
 .image-zoom-container:hover img {
-  transform: none; /* Adjust the zoom level as needed */
+  transform: none;
+  /* Adjust the zoom level as needed */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -48,4 +70,3 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
-

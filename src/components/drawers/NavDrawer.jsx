@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaAngleDown, FaAngleRight } from "react-icons/fa";
+import { FaAngleDown, FaAngleRight, FaMobileAlt } from "react-icons/fa";
 import Drawer from 'react-modern-drawer';
 import 'react-modern-drawer/dist/index.css';
 import { IoLogoWhatsapp } from "react-icons/io";
@@ -31,13 +31,13 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                         <h2 className="text-xl font-bold mb-4">Categories</h2>
                     </div>
                     <div>
-                        <IoIosClose className='font-extrabold mb-2' size={40} onClick={closeDrawer} />
+                        <IoIosClose className='font-extrabold mb-2 text-main' size={40} onClick={closeDrawer} />
                     </div>
                 </div>
                 {categories.map((category) => (
                     <div key={category._id} className="mb-2">
                         <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleCategoryExpansion(category._id)}>
-                            <Link to={`/category/${category.name}`} className="text-gray-700 font-bold capitalize">
+                            <Link to={`/category/${category.name}`} className="text-gray-700 no-underline font-bold capitalize">
                                 {category.name}
                             </Link>
                             {category?.subcategories.length > 0 && (
@@ -49,9 +49,8 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                             )}
                         </div>
                         <div
-                            className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                                expandedCategories.includes(category._id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                            }`}
+                            className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedCategories.includes(category._id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                                }`}
                         >
                             {category.subcategories.length > 0 && (
                                 <div className="pl-4 mt-2 rounded">
@@ -59,7 +58,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                                         <Link
                                             key={subcategory._id}
                                             to={`/category/${category.slug}/subcategory/${subcategory.slug}`}
-                                            className="block capitalize mb-2 text-gray-700 hover:text-main py-1 pl-2 rounded"
+                                            className="block capitalize mb-2 text-gray-700 no-underline hover:text-main py-1 pl-2 rounded"
                                         >
                                             {subcategory.name}
                                         </Link>
@@ -71,7 +70,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                 ))}
             </div>
             <div className='flex ml-3 absolute bottom-3 w-full text-green-800 font-bold text-base items-center gap-1'>
-                <span className='font-semibold text-xl'><IoLogoWhatsapp /></span> +92300-0000000
+                <span className='font-semibold text-xl'><FaMobileAlt className='text-orange-700' size={26} /></span> 0300-0000000
             </div>
         </Drawer>
     );

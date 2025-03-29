@@ -8,18 +8,32 @@ const cartSlice = createSlice({
     },
     reducers: {
         addToCart: (state, action) => {
-            const itemIndex = state.items.findIndex(item => item.productId === action.payload.productId);
-        
+            const newItem = action.payload;
+
+            // Check if the item with the same productId AND selectedVariants already exists
+            const itemIndex = state.items.findIndex(
+                item =>
+                    item.productId === newItem.productId &&
+                    JSON.stringify(item.selectedVariants) === JSON.stringify(newItem.selectedVariants)
+            );
+
             if (itemIndex >= 0) {
-                state.items[itemIndex].count += action.payload.count;
+                // If the same product with the same variants exists, update the quantity
+                state.items[itemIndex].count += newItem.count;
             } else {
-                state.items.push(action.payload);
+                // Otherwise, add the new item to the cart
+                state.items.push(newItem);
             }
+
+            // Update the cart total
             state.cartTotal = state.items.reduce((total, item) => total + item.price * item.count, 0);
+
+            // Update localStorage
             localStorage.setItem('cartItems', JSON.stringify(state.items));
             localStorage.setItem('cartTotal', state.cartTotal.toString());
         },
-        
+
+
         updateQuantity: (state, action) => {
             const itemIndex = state.items.findIndex(item => item.productId === action.payload.id);
             if (itemIndex >= 0) {
@@ -59,6 +73,6 @@ const cartSlice = createSlice({
     }
 });
 
-export const { addToCart, updateQuantity, removeFromCart, clearCartRedux , removeVariant } = cartSlice.actions;
+export const { addToCart, updateQuantity, removeFromCart, clearCartRedux, removeVariant } = cartSlice.actions;
 
 export default cartSlice.reducer;

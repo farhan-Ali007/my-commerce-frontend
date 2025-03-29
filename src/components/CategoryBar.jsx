@@ -1,10 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from "react";
 import { FaAngleDown } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
 
 const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, setModalState }) => {
     const navigateTo = useNavigate();
+    const location = useLocation(); // Get current URL path
     const [isMouseOverModal, setIsMouseOverModal] = useState(false);
 
     const categoryRefs = useRef({});
@@ -22,6 +23,12 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
             document.removeEventListener('click', handleClickOutside);
         };
     }, []);
+
+    // Function to check if a category is active based on the URL
+    const isCategoryActive = (category) => {
+        const path = location.pathname; // Current URL path
+        return path.startsWith(`/category/${category.slug}`);
+    };
 
     const handleCategoryHover = (category, event) => {
         if (category.subcategories.length > 0) {
@@ -96,12 +103,18 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                             ref={(el) => (categoryRefs.current[category._id] = el)}
                         >
                             <div
-                                className="flex items-center gap-1 cursor-pointer"
+                                className={`flex items-center gap-1 cursor-pointer ${isCategoryActive(category)
+                                        ? "bg-blue-500 "
+                                        : ""
+                                    }`}
                                 onClick={(e) => handleCategoryClick(category, e)}
                                 onMouseEnter={(e) => handleCategoryHover(category, e)}
                             >
                                 <div
-                                    className="text-white p-1 font-semibold text-xl capitalize hover:text-gray-300"
+                                    className={`text-white p-1 font-semibold text-xl capitalize hover:text-gray-300 ${isCategoryActive(category)
+                                            ? "text-gray-900"
+                                            : ""
+                                        }`}
                                     onClick={() => navigateTo(`/category/${category.slug}`)}
                                 >
                                     {category.name}

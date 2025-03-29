@@ -106,7 +106,7 @@ const AllOrders = () => {
                                     </td>
 
                                     <td className="px-4 py-2 border">
-                                        <ul>
+                                        <ul style={{listStyleType:"none"}}>
                                             {order.cartSummary?.map((product) => (
                                                 <li key={product._id} className="mb-4">
                                                     <div>

@@ -66,7 +66,7 @@ const AllProducts = () => {
                 />
                 <Link
                     to="/add-product"
-                    className="bg-main opacity-70 text-white px-4 py-2 md:py-2 lg:py-[0.6rem] rounded-full shadow-md flex items-center gap-2 hover:opacity-90 transition-opacity"
+                    className="bg-main opacity-70 no-underline text-white px-4 py-2 md:py-2 lg:py-[0.6rem] rounded-full shadow-md flex items-center gap-2 hover:opacity-90 transition-opacity"
                 >
                     <IoAddCircle className="text-xl" /> Add Product
                 </Link>
@@ -93,7 +93,7 @@ const AllProducts = () => {
                             <div className="flex gap-4 mt-4 w-full justify-between">
                                 <Link
                                     to={`/edit-product/${product.slug}`}
-                                    className="bg-green-500 text-white px-4 py-2 rounded-md shadow-md flex items-center gap-2 hover:bg-green-600 transition-colors w-full"
+                                    className="bg-green-500  no-underline text-white px-4 py-2 rounded-md shadow-md flex items-center gap-2 hover:bg-green-600 transition-colors w-full"
                                 >
                                     <IoPencil /> Edit
                                 </Link>

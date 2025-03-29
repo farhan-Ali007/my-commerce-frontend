@@ -21,10 +21,10 @@ const Footer = () => {
                     {/* Second Div: Quick Links */}
                     <div>
                         <h3 className="text-2xl font-semibold mb-4 text-center md:text-start">Quick Links</h3>
-                        <ul className="text-gray-600 space-y-2 text-center md:text-start">
-                            <li><a href="/home" className="hover:text-main  text-[1rem] md:text-xl font-medium">Home</a></li>
-                            <li><a href="/shop" className="hover:text-main text-[1rem] md:text-xl  font-medium">Shop</a></li>
-                            <li><a href="/about" className="hover:text-main text-[1rem] md:text-xl  font-medium">About Us</a></li>
+                        <ul className="text-gray-600 space-y-2 text-center md:text-start list-none">
+                            <li><a href="/home" className="text-gray-600 hover:text-main  text-[1rem] md:text-xl font-medium no-underline">Home</a></li>
+                            <li><a href="/shop" className="text-gray-600 hover:text-main text-[1rem] md:text-xl  font-medium no-underline">Shop</a></li>
+                            <li><a href="/about" className="text-gray-600 hover:text-main text-[1rem] md:text-xl  font-medium no-underline">About Us</a></li>
                         </ul>
                     </div>
 
@@ -33,35 +33,59 @@ const Footer = () => {
                         <h3 className="text-2xl text-center md:text-start font-semibold mb-4">Contact Information</h3>
                         <div className="text-gray-600 space-y-4">
                             <div className="flex justify-center items-center md:justify-start space-x-2">
-                                <MdLocationOn className='text-main' />
+                                <MdLocationOn className='text-main'  size={22} />
                                 <span>123 Street, City, Country</span>
                             </div>
                             <div className="flex justify-center md:justify-start items-center space-x-2">
-                                <FaWhatsapp className='text-main' />
-                                <span>+1 234 567 890</span>
+                                <a href="https://wa.me/+923277053836" target="_blank" rel="noopener noreferrer" className="flex items-center no-underline space-x-2 hover:text-main">
+                                    <FaWhatsapp className='text-main'  size={22} />
+                                    <span className='text-gray-600 hover:text-main'>03277053836</span>
+                                </a>
                             </div>
                             <div className="flex justify-center md:justify-start items-center space-x-2">
-                                <MdPhone className='text-main' />
-                                <span>+1 234 567 890</span>
+                                <a href="tel:+923277053836" className="flex items-center no-underline space-x-2 hover:text-main">
+                                    <MdPhone className='text-main'  size={22} />
+                                    <span className='text-gray-600 hover:text-main'>03277053836</span>
+                                </a>
                             </div>
                             <div className="flex justify-center md:justify-start items-center space-x-2">
-                                <MdMail className='text-main' />
-                                <span>info@example.com</span>
+                                <a href="mailto:info@example.com" className="flex items-center space-x-2 no-underline hover:text-main">
+                                    <MdMail className='text-main' size={22} />
+                                    <span className='text-gray-600 hover:text-main'>info@example.com</span>
+                                </a>
                             </div>
                         </div>
                     </div>
+
+                    {/* Social Media Links */}
                     <div>
                         <h3 className="text-2xl text-center md:text-start font-semibold mb-4">Follow Us Online</h3>
-                        {/* Social Media Links */}
-                        <div className="flex justify-center md:justify-start space-x-6 mt-4">
+
+                        <div className="flex justify-center md:justify-start space-x-5 mt-4">
                             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
-                                <FaFacebook className="text-gray-600 hover:text-main" size={28} />
+                                <FaFacebook className="text-gray-600 hover:text-[#4372E6]" size={30} />
                             </a>
-                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-                                <FaInstagram className="text-gray-600 hover:text-main" size={28} />
+                            <a
+                                href="https://instagram.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group"
+                            >
+                                <FaInstagram
+                                    className="transition-all duration-300 fill-gray-500 group-hover:fill-[url(#instaGradient)]"
+                                    size={30}
+                                />
+                                <svg width="0" height="0">
+                                    <linearGradient id="instaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop stopColor="#f58529" offset="0%" />
+                                        <stop stopColor="#dd2a7b" offset="50%" />
+                                        <stop stopColor="#8134af" offset="100%" />
+                                    </linearGradient>
+                                </svg>
                             </a>
+
                             <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">
-                                <FaTiktok className="text-gray-600 hover:text-main" size={28} />
+                                <FaTiktok className="text-gray-600 hover:text-black" size={30} />
                             </a>
                         </div>
                     </div>

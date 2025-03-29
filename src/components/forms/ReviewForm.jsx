@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { createProductReview, getReviewsBySlug } from '../../functions/product';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import DOMPurify from 'dompurify';
+import { decode } from 'he';
 
 const ReviewForm = ({ slug, product }) => {
-    const location = useLocation()
-    const navigateTo = useNavigate()
+    const location = useLocation();
+    const navigateTo = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const [reviews, setReviews] = useState([]);
     const [formData, setFormData] = useState({
@@ -36,36 +38,43 @@ const ReviewForm = ({ slug, product }) => {
     const fetchReviews = async () => {
         try {
             const response = await getReviewsBySlug(slug);
-            // console.log("Reviews----->", response);
             setReviews(response?.reviews || []);
         } catch (error) {
             console.log("Error in fetching reviews", error);
         }
     };
 
+    const calculateRatingSummary = () => {
+        const summary = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        reviews.forEach(review => {
+            summary[review.rating]++;
+        });
+        return summary;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         if (!user) {
             toast.error("Please log in to submit a review.");
             navigateTo("/login", { state: { from: location.pathname } });
             return;
         }
-    
+
         if (!formData.email || !formData.review || !formData.rating) {
             toast.error("Please fill out all fields before submitting your review.");
             navigateTo("/login", { state: { from: location.pathname } });
             return;
         }
-    
+
         const reviewerId = user._id;
-    
+
         const reviewData = {
             email: formData.email,
             reviewText: formData.review,
             rating: formData.rating,
         };
-    
+
         try {
             const response = await createProductReview(slug, reviewerId, reviewData);
 
@@ -75,7 +84,7 @@ const ReviewForm = ({ slug, product }) => {
                     autoClose: 6000,
                 }
             );
-    
+
             setFormData({ review: "", email: user?.email, rating: 0 });
             fetchReviews();
         } catch (error) {
@@ -83,10 +92,13 @@ const ReviewForm = ({ slug, product }) => {
             toast.error(error?.response?.data?.message || "Error in submitting review");
         }
     };
-    
+
+    const decodedHTML = decode(product?.longDescription || "");
+
+    const ratingSummary = calculateRatingSummary();
 
     return (
-        <div className="max-w-screen-xl mx-auto px-4 py-10">
+        <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-6 lg:py-2">
             <div className="flex flex-col md:flex-row gap-10">
                 {/* Reviews List Section */}
                 <div className="w-full md:w-1/2 lg:w-2/3">
@@ -109,7 +121,37 @@ const ReviewForm = ({ slug, product }) => {
                     {/* Content based on selected tab */}
                     {selectedTab === 'reviews' ? (
                         <>
-                            <h2 className="text-2xl md:text-3xl text-main font-poppins font-semibold mb-6">Reviews</h2>
+                            {/* <h2 className="text-2xl md:text-3xl text-main font-poppins font-semibold mb-6">Reviews</h2> */}
+                            {/* Rating Summary */}
+                            <div className="mb-6">
+                                {[5, 4, 3, 2, 1].map((star) => (
+                                    <div key={star} className="flex items-center gap-4 mb-3">
+                                        {/* Star Icons */}
+                                        <div className="flex items-center gap-1">
+                                            {[...Array(5)].map((_, index) => (
+                                                <svg
+                                                    key={index}
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className={`w-4 h-4 ${index < star ? 'text-yellow-500' : 'text-gray-300'}`}
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
+                                                </svg>
+                                            ))}
+                                        </div>
+                                        {/* Gray Line (Bar Chart) */}
+                                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div
+                                                className="bg-yellow-500 h-2.5 rounded-full"
+                                                style={{ width: `${(ratingSummary[star] / reviews.length) * 100}%` }}
+                                            ></div>
+                                        </div>
+                                        {/* Review Count */}
+                                        <span className="text-sm text-gray-600">{ratingSummary[star]}</span>
+                                    </div>
+                                ))}
+                            </div>
                             {/* Map through the reviews */}
                             {!reviews || reviews.length === 0 ? (
                                 <p>No reviews yet.</p>
@@ -149,7 +191,7 @@ const ReviewForm = ({ slug, product }) => {
                     ) : (
                         <div>
                             <h2 className="text-2xl md:text-3xl font-poppins font-semibold text-main mb-6">Product Description</h2>
-                            <p className="text-gray-800">{product?.longDescription}</p>
+                            <div className="text-gray-800" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodedHTML) }} />
                         </div>
                     )}
                 </div>

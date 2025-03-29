@@ -3,9 +3,8 @@ import Marquee from 'react-fast-marquee';
 import toast from 'react-hot-toast';
 import { AiOutlineShopping } from 'react-icons/ai';
 import { CgMenu } from 'react-icons/cg';
-import { FaUserShield } from "react-icons/fa";
+import { FaUserShield, FaMobileAlt } from "react-icons/fa";
 import { GrSearch } from "react-icons/gr";
-import { IoLogoWhatsapp } from "react-icons/io";
 import { IoCartOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -17,7 +16,7 @@ import NavDrawer from './drawers/NavDrawer';
 
 const Navbar = () => {
     const location = useLocation();
-    const hideCategoryBarOn = ['/admin-dashboard', '/shop', '/cart/checkout', '*', '/add-product', '/edit-product']
+    const hideCategoryBarOn = ['/admin-dashboard', '/shop', '/category/:categorySlug', '/cart/checkout', '*', '/add-product', '/edit-product']
     const cart = useSelector((state) => state.cart);
     const searchState = useSelector((state) => state.search);
     const selectedCategories = useSelector((state) => state.selectedCategories.selectedCategories);
@@ -140,10 +139,10 @@ const Navbar = () => {
                     <Marquee speed={50} gradient={false}>Welcome to our store! Enjoy the best deals.</Marquee>
                 </div>
                 <div className="flex gap-4 justify-center text-sm md:text-base">
-                    <Link to="/about" className=" hover:text-main">About Us</Link>
-                    <Link to="/contact" className=" hover:text-main">Become a Seller</Link>
-                    <Link to="/order-history" className=" hover:text-main">Track Your orders</Link>
-                    <Link onClick={user && handleLogout} to={!user && "/login"} className="underline font-poppins text-main hover:text-white">{user ? "Logout" : "Sign In"}</Link>
+                    <Link to="/about" className=" hover:text-white no-underline hover:underline text-gray-200">About Us</Link>
+                    <Link to="/contact" className=" hover:text-white no-underline hover:underline text-gray-200">Become a Seller</Link>
+                    <Link to="/order-history" className=" hover:text-white no-underline hover:underline text-gray-200">Track Your orders</Link>
+                    <Link onClick={user && handleLogout} to={!user && "/login"} className="underline font-poppins text-gray-200 md:text-main hover:text-white">{user ? "Logout" : "Sign In"}</Link>
                 </div>
             </div>
             <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0 py-0 md:py-2">
@@ -157,25 +156,29 @@ const Navbar = () => {
                             {/* {user && (
                                 <img src="/user.jpg" alt="User" className="w-12 h-12 rounded-full" />
                             )} */}
-                            <div className='hidden md:hidden lg:flex text-green-800 font-bold text-base items-center gap-1'>
-                                <span className='font-semibold text-xl'><IoLogoWhatsapp /></span> +92300-0000000
+                            <div className='hidden md:hidden lg:flex text-orange-700 font-bold text-base items-center gap-1'>
+                                <span className='font-semibold text-xl'><FaMobileAlt size={32} /></span>
+                                <div className='flex flex-col items-center '>
+                                    <div className='text-black font-medium text-sm'>24<span className='text-xs'>/</span>7 Support</div>
+                                    <a href="tel:0327-7053836" className='text-main text-sm opacity-80 font-medium no-underline'>0327-7053836</a>
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-2 md:gap-4 lg:gap-4 cursor-pointer relative">
                                 {user && user.role === "admin" ? (
                                     <Link to="/admin-dashboard" className="relative group">
-                                        <FaUserShield className="text-2xl md:text-3xl" />
+                                        <FaUserShield className="text-2xl md:text-3xl text-main" />
                                         <span className="absolute hidden text-sm text-white bg-black rounded-md p-2 group-hover:block -bottom-14 left-1/2 transform -translate-x-1/2">Admin Dashboard</span>
                                     </Link>
                                 ) : (
                                     ""
                                 )}
                                 <Link to="/shop" className="relative group z-20 cursor-pointer">
-                                    <AiOutlineShopping className="text-2xl md:text-3xl" />
+                                    <AiOutlineShopping className="text-2xl text-main md:text-3xl" />
                                 </Link>
 
                                 <Link to="/cart" className="relative group z-20 cursor-pointer">
-                                    <IoCartOutline className="text-2xl md:text-3xl" />
+                                    <IoCartOutline className="text-2xl text-main md:text-3xl" />
                                     <span className="absolute -top-2 -right-2 bg-main bg-opacity-90 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                         {cart.items?.length || 0}
                                     </span>
@@ -206,7 +209,7 @@ const Navbar = () => {
                             <Link
                                 key={product._id}
                                 to={`/product/${product.slug}`}
-                                className={`block px-4 py-2 hover:bg-gray-100 shadow-sm rounded-full mt-1 bg-white ${selectedIndex === index ? "bg-gray-200" : ""
+                                className={`block px-4 py-2 no-underline hover:bg-gray-100 shadow-sm rounded-full mt-1 bg-white ${selectedIndex === index ? "bg-gray-200" : ""
                                     }`}
                                 onMouseEnter={() => handleMouseEnter(index)}
                                 onClick={() => handleProductSelect(product.slug)}

@@ -203,8 +203,8 @@ const Checkout = () => {
                                         {truncateTitle(item?.product?.title, 40)}
                                     </td>
                                     <td className="border p-2 text-center">{item.count}</td>
-                                    <td className="border p-2 font-bold text-right">
-                                        Rs.{item.count * item.price}
+                                    <td className="border p-2  text-right">
+                                        Rs.{item.price}
                                     </td>
                                 </motion.tr>
                             ))}
