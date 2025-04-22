@@ -130,7 +130,7 @@ const Cart = () => {
         <div className="container mx-auto">
             <div className="flex flex-col lg:flex-row lg:gap-6 lg:justify-between p-4">
                 {/* View product */}
-                <div className="max-w-full lg:w-[60%] px-2 md:px-4 lg:px-5">
+                <div className="max-w-full lg:w-[60%] px-0 md:px-4 lg:px-5">
                     <h2 className="font-bold text-center text-xl md:text-2xl text-main py-2 md:py-4 lg:py-6">
                         {cartData?.length > 0 ? "Your cart" : (
                             <p className='font-bold text-xl md:text-2xl text-gray-600'>
@@ -154,7 +154,7 @@ const Cart = () => {
                             </div>
 
                             {/* Product Details */}
-                            <div className="px-2 sm:px-4 py-2 relative">
+                            <div className="px-2  py-2 relative">
                                 {/* Remove Button */}
                                 <div
                                     onClick={() => handleRemoveItem(product.productId)}

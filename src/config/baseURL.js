@@ -1,1 +1,2 @@
 export const BASE_URL = 'https://etimad.up.railway.app/api/v1';
+;

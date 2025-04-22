@@ -26,7 +26,7 @@ const FilterDrawer = ({
             onClose={toggleDrawer}
             direction='left'
             size={300}
-            className='!z-[1200] p-4 overflow-y-auto '
+            className='h-screen !z-[1200] p-4 overflow-y-auto '
         >
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-main">Filters</h2>
