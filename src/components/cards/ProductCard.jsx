@@ -1,26 +1,27 @@
-import React, { useState } from 'react'; // Import useState
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { truncateTitle } from '../../helpers/truncateTitle';
 import { TbTruckDelivery } from 'react-icons/tb';
-import { motion } from 'framer-motion'; // Import motion from Framer Motion
+import { motion } from 'framer-motion';
 
 const ProductCard = ({ product }) => {
     const { images, title, averageRating, price, salePrice, slug, freeShipping } = product;
     const off = salePrice && Math.floor(((price - salePrice) / price) * 100);
     const totalReviews = product?.reviews?.length;
-
-    // State to track hover
     const [isHovered, setIsHovered] = useState(false);
 
-    // Animation Variants
+    
+    const imageWidth = 200;
+    const imageHeight = 200;
+
     const cardVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-        hover: { scale: 1.05, transition: { duration: 0.3 } }, // Hover animation
+        hover: { scale: 1.05, transition: { duration: 0.3 } },
     };
 
     const imageVariants = {
-        hover: { scale: 1.1, transition: { duration: 0.3 } }, // Image hover animation
+        hover: { scale: 1.1, transition: { duration: 0.3 } },
     };
 
     const renderStars = (rating) => {
@@ -77,9 +78,13 @@ const ProductCard = ({ product }) => {
         return stars;
     };
 
+    const getOptimizedImageUrl = (imageUrl) => {
+        return `${imageUrl}?f_auto&q_80&w=${imageWidth}&h=${imageHeight}&c=fill`;
+    };
+
     return (
         <motion.div
-            className="max-w-sm bg-white overflow-hidden shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow  duration-300 flex flex-col items-stretch relative"
+            className="max-w-sm bg-white overflow-hidden shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col items-stretch relative"
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
@@ -88,21 +93,25 @@ const ProductCard = ({ product }) => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <Link to={`/product/${slug}`} className="overflow-hidden w-full mb-4 aspect-square">
-                <motion.img
-                    className="w-full h-full object-cover transform transition-transform duration-300"
-                    src={isHovered && images[1] ? images[1] : images[0]}
-                    alt={title}
-                    loading="lazy"
-                    variants={imageVariants}
-                    whileHover="hover"
-                />
+            <Link to={`/product/${slug}`} className="overflow-hidden w-full mb-4" style={{ height: `${imageHeight}px` }}>
+                <div className="w-full h-full relative">
+                    <motion.img
+                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        src={getOptimizedImageUrl(isHovered && images[1] ? images[1] : images[0])}
+                        alt={title}
+                        loading="lazy"
+                        width={imageWidth}
+                        height={imageHeight}
+                        decoding="async"
+                        variants={imageVariants}
+                        whileHover="hover"
+                    />
+                </div>
             </Link>
 
-            {/* Free Shipping Tag */}
             {freeShipping && (
                 <motion.span
-                    className="absolute top-0 right-0 bg-green-600 rounded-s-sm  flex items-center gap-1 text-white text-sm font-semibold px-2 py-1 shadow-md"
+                    className="absolute top-0 right-0 bg-green-600 rounded-s-sm flex items-center gap-1 text-white text-sm font-semibold px-2 py-1 shadow-md"
                     initial={{ opacity: 0, y: -20 }}
                     whileInView={{ opacity: 1, y: 0, transition: { duration: 0.5 } }}
                     viewport={{ once: true, amount: 0.2 }}
@@ -129,8 +138,7 @@ const ProductCard = ({ product }) => {
                         )}{' '}
                         {salePrice}
                     </p>
-                    {off && <p className="p-1 border-2 text-center text-xs sm:text-sm border-main">{off}% Off</p>
-                    }
+                    {off && <p className="p-1 border-2 text-center text-xs sm:text-sm border-main">{off}% Off</p>}
                 </div>
             </div>
         </motion.div>
