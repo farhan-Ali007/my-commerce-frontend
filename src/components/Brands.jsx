@@ -51,6 +51,11 @@ const Brands = () => {
                                 <img
                                     src={brand?.logo}
                                     alt={brand.name}
+                                    loading="lazy"
+                                    onError={(e) => {
+                                        e.target.onerror = null; // Prevents infinite loop
+                                        e.target.src = '/images/placeholder.png'; // Placeholder image
+                                    }}
                                     className="w-14 md:w-18 lg:w-22 h-14 md:h-18 lg:h-22 object-contain rounded-full"
                                 />
                             </div>

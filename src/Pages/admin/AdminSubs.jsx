@@ -96,6 +96,7 @@ const AdminSubs = () => {
         }
     };
 
+    { loading && <p>loading...</p> }
     return (
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-2">
             <h3 className='text-main text-3xl font-extrabold text-center pb-6'>
@@ -145,7 +146,7 @@ const AdminSubs = () => {
                     disabled={loading}
                     className="bg-main opacity-80 hover:bg-opacity-90 text-white p-3 rounded-lg transition-all duration-300 w-full md:w-1/3 flex items-center justify-center gap-2"
                 >
-                    {loading ? "Adding..." : "Add Subcategory"}
+                    Add Subcategory
                 </button>
             </div>
 

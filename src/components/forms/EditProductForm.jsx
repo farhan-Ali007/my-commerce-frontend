@@ -421,41 +421,44 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
             </div>
 
             {/* Variants */}
-            <div className="mb-4">
-                <label className="block font-medium mb-2">Variants</label>
+            <div className="mb-6">
+                <label className="block font-semibold text-lg mb-4">Product Variants</label>
+
                 {formData.variants.map((variant, variantIndex) => (
-                    <div key={variantIndex} className="border p-4 mb-4 rounded-md">
-                        <div className="mb-2">
-                            <input
-                                type="text"
-                                placeholder="Name Color, size etc."
-                                value={variant.name}
-                                onChange={(e) => {
-                                    const updatedVariants = [...formData.variants];
-                                    updatedVariants[variantIndex].name = e.target.value;
-                                    setFormData((prev) => ({ ...prev, variants: updatedVariants }));
-                                }}
-                                className="w-full border font-bold text-main px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
-                            />
-                        </div>
+                    <div key={variantIndex} className="border border-gray-300 bg-white shadow-sm p-4 rounded-lg mb-6">
+                        <input
+                            type="text"
+                            placeholder="Variant name (e.g. Color, Size)"
+                            value={variant.name}
+                            onChange={(e) => {
+                                const updatedVariants = [...formData.variants];
+                                updatedVariants[variantIndex].name = e.target.value;
+                                setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+                            }}
+                            className="w-full border border-gray-300 font-semibold px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 mb-4"
+                        />
+
                         {variant.values.map((value, valueIndex) => (
-                            <div key={valueIndex} className="mb-2">
-                                <input
-                                    type="text"
-                                    placeholder="Variant Value"
-                                    value={value.value || ""}
-                                    onChange={(e) => handleVariantChange(variantIndex, valueIndex, "value", e.target.value)}
-                                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Price"
-                                    value={value.price || ""}
-                                    onChange={(e) => handleVariantChange(variantIndex, valueIndex, "price", e.target.value)}
-                                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300 mb-2"
-                                />
-                                <div className="mb-2">
-                                    <label className="block font-medium mb-2">Variant Image</label>
+                            <div key={valueIndex} className="border border-gray-200 rounded-md p-4 mb-4 bg-gray-50 shadow-sm">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Value (e.g. Red, Large)"
+                                        value={value.value || ""}
+                                        onChange={(e) => handleVariantChange(variantIndex, valueIndex, "value", e.target.value)}
+                                        className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Price"
+                                        value={value.price || ""}
+                                        onChange={(e) => handleVariantChange(variantIndex, valueIndex, "price", e.target.value)}
+                                        className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="block font-medium mb-1">Variant Image</label>
                                     <input
                                         type="file"
                                         name="image"
@@ -468,51 +471,54 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                                                 setFormData((prev) => ({ ...prev, variants: updatedVariants }));
                                             }
                                         }}
-                                        className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                                        className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
                                     />
                                     {value.image && (
-                                        <div className="mt-2">
+                                        <div className="mt-3">
                                             <img
                                                 src={value.image instanceof File ? URL.createObjectURL(value.image) : value.image}
                                                 alt="Variant Preview"
-                                                className="w-20 h-20 object-cover"
+                                                className="w-24 h-24 object-cover rounded-md border"
                                             />
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex justify-end">
+
+                                <div className="flex justify-end mt-2 space-x-2">
                                     <button
                                         type="button"
                                         onClick={() => addVariantValue(variantIndex)}
-                                        className="flex items-center gap-1 bg-blue-500 text-white px-4 py-1 rounded-md"
+                                        className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm"
                                     >
                                         <IoAddCircle /> Add Value
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => removeVariantValue(variantIndex, valueIndex)}
-                                        className="flex items-center gap-1 bg-red-500 text-white px-4 py-1 rounded-md ml-2"
+                                        className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm"
                                     >
-                                        <IoTrash /> Remove
+                                        <IoTrash /> Remove Value
                                     </button>
                                 </div>
                             </div>
                         ))}
-                        <div className="flex justify-end">
+
+                        <div className="flex justify-end mt-2">
                             <button
                                 type="button"
                                 onClick={() => removeVariant(variantIndex)}
-                                className="flex items-center gap-1 bg-red-500 text-white px-4 py-1 rounded-md ml-2"
+                                className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
                             >
                                 <IoTrash /> Remove Variant
                             </button>
                         </div>
                     </div>
                 ))}
+
                 <button
                     type="button"
                     onClick={addVariant}
-                    className="flex items-center gap-1 bg-blue-500 text-white px-4 py-2 rounded-md"
+                    className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-base"
                 >
                     <IoAddCircle /> Add Variant
                 </button>

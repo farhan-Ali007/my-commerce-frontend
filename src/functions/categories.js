@@ -33,3 +33,21 @@ export const deleteCategory = async (id) => {
         console.log("Error in deleting category")
     }
 }
+
+export const updateMenuCategory = async (id, menu) => {
+    try {
+        const response = await axios.put(`${BASE_URL}/category/menu/${id}`, { menu }, { withCredentials: true })
+        return response?.data
+    } catch (error) {
+        console.log("Error in updating menu category", error)
+    }
+}
+
+export const menuCategories = async () => {
+    try {
+        const response = await axios.get(`${BASE_URL}/category/menu`, { withCredentials: true })
+        return response?.data
+    } catch (error) {
+        console.log("Error in fetching menu categories", error)
+    }
+}

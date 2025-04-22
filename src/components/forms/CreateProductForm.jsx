@@ -279,7 +279,7 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
                     type="number"
                     name="weight"
                     value={formData.weight}
-                    placeholder="weight in kgs..."
+                    placeholder="weight in grams..."
                     onChange={handleChange}
                     className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
                 />
@@ -452,7 +452,7 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
                                 <div className="flex items-center gap-2 mb-2">
                                     <input
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/webp"
                                         onChange={(e) => {
                                             const file = e.target.files[0];
                                             if (file) {
@@ -517,12 +517,12 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
                     className="flex justify-center items-center gap-2 px-4 py-2 border border-dashed border-gray-400 rounded-lg cursor-pointer bg-main bg-opacity-35 hover:bg-opacity-60 transition"
                 >
                     <FaCloudUploadAlt className="text-gray-600 text-xl" />
-                    <span className="text-gray-700 font-medium">Upload Images</span>
+                    <span className="text-gray-700 font-medium">Upload Images (only webp)</span>
                 </label>
                 <input
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/webp"
                     id="fileInput"
                     className="hidden"
                     onChange={handleImageChange}

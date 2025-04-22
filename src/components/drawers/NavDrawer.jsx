@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { FaAngleDown, FaAngleRight, FaMobileAlt } from "react-icons/fa";
+import { IoIosClose } from "react-icons/io";
 import Drawer from 'react-modern-drawer';
 import 'react-modern-drawer/dist/index.css';
-import { IoLogoWhatsapp } from "react-icons/io";
 import { Link } from 'react-router-dom';
-import { IoIosClose } from "react-icons/io";
 
 const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
     const [expandedCategories, setExpandedCategories] = useState([]);
@@ -23,7 +22,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
             onClose={toggleDrawer}
             size={350}
             direction="left"
-            className="!z-[1200] drawer max-h-screen overflow-y-auto relative"
+            className="!z-[1200] drawer h-screen overflow-y-auto relative"
         >
             <div className="p-4">
                 <div className='flex justify-between items-center'>
@@ -37,7 +36,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                 {categories.map((category) => (
                     <div key={category._id} className="mb-2">
                         <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleCategoryExpansion(category._id)}>
-                            <Link to={`/category/${category.name}`} className="text-gray-700 text-base no-underline font-bold capitalize">
+                            <Link to={`/category/${category.name}`} className="text-gray-700 text-[18px] no-underline font-bold capitalize">
                                 {category.name}
                             </Link>
                             {category?.subcategories.length > 0 && (
@@ -70,8 +69,12 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                 ))}
             </div>
             <div className='flex ml-3 absolute bottom-3 w-full text-green-800 font-bold text-base items-center gap-1'>
-                <span className='font-semibold text-xl'><FaMobileAlt className='text-orange-700' size={26} /></span> 0300-0000000
+                <FaMobileAlt className='text-orange-700 text-xl' size={26} />
+                <a href='tel:03337494323' className='text-green-800 no-underline font-bold text-base'>
+                    0333-7494323
+                </a>
             </div>
+
         </Drawer>
     );
 };

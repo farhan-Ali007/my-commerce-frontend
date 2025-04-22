@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { getAllOrders, updateOrderStatus } from '../../functions/order';
+import { IoMdCall } from "react-icons/io";
+import { GiMoneyStack } from "react-icons/gi";
+import { MdAlternateEmail } from "react-icons/md";
+import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { toast } from 'react-hot-toast'
+import { FcViewDetails } from "react-icons/fc";
+import { IoIosPerson } from "react-icons/io";
+import { GrStatusGoodSmall } from "react-icons/gr";
 
 const AllOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -50,7 +57,6 @@ const AllOrders = () => {
     const filteredOrders = orders.filter(order =>
         order._id.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
     return (
         <div className="container mx-auto p-6 text-center">
             <h1 className="text-3xl font-bold mb-6 text-main">All Orders [{`${orders.length}`}]</h1>
@@ -76,21 +82,56 @@ const AllOrders = () => {
                     <table className="min-w-full table-auto border-collapse border-1 border-black">
                         <thead>
                             <tr>
-                                <th className="px-4 py-2 border">Order ID</th>
-                                <th className="px-4 py-2 border">Customer</th>
-                                <th className="px-4 py-2 border">Order Status</th>
-                                <th className="px-4 py-2 border">Products</th>
-                                <th className="px-4 py-2 border">DeliveryCharges</th>
-                                <th className="px-4 py-2 border">Total Amount</th>
-                                <th className="px-4 py-2 border">Recipient ph.No</th>
-                                <th className="px-4 py-2 border">Mail</th>
+                                <th className="px-6 py-2 border">Order ID</th>
+                                <th className="px-6 py-2 border">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <IoIosPerson size={24} className="text-gray-600" />
+                                        <span>Customer</span>
+                                    </div>
+                                </th>
+                                <th className="px-6 py-2 border">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <GrStatusGoodSmall size={24} className="text-gray-600" />
+                                        <span>Order Status</span>
+                                    </div>
+                                </th>
+                                <th className="px-10 py-2 border w-96">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <FcViewDetails size={24} />
+                                        <span>Product Details</span>
+                                    </div>
+                                </th>
+                                <th className="px-6 py-2 border">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <FaMoneyBillTrendUp size={24} className="text-gray-600" />
+                                        <span>Delivery Charges</span>
+                                    </div>
+                                </th>
+                                <th className="px-6 py-2 border">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <GiMoneyStack size={24} className="text-gray-600" />
+                                        <span>Total Amount</span>
+                                    </div>
+                                </th>
+                                <th className="px-6 py-2 border">
+                                    <div className="flex items-center justify-center gap-1">
+                                        <IoMdCall size={24} className="text-gray-600" />
+                                        <span>Recipient ph.No</span>
+                                    </div>
+                                </th>
+                                <th className="px-6 py-2 border">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <MdAlternateEmail size={24} className="text-gray-600" />
+                                        <span>Mail</span>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredOrders.map((order) => (
                                 <tr key={order._id}>
                                     <td className="px-4 py-2 border">{order._id}</td>
-                                    <td className="px-4 py-2 border">{order?.orderedBy?.username || 'N/A'}</td>
+                                    <td className="px-4 py-2 border">{order?.orderedBy?.username || `${order?.shippingAddress?.firstName} ${order?.shippingAddress?.lastName}`}</td>
                                     <td className="px-4 py-2 border">
                                         <select
                                             className="px-4 py-2 border rounded-md"
@@ -106,7 +147,7 @@ const AllOrders = () => {
                                     </td>
 
                                     <td className="px-4 py-2 border">
-                                        <ul style={{listStyleType:"none"}}>
+                                        <ul style={{ listStyleType: "none" }}>
                                             {order.cartSummary?.map((product) => (
                                                 <li key={product._id} className="mb-4">
                                                     <div>

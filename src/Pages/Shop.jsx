@@ -5,6 +5,7 @@ import { getAllProducts } from "../functions/product";
 import { getAllBrands } from '../functions/brand';
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
+import { IoFilter, IoChevronDown } from "react-icons/io5";
 import {
     filterByCategory,
     filterByPrice,
@@ -13,6 +14,7 @@ import {
     getMinMaxPrice,
     filterByPriceRange
 } from "../functions/search";
+import FilterDrawer from "../components/drawers/FilterDrawer";
 
 const Shop = () => {
     const [priceFilter, setPriceFilter] = useState("");
@@ -23,9 +25,25 @@ const Shop = () => {
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isSortOpen, setIsSortOpen] = useState(false);
     const [brandFilter, setBrandFilter] = useState(null);
     const [priceRange, setPriceRange] = useState([0, 10000]);
     const [brands, setBrands] = useState([]);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+    const toggleFilterDrawer = () => {
+        setIsFilterOpen(!isFilterOpen);
+    };
+    const toggleSortDropdown = () => {
+        setIsSortOpen(!isSortOpen);
+    };
+
+    const handleSortSelection = (value) => {
+        setPriceFilter(value);
+        setIsSortOpen(false);
+        // Handle your sort logic here
+    };
+
 
     // Fetch all categories
     const fetchAllCategories = async () => {
@@ -135,6 +153,7 @@ const Shop = () => {
         setCategoryFilter([]);
         setRatingFilter(null);
         setBrandFilter(null);
+        setIsFilterOpen(false);
     };
 
     const handleCategoryChange = (e) => {
@@ -143,6 +162,7 @@ const Shop = () => {
         setPriceFilter("");
         setRatingFilter(null);
         setBrandFilter(null);
+        setIsFilterOpen(false);
     };
 
     const handleRatingChange = (e) => {
@@ -151,6 +171,7 @@ const Shop = () => {
         setPriceFilter("");
         setCategoryFilter([]);
         setBrandFilter(null);
+        setIsFilterOpen(false);
     };
 
     const handlePriceRangeChange = (value) => {
@@ -161,6 +182,7 @@ const Shop = () => {
         setCategoryFilter([]);
         setRatingFilter(null);
         setBrandFilter(null);
+        setIsFilterOpen(false);
     };
 
     const handleBrandChange = (e) => {
@@ -169,14 +191,78 @@ const Shop = () => {
         setRatingFilter(null);
         setPriceFilter("");
         setCategoryFilter([]);
+        setIsFilterOpen(false);
     };
 
     return (
         <div className="max-w-screen mx-2 md:mx-5 flex flex-col md:flex-row">
-            {/* Sidebar Filters */}
-            <div className="w-full h-full md:w-1/4 mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
+            {/* Mobile Filter Button */}
+            <div className="md:hidden flex justify-between items-center mb-4">
+                {/* Sort Filter Dropdown */}
+                <div className="relative flex-1 mt-2 justify-center">
+                    <button
+                        onClick={toggleSortDropdown}
+                        className="w-full flex items-center bg-white justify-between border border-gray-200  px-2 py-2 text-main focus:outline-none"
+                    >
+                        <span className="flex items-center font-semibold gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                            </svg>
+                            SORT
+                        </span>
+                        <IoChevronDown className={`transition-transform ${isSortOpen ? 'transform rotate-180' : ''}`} />
+                    </button>
+                    
+                    {isSortOpen && (
+                        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200  shadow-lg">
+                            <button
+                                onClick={() => handleSortSelection("low")}
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                                Price: Low to High
+                            </button>
+                            <button
+                                onClick={() => handleSortSelection("high")}
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                                Price: High to Low
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                <button
+                    onClick={toggleFilterDrawer}
+                    className="flex  justify-center items-center w-1/2 gap-2 border font-semibold border-gray-200 bg-white text-main px-3 mt-2 py-2 "
+                >
+                    <IoFilter size={24} /> Filters
+                </button>
+            </div>
+
+            {/* Filter Drawer for Mobile */}
+            <FilterDrawer
+                isOpen={isFilterOpen}
+                toggleDrawer={toggleFilterDrawer}
+                priceFilter={priceFilter}
+                handlePriceChange={handlePriceChange}
+                categoryFilter={categoryFilter}
+                handleCategoryChange={handleCategoryChange}
+                categories={categories}
+                priceRange={priceRange}
+                handlePriceRangeChange={handlePriceRangeChange}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                ratingFilter={ratingFilter}
+                handleRatingChange={handleRatingChange}
+                brandFilter={brandFilter}
+                handleBrandChange={handleBrandChange}
+                brands={brands}
+            />
+
+            {/* Sidebar Filters (Desktop) */}
+            <div className="hidden md:block w-full h-full md:w-1/4 mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
                 {/* Price Range Filter */}
-                <div className="mb-2 md:mb-3 w-full hidden md:block">
+                <div className="mb-2 md:mb-3 w-full text-main">
                     <h4 className="text-lg font-bold mb-1 font-space">Price Range</h4>
                     <div className="flex flex-col justify-start gap-2">
                         <RangeSlider
@@ -191,18 +277,12 @@ const Shop = () => {
                             <span>Rs {priceRange[0]}</span>
                             <span>Rs {priceRange[1]}</span>
                         </div>
-                        {/* <button
-                                onClick={applyPriceRangeFilter}
-                                className="mt-2 w-auto bg-main bg-opacity-70 text-white rounded-lg p-2 hover:bg-opacity-90"
-                            >
-                                Filter
-                            </button> */}
                     </div>
                 </div>
                 <div className="flex md:flex-col gap-2 items-center md:items-start">
                     {/* Sort Filter */}
                     <div className="mb-2 md:mb-3 w-1/2 md:w-full">
-                        <h4 className="text-lg font-bold mb-1 font-space">Sort By Price</h4>
+                        <h4 className="text-lg font-bold mb-1 font-space text-main">Sort By Price</h4>
                         <select
                             value={priceFilter || ""}
                             onChange={handlePriceChange}
@@ -216,7 +296,7 @@ const Shop = () => {
 
                     {/* Category Filter */}
                     <div className="mb-2 md:mb-3 w-1/2 md:w-full">
-                        <h4 className="text-lg font-bold mb-2 font-space">Filter By Category</h4>
+                        <h4 className="text-lg font-bold mb-2 font-space text-main">By Category</h4>
                         <select
                             value={categoryFilter[0] || ""}
                             onChange={handleCategoryChange}
@@ -233,11 +313,9 @@ const Shop = () => {
                 </div>
 
                 {/* Brand Filter */}
-                <div className="mb-2 md:mb-3">
-                    <h4 className="text-lg font-bold mb-2 font-space">Filter By Brand</h4>
-
-                    {/* Grid layout for brands (hidden on mobile, visible on md and larger screens) */}
-                    <div className="hidden md:grid grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-2">
+                <div className="mb-2 md:mb-3 w-full">
+                    <h4 className="text-lg font-bold mb-2 font-space text-main">Filter By Brand</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                         {brands?.map((brand) => (
                             <label key={brand._id} className="flex items-center">
                                 <input
@@ -252,27 +330,11 @@ const Shop = () => {
                             </label>
                         ))}
                     </div>
-
-                    {/* Dropdown for brands (visible only on mobile screens) */}
-                    <div className="md:hidden">
-                        <select
-                            value={brandFilter || ""}
-                            onChange={handleBrandChange}
-                            className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
-                        >
-                            <option value="" disabled>Select Brand</option>
-                            {brands?.map((brand) => (
-                                <option key={brand._id} value={brand.name}>
-                                    {brand.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
                 </div>
 
-                {/* Rating Filter (Hidden on Small, Visible on md & lg) */}
-                <div className="mb-2 hidden md:block">
-                    <h4 className="text-lg font-medium font-space">Filter By Rating</h4>
+                {/* Rating Filter */}
+                <div className="mb-2">
+                    <h4 className="text-lg font-medium font-space text-main">Filter By Rating</h4>
                     {[5, 4, 3, 2, 1].map((rating) => (
                         <label key={rating} className="flex items-center mb-1">
                             <input
@@ -298,23 +360,6 @@ const Shop = () => {
                             </div>
                         </label>
                     ))}
-                </div>
-
-                {/* Rating Dropdown (Visible Only on Small Screens) */}
-                <div className="mb-3 md:hidden">
-                    <h4 className="text-lg font-medium font-space mb-1">Rating</h4>
-                    <select
-                        value={ratingFilter || ""}
-                        onChange={handleRatingChange}
-                        className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
-                    >
-                        <option value="" disabled>All Ratings</option>
-                        {[5, 4, 3, 2, 1].map((rating) => (
-                            <option key={rating} value={rating}>
-                                {rating} Stars
-                            </option>
-                        ))}
-                    </select>
                 </div>
             </div>
 

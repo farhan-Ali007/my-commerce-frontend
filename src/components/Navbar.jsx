@@ -4,22 +4,24 @@ import toast from 'react-hot-toast';
 import { AiOutlineShopping } from 'react-icons/ai';
 import { CgMenu } from 'react-icons/cg';
 import { FaUserShield, FaMobileAlt } from "react-icons/fa";
-import {FiSearch} from 'react-icons/fi'
+import { FiSearch } from 'react-icons/fi'
 import { IoCartOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { truncateTitle } from '../helpers/truncateTitle'
 import { logoutAPI } from '../functions/auth';
 import { setUser } from '../store/authSlice';
 import { fetchSearchResults, setSearchQuery } from '../store/searchSlice';
 import CategoryBar from './CategoryBar';
 import NavDrawer from './drawers/NavDrawer';
+import { menuCategories } from '../functions/categories';
 
 const Navbar = () => {
     const location = useLocation();
     const hideCategoryBarOn = ['/admin-dashboard', '/shop', '/order-history', '/category/:categorySlug', '/cart/checkout', '*', '/add-product', '/edit-product']
     const cart = useSelector((state) => state.cart);
     const searchState = useSelector((state) => state.search);
-    const selectedCategories = useSelector((state) => state.selectedCategories.selectedCategories);
+    const [selectedCategories, setSelectedCategories] = useState([]);
     // console.log("Categories got from redux store------>", selectedCategories)
     const navigateTo = useNavigate();
     const dispatch = useDispatch();
@@ -38,7 +40,15 @@ const Navbar = () => {
     const [isMouseOverModal, setIsMouseOverModal] = useState(false);
 
     useEffect(() => {
-        setCategories(selectedCategories)
+        const fetchSelecetedCategories = async () => {
+            try {
+                const response = await menuCategories();
+                setSelectedCategories(response.categories);
+            } catch (error) {
+                console.error('Error fetching selected categories:', error);
+            }
+        }
+        fetchSelecetedCategories();
     }, []);
 
     const searchMenuRef = useRef(null);
@@ -70,12 +80,18 @@ const Navbar = () => {
         };
     }, []);
 
-
     const handleSearchChange = useCallback((e) => {
         const value = e.target.value;
         setSearch(value);
-        dispatch(setSearchQuery(value));
-        setMenuDisplay(true);
+        
+        if (value.trim() === '') {
+            // Clear search results when input is empty
+            dispatch(setSearchQuery(''));
+            setMenuDisplay(false);
+        } else {
+            dispatch(setSearchQuery(value));
+            setMenuDisplay(true);
+        }
     }, [dispatch]);
 
     const handleSearchKeyDown = useCallback((e) => {
@@ -148,37 +164,33 @@ const Navbar = () => {
             <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0 py-0 md:py-2">
                 <div className="container min-w-auto mx-auto px-4 md:px-2 lg:px-4 pt-2 pb-0 flex flex-col items-center lg:flex-row justify-between relative z-10">
                     <div className="flex items-center justify-between w-full pr-0 md:pr-2 lg:pr-0">
-                        <CgMenu className="text-2xl md:hidden text-main font-bold cursor-pointer" onClick={toggleDrawer} />
+                        <CgMenu className="text-[26px] md:hidden text-main font-bold cursor-pointer" onClick={toggleDrawer} />
                         <a href="/" className="flex-shrink-0 bg-contain">
                             <img src="/logo.png" alt="Logo" className="w-full h-12 md:h-14" />
                         </a>
                         <div className="flex items-center gap-4 lg:gap-5">
-                            {/* {user && (
-                                <img src="/user.jpg" alt="User" className="w-12 h-12 rounded-full" />
-                            )} */}
                             <div className='hidden md:hidden lg:flex text-orange-700 font-bold text-base items-center gap-1'>
                                 <span className='font-semibold text-xl'><FaMobileAlt size={32} /></span>
                                 <div className='flex flex-col items-center '>
                                     <div className='text-black font-medium text-sm'>24<span className='text-xs'>/</span>7 Support</div>
-                                    <a href="tel:0327-7053836" className='text-main text-sm opacity-80 font-medium no-underline'>0327-7053836</a>
+                                    <a href="tel:0333-7494323" className='text-main text-sm opacity-80 font-medium no-underline'>0333-7494323</a>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2 md:gap-4 lg:gap-4 cursor-pointer relative">
                                 {user && user.role === "admin" ? (
                                     <Link to="/admin-dashboard" className="relative group">
-                                        <FaUserShield className="text-2xl md:text-3xl text-main" />
-                                        <span className="absolute hidden text-sm text-white bg-black rounded-md p-2 group-hover:block -bottom-14 left-1/2 transform -translate-x-1/2">Admin Dashboard</span>
+                                        <FaUserShield className="text-3xl text-main" />
                                     </Link>
                                 ) : (
                                     ""
                                 )}
                                 <Link to="/shop" className="relative group z-20 cursor-pointer">
-                                    <AiOutlineShopping className="text-2xl text-main md:text-3xl" />
+                                    <AiOutlineShopping className="text-3xl text-main " />
                                 </Link>
 
                                 <Link to="/cart" className="relative group z-20 cursor-pointer">
-                                    <IoCartOutline className="text-2xl text-main md:text-3xl" />
+                                    <IoCartOutline className="text-3xl text-main " />
                                     <span className="absolute -top-2 -right-2 bg-main bg-opacity-90 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                         {cart.items?.length || 0}
                                     </span>
@@ -206,7 +218,7 @@ const Navbar = () => {
                 </div>
 
                 {menuDisplay && searchState.results.length > 0 && (
-                    <div ref={searchMenuRef} className="absolute top-[8rem] md:top-[calc(100%+0.5rem)] left-0 gap-1 right-0 pb-1 mx-auto bg-transparent max-w-lg w-3/4 overflow-hidden backdrop-blur-md z-10">
+                    <div ref={searchMenuRef} className="absolute top-[7rem] md:top-[calc(100%+0.5rem)] left-0 gap-1 right-0 pb-1 mx-auto bg-transparent w-[97%] md:w-[40%] overflow-hidden backdrop-blur-md z-10">
                         {searchState.results.map((product, index) => (
                             <Link
                                 key={product._id}
@@ -216,7 +228,7 @@ const Navbar = () => {
                                 onMouseEnter={() => handleMouseEnter(index)}
                                 onClick={() => handleProductSelect(product.slug)}
                             >
-                                {product.title}
+                                {truncateTitle(product.title, 35)}
                             </Link>
                         ))}
                     </div>

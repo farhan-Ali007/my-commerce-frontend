@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from "react";
 import { FaAngleDown } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
+import { useNavigate, useLocation } from "react-router-dom"; 
 
 const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, setModalState }) => {
     const navigateTo = useNavigate();
@@ -119,7 +119,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                                 >
                                     {category.name}
                                 </div>
-                                {category.subcategories.length > 0 && (
+                                {category?.subcategories?.length > 0 && (
                                     <div
                                         onClick={(e) => {
                                             e.stopPropagation();

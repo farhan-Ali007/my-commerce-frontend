@@ -161,7 +161,7 @@ const Cart = () => {
                                     className="absolute right-0 top-0 text-white bg-main opacity-70 hover:opacity-90 mx-1 sm:mx-2 mt-2 rounded cursor-pointer"
                                 >
                                     <button className="flex justify-center items-center bg-white text-sm sm:text-lg">
-                                        <MdDeleteOutline className="text-main" />
+                                        <MdDeleteOutline size={24} className="text-main" />
                                     </button>
                                 </div>
 
@@ -226,11 +226,11 @@ const Cart = () => {
 
                 {/* Summary */}
                 <div className="w-full lg:w-[40%] flex mt-2 md:mt-0 flex-col items-center ">
-                    <h2 className="font-extrabold text-2xl md:text-2xl lg:text-3xl text-main mb-4 lg:mb-2 py-0 md:py-4 lg:py-4">
+                    <h2 className="font-extrabold text-2xl md:text-2xl lg:text-3xl text-main mb-0 md:mb-4 lg:mb-2 pt-0 md:pt-4">
                         Summary
                     </h2>
                     <div className="mt-0 lg:mt-2 mb-4 md:mb-0 w-full max-h-auto max-w-sm shadow-lg hover:shadow-2xl rounded items-center relative md:sticky top-20">
-                        <div className="h-52 mb-16 md:pb-0  p-1 w-full gap-2 md:p-4 lg:p-4">
+                        <div className="h-52 md:h-52 mb-16 md:pb-0  p-1 w-full gap-2 md:p-4 lg:p-4">
                             <div className="flex items-center my-1 md:my-2 lg:md-2 justify-between px-4 gap-2 font-medium text-lg text-slate-600">
                                 <p>SubTotal</p>
                                 <p>{totalPrice}</p>

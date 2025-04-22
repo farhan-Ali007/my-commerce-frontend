@@ -47,6 +47,9 @@ const AllUsers = () => {
         }
     };
 
+    if (loading) return <p className='text-center text-lg text-main'>Loading...</p>
+    if (users?.length === 0) return <p className='text-center text-lg text-main'>No users found</p>
+
     const handleEditClick = (userId) => {
         if (editingUserId === userId) {
             setEditingUserId(null); // Close dropdown if clicking the same user
@@ -58,7 +61,7 @@ const AllUsers = () => {
     return (
         <div className="container mx-auto px-1 md:px-4 py-3 md:py-4">
             <h1 className="text-3xl font-bold mb-6 text-center text-main">
-                All Users({`${users?.length}`})
+                All Users[{`${users?.length}`}]
             </h1>
 
             {/* Check if there are no users */}
@@ -76,8 +79,8 @@ const AllUsers = () => {
                         </thead>
                         <tbody>
                             {users?.map((user) => (
-                                <tr key={user._id}>
-                                    <td className="px-4 py-2 border text-sm sm:text-base">
+                                <tr key={user._id} className='text-center'>
+                                    <td className="px-4 py-2 border text-sm sm:text-base font-semibold capitalize">
                                         {user?.username}
                                     </td>
                                     <td className="px-4 py-2 border text-sm sm:text-base">
@@ -96,10 +99,10 @@ const AllUsers = () => {
                                                 <option value="user">User</option>
                                             </select>
                                         ) : (
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center justify-center gap-2">
                                                 {user?.role}
                                                 <CiEdit
-                                                    className="text-main cursor-pointer"
+                                                    className="text-green-600 cursor-pointer"
                                                     onClick={() => handleEditClick(user._id)}
                                                 />
                                             </div>

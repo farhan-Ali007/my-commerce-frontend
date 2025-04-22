@@ -149,9 +149,9 @@ const ShopCard = ({ product }) => {
                     </p>
                 </div>
 
-                {/* Add to Cart Button with Slide-Up Animation */}
+             {/* Add to Cart Button with Slide-Up Animation */}
                 <motion.div
-                    className="w-full flex-row text-center justify-between items-center mb-2 gap-1 px-3 overflow-hidden"
+                    className="w-full  flex-row text-center justify-between items-center mb-2 gap-1 px-3 overflow-hidden"
                 >
                     <motion.button
                         onClick={handleAddToCart}

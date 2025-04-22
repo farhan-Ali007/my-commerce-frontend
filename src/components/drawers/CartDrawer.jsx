@@ -27,7 +27,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
             onClose={() => setIsDrawerOpen(false)}
             direction="right"
             size={400}
-            className="!z-[1200] max-w-56 md:max-w-64"
+            className="relative !z-[1200] max-w-56 md:max-w-64"
         >
             <motion.div
                 initial={{ opacity: 0, x: 50 }}
@@ -66,7 +66,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
                 </div>
                 <Link
                     to="/cart"
-                    className="bg-main no-underline opacity-70 text-white font-bold py-2 my-1 px-4 text-center hover:opacity-90"
+                    className="bg-main absolutet bottom-0 no-underline opacity-70 text-white font-bold py-2 my-1 px-4 text-center hover:opacity-90"
                     onClick={() => setIsDrawerOpen(false)}
                 >
                     Go to Cart

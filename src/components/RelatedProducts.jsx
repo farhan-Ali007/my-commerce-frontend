@@ -18,7 +18,7 @@ const RelatedProducts = ({ relatedProducts, currentPage, totalPages, onPageChang
 
     return (
         <div className="max-w-screen-xl mx-auto px-0 md:px-4 lg:px-4 mt-4">
-            <h1 className="text-main font-space text-4xl font-extrabold text-center mb-8">
+            <h1 className="text-main font-space text-3xl md:text-4xl font-extrabold text-center mb-8">
                 Related Products
             </h1>
 
@@ -30,7 +30,7 @@ const RelatedProducts = ({ relatedProducts, currentPage, totalPages, onPageChang
                     ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-5 lg:gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-5 lg:gap-6 pb-6">
                     {products.map((product) => (
                         <ProductCard key={product._id} product={product} />
                     ))}
@@ -38,11 +38,11 @@ const RelatedProducts = ({ relatedProducts, currentPage, totalPages, onPageChang
             )}
 
             {/* Pagination Component */}
-            <Pagination
+            {/* <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={onPageChange}
-            />
+            /> */}
         </div>
     );
 };

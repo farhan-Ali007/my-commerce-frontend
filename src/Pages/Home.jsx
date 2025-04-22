@@ -13,15 +13,15 @@ const Home = () => {
       <Banner />
       <Categories />
       <Brands />
-      <NewArrivals />
       <Marquee speed={50} gradient={false} className="text-2xl md:text-3xl font-semibold md:font-extrabold my-4 md:my-8 text-main">
         🔥 Sale 50% Off! 🔥 &nbsp; | &nbsp;  Limited Time Offer!  &nbsp; | &nbsp; New Arrivals Available Now! 🎉
       </Marquee>
+      <NewArrivals />
       <BestSellers />
 
       {/* WhatsApp Floating Icon */}
       <a
-        href="https://wa.me/+923277053836"
+        href="https://wa.me/+923337494323"
         className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-green-500 text-white rounded-full w-14 h-14 md:h-16 md:w-16 flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors duration-300 z-50"
         target="_blank"
         rel="noopener noreferrer"

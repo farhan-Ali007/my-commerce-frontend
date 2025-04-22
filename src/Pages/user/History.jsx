@@ -86,7 +86,7 @@ const History = () => {
                         {order?.cartSummary?.map((product, productIndex) => (
                           <div key={productIndex} className="mb-4">
                             <div>
-                              <strong>Title:</strong> {truncateTitle(product.product?.title, 30)}
+                              <strong>Title:</strong> {truncateTitle(product.product?.title, 50)}
                             </div>
                             <div>
                               {product.selectedVariants.map((variant, variantIndex) => (

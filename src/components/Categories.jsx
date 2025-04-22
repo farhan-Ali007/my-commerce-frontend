@@ -44,14 +44,14 @@ const Categories = () => {
     };
 
     return (
-        <div className="max-w-screen-xl mx-auto py-2 md:py-4 px-6 md:px-10">
+        <div className="max-w-screen-xl mx-auto py-2 md:py-4 px-6 md:px-14">
             <h2 className="text-2xl md:text-3xl font-extrabold font-space text-main text-center mb-5">
                 Browse Categories
             </h2>
 
             {/* Grid Layout */}
             <motion.div
-                className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-8 gap-2"
+                className="grid grid-cols-4 md:grid-cols-7 lg:grid-cols-7 gap-2"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -71,7 +71,7 @@ const Categories = () => {
                                 <motion.div
                                     className="w-full h-20 md:h-24 lg:h-36  bg-cover bg-center overflow-hidden"
                                     style={{ backgroundImage: `url(${category?.Image})` }}
-                                    variants={hoverVariants}
+                                    variants={hoverVariants}  
                                     whileHover="hover"
                                 />
                                 

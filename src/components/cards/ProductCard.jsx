@@ -93,6 +93,7 @@ const ProductCard = ({ product }) => {
                     className="w-full h-full object-cover transform transition-transform duration-300"
                     src={isHovered && images[1] ? images[1] : images[0]}
                     alt={title}
+                    loading="lazy"
                     variants={imageVariants}
                     whileHover="hover"
                 />

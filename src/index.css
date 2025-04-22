@@ -20,6 +20,14 @@ a {
   color: cornflowerblue;
 }
 
+/* Fix react-modern-drawer z-index and stacking issues */
+.drawer-container {
+  position: fixed !important;
+  z-index: 1500 !important;
+  top: 0;
+  left: 0;
+}
+
 .ql-container {
   height: 100% !important;
 }
