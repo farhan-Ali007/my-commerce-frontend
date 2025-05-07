@@ -6,12 +6,14 @@ import { getAllCategories } from '../../functions/categories';
 import { getProductBySlug, updateProduct } from "../../functions/product";
 import { getAllBrands } from '../../functions/brand';
 import { getAllTags } from '../../functions/tags';
+import { getAllSubs } from "../../functions/subs";
 
 const EditProduct = () => {
   const navigateTo = useNavigate()
   const { slug } = useParams()
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
   const [brands , setBrands] = useState([]);
   const [tags, setTags] = useState([]);
   const [productToEdit, setProductToEdit] = useState(null);
@@ -28,6 +30,18 @@ const EditProduct = () => {
     }
   };
 
+    const fetchSubCategories = async () => {
+      try {
+        const response = await getAllSubs();
+        if (response?.success) {
+          setSubCategories(response?.subCategories);
+        }
+      } catch (error) {
+        console.error("Error fetching subCategories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
   const fetchBrands = async()=>{
     try{
       const response = await getAllBrands();
@@ -62,6 +76,7 @@ const EditProduct = () => {
 
   useEffect(() => {
     fetchCategories();
+    fetchSubCategories();
     fetchTags();
     fetchBrands()
     fetchProduct();
@@ -104,6 +119,7 @@ const EditProduct = () => {
         onSubmit={handleEditProduct}
         defaultValues={productToEdit}
         categories={categories}
+        subCategories={subCategories}
         brands={brands}
         tags={tags}
       />

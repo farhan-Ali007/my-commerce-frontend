@@ -44,9 +44,9 @@ const FilterDrawer = ({
                     {categories?.map((cat) => (
                         <label key={cat._id} className="flex items-center capitalize">
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="category"
-                                value={cat.name}
+                                value={cat.slug}
                                 checked={categoryFilter[0] === cat.name}
                                 onChange={handleCategoryChange}
                                 className="mr-2"
@@ -64,7 +64,7 @@ const FilterDrawer = ({
                     {brands?.map((brand) => (
                         <label key={brand._id} className="flex items-center">
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="brand"
                                 value={brand.name}
                                 checked={brandFilter === brand.name}
@@ -84,7 +84,7 @@ const FilterDrawer = ({
                     {[5, 4, 3, 2, 1].map((rating) => (
                         <label key={rating} className="flex items-center">
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="rating"
                                 value={rating}
                                 checked={ratingFilter === rating}

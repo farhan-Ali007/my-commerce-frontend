@@ -6,16 +6,18 @@ import Categories from '../components/Categories';
 import NewArrivals from '../components/NewArrivals';
 import Brands from '../components/Brands';
 import { FaWhatsapp } from 'react-icons/fa'; // Importing WhatsApp icon from react-icons
+import FeaturedProducts from '../components/FeaturedProducts';
 
 const Home = () => {
   return (
     <div>
       <Banner />
-      <Categories />
-      <Brands />
-      <Marquee speed={50} gradient={false} className="text-2xl md:text-3xl font-semibold md:font-extrabold my-4 md:my-8 text-main">
+      <Marquee speed={50} pauseOnHover direction="left" gradient gradientColor="skyblue" gradientWidth={50}  className="text-2xl md:text-3xl font-semibold md:font-extrabold my-2 md:my-8 text-main">
         🔥 Sale 50% Off! 🔥 &nbsp; | &nbsp;  Limited Time Offer!  &nbsp; | &nbsp; New Arrivals Available Now! 🎉
       </Marquee>
+      <Categories />
+      <Brands />
+      <FeaturedProducts />
       <NewArrivals />
       <BestSellers />
 

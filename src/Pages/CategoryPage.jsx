@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ShopCard from "../components/cards/ShopCard";
-import { getAllCategories } from "../functions/categories";
-import { getAllBrands } from '../functions/brand';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { IoChevronDown, IoFilter } from "react-icons/io5";
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
-import { IoFilter, IoChevronDown } from "react-icons/io5";
+import ShopCard from "../components/cards/ShopCard";
+import FilterDrawer from "../components/drawers/FilterDrawer";
+import { getAllBrands } from '../functions/brand';
+import { getAllCategories } from "../functions/categories";
 import {
     filterByCategory,
     filterByPrice,
+    filterByPriceRange,
     filterByRating,
-    filterBySubcategory,
     filterProductsByBrand,
-    getMinMaxPrice,
-    filterByPriceRange
+    filterBySubcategory,
+    getMinMaxPrice
 } from "../functions/search";
-import FilterDrawer from "../components/drawers/FilterDrawer";
 
 const CategoryPage = () => {
     const { categorySlug, subcategorySlug } = useParams();
@@ -33,21 +34,16 @@ const CategoryPage = () => {
     const [priceRange, setPriceRange] = useState([0, 10000]);
     const [brands, setBrands] = useState([]);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
 
     const toggleFilterDrawer = () => {
         setIsFilterOpen(!isFilterOpen);
     };
-    
     const toggleSortDropdown = () => {
         setIsSortOpen(!isSortOpen);
     };
 
-    const handleSortSelection = (value) => {
-        setPriceFilter(value);
-        setIsSortOpen(false);
-    };
-
-    // Fetch all categories
     const fetchAllCategories = async () => {
         try {
             const response = await getAllCategories();
@@ -57,7 +53,6 @@ const CategoryPage = () => {
         }
     };
 
-    // Fetch all brands
     const fetchAllBrands = async () => {
         try {
             const response = await getAllBrands();
@@ -67,7 +62,6 @@ const CategoryPage = () => {
         }
     };
 
-    // Fetch min and max price on component mount
     useEffect(() => {
         const fetchMinMaxPrice = async () => {
             try {
@@ -82,7 +76,6 @@ const CategoryPage = () => {
         fetchMinMaxPrice();
     }, []);
 
-    // Fetch categories and brands on component mount
     useEffect(() => {
         fetchAllCategories();
         fetchAllBrands();
@@ -102,71 +95,76 @@ const CategoryPage = () => {
         }
     }, [categorySlug, subcategorySlug]);
 
-    // Fetch products based on filters
-    const fetchFilteredProducts = async () => {
+    const fetchFilteredProducts = async (page = 1) => {
         setLoading(true);
         try {
-            let filteredProducts = [];
+            let response;
 
             if (subcategorySlug) {
-                const subcategoryProducts = await filterBySubcategory(subcategorySlug);
-                filteredProducts = subcategoryProducts?.products || [];
-                if (!filteredProducts || filteredProducts.length === 0) {
-                    filteredProducts = [];
-                }
+                response = await filterBySubcategory(subcategorySlug, page);
             }
-            
-            if (!priceFilter && categoryFilter.length === 0 && !ratingFilter && !brandFilter && !minPrice && !maxPrice) {
-                const allProductsResponse = await getAllProducts();
-                filteredProducts = allProductsResponse?.products || [];
-            } else {
-                if (priceFilter) {
-                    const priceResponse = await filterByPrice({ price: priceFilter });
-                    filteredProducts = priceResponse?.products || [];
-                }
-                if (categoryFilter.length > 0) {
-                    const categoryResponse = await filterByCategory({ categories: categoryFilter });
-                    filteredProducts = filteredProducts.length
-                        ? filteredProducts.filter((product) =>
-                            categoryResponse.products.some((p) => p._id === product._id)
-                        )
-                        : categoryResponse?.products || [];
-                }
-                if (ratingFilter > 0) {
-                    const ratingResponse = await filterByRating({ rating: ratingFilter });
-                    filteredProducts = filteredProducts.length
-                        ? filteredProducts.filter((product) =>
-                            ratingResponse.products.some((p) => p._id === product._id)
-                        )
-                        : ratingResponse?.products || [];
-                }
-                if (brandFilter) {
-                    const brandResponse = await filterProductsByBrand(brandFilter);
-                    filteredProducts = filteredProducts.length
-                        ? filteredProducts.filter((product) =>
-                            brandResponse.products.some((p) => p._id === product._id)
-                        )
-                        : brandResponse?.products || [];
-                }
-                if (minPrice && maxPrice) {
-                    const priceRangeResponse = await filterByPriceRange({ min: minPrice, max: maxPrice });
-                    filteredProducts = filteredProducts.length
-                        ? filteredProducts.filter((product) =>
-                            priceRangeResponse.products.some((p) => p._id === product._id)
-                        )
-                        : priceRangeResponse?.products || [];
-                }
+            else if (priceFilter) {
+                response = await filterByPrice({ price: priceFilter, page });
+            }
+            else if (categoryFilter.length > 0) {
+                response = await filterByCategory({ categories: categoryFilter, page });
+            }
+            else if (ratingFilter > 0) {
+                response = await filterByRating({ rating: ratingFilter, page });
+            }
+            else if (brandFilter) {
+                response = await filterProductsByBrand(brandFilter, page);
+            }
+            else if (minPrice && maxPrice) {
+                response = await filterByPriceRange({ min: minPrice, max: maxPrice }, page);
+            }
+            else {
+                response = await filterByCategory({ categories: categoryFilter, page });
             }
 
-            setProducts(filteredProducts);
+            setProducts(response?.products || []);
+            setTotalPages(response?.totalPages || 0);
+            setCurrentPage(response?.currentPage || 1);
         } catch (error) {
-            console.log("Error in fetching filtered products", error);
+            console.error("Error fetching products:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Fetch products when filters change
+    const getVisiblePages = () => {
+        const visiblePages = [];
+        const maxVisiblePages = 5;
+
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = startPage + maxVisiblePages - 1;
+
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            visiblePages.push(i);
+        }
+
+        return visiblePages;
+    };
+
+    const handlePageChange = (pageNumber) => {
+        if (pageNumber < 1 || pageNumber > totalPages) return;
+        setCurrentPage(pageNumber);
+        fetchFilteredProducts(pageNumber);
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    };
+
+    useEffect(() => {
+        fetchFilteredProducts(currentPage);
+    }, [currentPage]);
+
     useEffect(() => {
         fetchFilteredProducts();
     }, [priceFilter, categoryFilter, subcategoryFilter, ratingFilter, brandFilter, minPrice, maxPrice]);
@@ -198,6 +196,11 @@ const CategoryPage = () => {
         setIsFilterOpen(false);
     };
 
+    const handleSortSelection = (value) => {
+        setPriceFilter(value);
+        setIsSortOpen(false);
+    };
+
     const handlePriceRangeChange = (value) => {
         setPriceRange(value);
         setMinPrice(value[0]);
@@ -223,12 +226,12 @@ const CategoryPage = () => {
             {/* Mobile Filter Button */}
             <div className="md:hidden flex justify-between items-center mb-4">
                 {/* Sort Filter Dropdown */}
-                <div className="relative flex-1 mt-2">
+                <div className="relative flex-1 mt-2 justify-center">
                     <button
                         onClick={toggleSortDropdown}
-                        className="w-[40%] flex items-center bg-main justify-between border border-gray-200 px-2 py-2 text-white focus:outline-none"
+                        className="w-full flex items-center bg-white justify-between border border-gray-200  px-2 py-2 text-main focus:outline-none"
                     >
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center font-semibold gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
                             </svg>
@@ -236,9 +239,9 @@ const CategoryPage = () => {
                         </span>
                         <IoChevronDown className={`transition-transform ${isSortOpen ? 'transform rotate-180' : ''}`} />
                     </button>
-                    
+
                     {isSortOpen && (
-                        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 shadow-lg">
+                        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200  shadow-lg">
                             <button
                                 onClick={() => handleSortSelection("low")}
                                 className="block w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -257,7 +260,7 @@ const CategoryPage = () => {
 
                 <button
                     onClick={toggleFilterDrawer}
-                    className="flex items-center gap-1 bg-main text-white px-3 mt-2 py-2"
+                    className="flex  justify-center items-center w-1/2 gap-2 border font-semibold border-gray-200 bg-white text-main px-3 mt-2 py-2 "
                 >
                     <IoFilter size={24} /> Filters
                 </button>
@@ -284,7 +287,7 @@ const CategoryPage = () => {
             />
 
             {/* Sidebar Filters (Desktop) */}
-            <div className="hidden md:block w-full h-full md:w-1/4 mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
+            <div className="hidden md:block w-full h-full md:w-[20%] mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
                 {/* Price Range Filter */}
                 <div className="mb-2 md:mb-3 w-full text-main">
                     <h4 className="text-lg font-bold mb-1 font-space">Price Range</h4>
@@ -328,7 +331,7 @@ const CategoryPage = () => {
                         >
                             <option value="" disabled>Select</option>
                             {categories?.map((cat) => (
-                                <option key={cat._id} value={cat.name}>
+                                <option key={cat._id} value={cat.slug}>
                                     {cat.name}
                                 </option>
                             ))}
@@ -339,11 +342,11 @@ const CategoryPage = () => {
                 {/* Brand Filter */}
                 <div className="mb-2 md:mb-3 w-full">
                     <h4 className="text-lg font-bold mb-2 font-space text-main">Filter By Brand</h4>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                         {brands?.map((brand) => (
-                            <label key={brand._id} className="flex items-center">
+                            <label key={brand._id} className="text-sm font-semibold text-gray-700">
                                 <input
-                                    type="radio"
+                                    type="checkbox"
                                     name="brand"
                                     value={brand.name}
                                     checked={brandFilter === brand.name}
@@ -362,7 +365,7 @@ const CategoryPage = () => {
                     {[5, 4, 3, 2, 1].map((rating) => (
                         <label key={rating} className="flex items-center mb-1">
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="rating"
                                 value={rating}
                                 checked={ratingFilter === rating}
@@ -388,19 +391,54 @@ const CategoryPage = () => {
             </div>
 
             {/* Product Display */}
-            <div className="w-full md:w-3/4 p-1 md:p-4 lg:p-4">
+            <div className="w-full md:w-[80%] p-1 md:py-4 pl-1 md:pl-8  px-1 md:px-0">
                 {loading ? (
                     <p className="text-center text-gray-500">Loading...</p>
                 ) : (
-                    <div className="max-w-screen-lg grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {products.length > 0 ? (
-                            products.map((product) => (
-                                <ShopCard key={product._id} product={product} />
-                            ))
-                        ) : (
-                            <p className="text-gray-500">No products found.</p>
+                    <>
+                        <div className="max-w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            {products.length > 0 ? (
+                                products.map((product) => (
+                                    <ShopCard key={product._id} product={product} />
+                                ))
+                            ) : (
+                                <p className="text-gray-500">No products found.</p>
+                            )}
+                        </div>
+                        {/* Improved Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center mt-6 mb-4 space-x-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className={`p-2 rounded-full ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-main hover:bg-gray-100'}`}
+                                >
+                                    <FaChevronLeft />
+                                </button>
+
+                                {getVisiblePages().map((page) => (
+                                    <button
+                                        key={page}
+                                        onClick={() => handlePageChange(page)}
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center ${currentPage === page
+                                            ? 'bg-main text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className={`p-2 rounded-full ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-main hover:bg-gray-100'}`}
+                                >
+                                    <FaChevronRight />
+                                </button>
+                            </div>
                         )}
-                    </div>
+                    </>
                 )}
             </div>
         </div>

@@ -18,11 +18,12 @@ export const searchProduct = async (data) => {
     }
 }
 
-export const filterByPrice = async (data) => {
+export const filterByPrice = async ({ price, page = 1, limit = 8 }) => {
+    console.log("Page and limit in filterByPrice api function--------->", page, limit);
     try {
         // Ensure the key is 'sort' as expected by the backend
-        const formattedData = { sort: data.price === 'low' ? 'asc' : 'desc' };
-        const response = await axios.get(`${BASE_URL}/search/filter/price`, {
+        const formattedData = { sort: price === 'high' ? 'desc' : 'asc' };
+        const response = await axios.get(`${BASE_URL}/search/filter/price?page=${page}&limit=${limit}`, {
             params: formattedData,
             withCredentials: true,
         });
@@ -32,10 +33,10 @@ export const filterByPrice = async (data) => {
     }
 };
 
-export const filterByCategory = async (data) => {
+export const filterByCategory = async ({ categories, subcategory, page = 1, limit = 8 }) => {
     try {
-        const response = await axios.get(`${BASE_URL}/search/filter/category`, {
-            params: { categoryName: data.categories, subcategory: data.subcategory },
+        const response = await axios.get(`${BASE_URL}/search/filter/category?page=${page}&limit=${limit}`, {
+            params: { categoryName: categories, subcategory }, // Using destructured values directly
             withCredentials: true,
             paramsSerializer: (params) => new URLSearchParams(params).toString(),
         });
@@ -45,9 +46,9 @@ export const filterByCategory = async (data) => {
     }
 };
 
-export const filterBySubcategory = async (subcategoryName) => {
+export const filterBySubcategory = async (subcategoryName, page = 1, limit = 8) => {
     try {
-        const response = await axios.get(`${BASE_URL}/search/filter/subcategory`, {
+        const response = await axios.get(`${BASE_URL}/search/filter/subcategory?page=${page}&limit=${limit}`, {
             params: { subcategoryName },
             withCredentials: true
         });
@@ -57,10 +58,10 @@ export const filterBySubcategory = async (subcategoryName) => {
     }
 };
 
-export const filterByRating = async (data) => {
+export const filterByRating = async (data, page = 1, limit = 8) => {
     // console.log("Data in filterByRating-------->", data)
     try {
-        const response = await axios.get(`${BASE_URL}/search/filter/rating`, {
+        const response = await axios.get(`${BASE_URL}/search/filter/rating?page=${page}&limit=${limit}`, {
             params: data,
             withCredentials: true
         });
@@ -70,18 +71,18 @@ export const filterByRating = async (data) => {
     }
 }
 
-export const getMinMaxPrice = async () => {
+export const getMinMaxPrice = async (page = 1, limit = 8) => {
     try {
-        const response = await axios.get(`${BASE_URL}/search/filter/min-max-price`);
+        const response = await axios.get(`${BASE_URL}/search/filter/min-max-price?page=${page}&limit=${limit}`);
         return response?.data;
     } catch (error) {
         console.log("Error in fetching min and max price", error)
     }
 }
 
-export const filterByPriceRange = async (data) => {
+export const filterByPriceRange = async (data, page = 1, limit = 8) => {
     try {
-        const response = await axios.get(`${BASE_URL}/search/filter/price-range`, {
+        const response = await axios.get(`${BASE_URL}/search/filter/price-range?page=${page}&limit=${limit}`, {
             params: { minPrice: data.min, maxPrice: data.max }, // Ensure correct keys
             withCredentials: true
         });
@@ -91,9 +92,9 @@ export const filterByPriceRange = async (data) => {
     }
 };
 
-export const filterProductsByBrand = async (brand) => {
+export const filterProductsByBrand = async (brand, page = 1, limit = 8) => {
     try {
-        const response = await axios.get(`${BASE_URL}/search/filter/${brand}`);
+        const response = await axios.get(`${BASE_URL}/search/filter/${brand}?page=${page}&limit=${limit}`);
         return response?.data;
     } catch (error) {
         console.log("Error in filtering by brand", error);

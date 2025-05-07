@@ -1,18 +1,93 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { truncateTitle } from '../../helpers/truncateTitle';
 import { TbTruckDelivery } from 'react-icons/tb';
-import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { addToCart } from '../../store/cartSlice';
+import { toast } from 'react-hot-toast'
+import { addItemToCart } from '../../functions/cart'
+import { motion, AnimatePresence } from "framer-motion";
 
 const ProductCard = ({ product }) => {
+    const dispatch = useDispatch();
+    const navigateTo = useNavigate();
+    const { user } = useSelector((state) => state.auth);
+    const userId = user?._id;
     const { images, title, averageRating, price, salePrice, slug, freeShipping } = product;
     const off = salePrice && Math.floor(((price - salePrice) / price) * 100);
     const totalReviews = product?.reviews?.length;
     const [isHovered, setIsHovered] = useState(false);
 
-    
-    const imageWidth = 200;
-    const imageHeight = 200;
+    const imageWidth = 180;
+    const imageHeight = 180;
+
+    const handleAddToCart = useCallback(async () => {
+        const variantsForBackend = [];
+
+        const cartItem = {
+            productId: product?._id,
+            title: product?.title,
+            price: product?.salePrice ? product?.salePrice : product?.price,
+            image: product?.images[0],
+            count: 1,
+            selectedVariants: variantsForBackend,
+            freeShipping: product?.freeShipping,
+            deliveryCharges: product?.deliveryCharges
+        };
+
+        try {
+            dispatch(addToCart(cartItem));
+            toast.success("Product added to cart!");
+        } catch (error) {
+            toast.error("Failed to add the product to the cart. Please try again.");
+            console.error("Error adding item to cart:", error);
+        }
+    }, [product, userId, navigateTo, dispatch]);
+
+    const currentCartItems = useSelector((state) => state.cart.products);
+    // console.log("Current Cart Items:", currentCartItems);
+
+
+    const handleByNow = useCallback(async () => {
+        const variantsForBackend = []
+        const cartItem = {
+            productId: product?._id,
+            title: product?.title,
+            price: product?.salePrice ? product?.salePrice : product?.price,
+            image: product?.images[0],
+            count: 1,
+            selectedVariants: variantsForBackend,
+            freeShipping: product?.freeShipping,
+            deliveryCharges: product?.deliveryCharges
+        };
+
+        try {
+            // 1. Add the new item to Redux cart
+            dispatch(addToCart(cartItem));
+            // 3. Prepare the payload for the backend
+            const updatedCartItems = [...currentCartItems, cartItem];
+            const cartPayload = {
+                products: updatedCartItems.map(item => ({
+                    productId: item.productId,
+                    title: item.title,
+                    price: item.price,
+                    image: item.image,
+                    count: item.count,
+                    selectedVariants: item.selectedVariants,
+                    freeShipping: item.freeShipping,
+                    deliveryCharges: item.deliveryCharges
+                }))
+            };
+            await addItemToCart(userId, cartPayload);
+            navigateTo("/cart/checkout");
+            toast.success("Proceeding to checkout!");
+        } catch (error) {
+            toast.error("Failed to proceed to checkout. Please try again.");
+            console.error("Error during Buy Now:", error);
+        }
+    }, [, product, dispatch, userId, navigateTo]);
+
+
 
     const cardVariants = {
         hidden: { opacity: 0, y: 20 },
@@ -84,7 +159,7 @@ const ProductCard = ({ product }) => {
 
     return (
         <motion.div
-            className="max-w-sm bg-white overflow-hidden shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="max-w-sm bg-white h-[350px]  overflow-hidden shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col items-stretch relative"
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
@@ -106,12 +181,20 @@ const ProductCard = ({ product }) => {
                         variants={imageVariants}
                         whileHover="hover"
                     />
+                    <div className="absolute top-[146px] left-0 right-0 flex lg:hidden justify-between">
+                        <button onClick={handleAddToCart} className="w-1/2 bg-red-600 text-white font-semibold py-2 text-[12px] hover:bg-red-700 transition">
+                            Add To Cart
+                        </button>
+                        <button onClick={handleByNow} className="w-1/2 bg-blue-800 text-white font-semibold py-2 text-[12px] hover:bg-blue-900 transition">
+                            Buy Now
+                        </button>
+                    </div>
                 </div>
             </Link>
 
             {freeShipping && (
                 <motion.span
-                    className="absolute top-0 right-0 bg-green-600 rounded-s-sm flex items-center gap-1 text-white text-sm font-semibold px-2 py-1 shadow-md"
+                    className="absolute top-0 right-0 bg-green-600 rounded-s-sm flex items-center gap-1 text-white text-xs font-medium px-2 py-1 shadow-md"
                     initial={{ opacity: 0, y: -20 }}
                     whileInView={{ opacity: 1, y: 0, transition: { duration: 0.5 } }}
                     viewport={{ once: true, amount: 0.2 }}
@@ -120,23 +203,54 @@ const ProductCard = ({ product }) => {
                 </motion.span>
             )}
 
+            <AnimatePresence>
+                {isHovered && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="absolute top-[155px] left-0 right-0 hidden md:flex justify-between"
+                    >
+                        <button
+                            onClick={handleAddToCart}
+                            className="w-1/2 bg-red-600 text-white font-semibold py-1 text-[12px] hover:bg-red-700 transition"
+                        >
+                            Add To Cart
+                        </button>
+                        <button
+                            onClick={handleByNow}
+                            className="w-1/2 bg-blue-800 text-white font-semibold py-1 text-[12px] hover:bg-blue-900 transition"
+                        >
+                            Buy Now
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+
             <div className="mx-2 justify-start font-roboto mb-4">
-                <h2 className="font-semibold text-base md:text-lg mb-2">{truncateTitle(title, 50)}</h2>
+                <Link to={`/product/${slug}`} className='text-black no-underline'>
+                    <h2
+                        onMouseEnter={() => setIsHovered(true)}
+                        className="font-medium text-base mb-2">
+                        {truncateTitle(title, 45)}
+                    </h2>
+                </Link>
                 <div className="flex items-center mb-1 gap-1">
                     <div className="flex items-center gap-1">
                         {renderStars(averageRating || 0)}
                         {totalReviews > 0 && <span className="text-gray-500 text-sm ml-2 font-bold">({totalReviews})</span>}
                     </div>
                 </div>
-                <div className="flex items-center gap-x-2 flex-nowrap">
-                    <p className="text-gray-900 text-sm font-medium">
-                        Rs.{' '}
+                <div className="flex items-center gap-x-2 justify-between flex-nowrap">
+                    <p className="text-gray-900 flex flex-col text-sm font-medium">
                         {salePrice ? (
-                            <span className="line-through text-gray-400 text-sm">{price}</span>
+                            <span className="line-through text-gray-400 text-sm">Rs. {price}</span>
                         ) : (
-                            <span>{price}</span>
+                            <span>Rs. {price}</span>
                         )}{' '}
-                        {salePrice}
+                        Rs.{salePrice}
                     </p>
                     {off && <p className="p-1 border-2 text-center text-xs sm:text-sm border-main">{off}% Off</p>}
                 </div>

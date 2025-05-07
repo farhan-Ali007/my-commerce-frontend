@@ -3,11 +3,11 @@ import { FaArrowLeft, FaArrowRight, FaChevronLeft, FaChevronRight } from 'react-
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick-theme.css';
 import 'slick-carousel/slick/slick.css';
-import { getNewArrivals } from '../functions/product';
+import { getAllProducts } from '../functions/product';
 import ProductCard from './cards/ProductCard';
 import ProductCardSkeleton from './skeletons/ProductCardSkeleton';
 
-const NewArrivals = () => {
+const FeaturedProducts = () => {
     const [products, setProducts] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
@@ -19,7 +19,7 @@ const NewArrivals = () => {
     const fetchProducts = async (page) => {
         setLoading(true);
         try {
-            const data = await getNewArrivals(page, productsPerPage);
+            const data = await getAllProducts(page, productsPerPage);
             setProducts(data?.products || []);
             setTotalPages(data?.totalPages || 0);
         } catch (error) {
@@ -122,12 +122,12 @@ const NewArrivals = () => {
     return (
         <div className="w-full overflow-hidden px-1 md:px-4 lg:px-4 mt-4">
             <h1 className="text-main text-center w-full block font-space text-3xl md:text-4xl font-extrabold px-5 mb-4 md:mb-7">
-                New Arrivals
+                Trending Products
             </h1>
 
             {/* Product Carousel */}
             {loading ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-6 lg:gap-6">
                     {[...Array(productsPerPage)].map((_, index) => (
                         <ProductCardSkeleton key={index} />
                     ))}
@@ -181,4 +181,4 @@ const NewArrivals = () => {
     );
 };
 
-export default NewArrivals;
+export default FeaturedProducts;

@@ -12,7 +12,7 @@ const Banner = () => {
     const sliderRef = useRef(null);
 
     const bannerDimensions = {
-        desktop: { width: 1920, height: 600 },
+        desktop: { width: 1920, height: 550 },
         tablet: { width: 1200, height: 400 },
         mobile: { width: 800, height: 250 }
     };
@@ -46,7 +46,7 @@ const Banner = () => {
         slidesToShow: 1,
         slidesToScroll: 1,
         autoplay: true,
-        autoplaySpeed: 5000,
+        autoplaySpeed: 4000,
         pauseOnHover: true,
         arrows: false,
         afterChange: (index) => setCurrentSlide(index),
@@ -131,7 +131,7 @@ const Banner = () => {
                                         srcSet={`
                                             ${getOptimizedImageUrl(banner.image, 800, 250)} 800w,
                                             ${getOptimizedImageUrl(banner.image, 1200, 400)} 1200w,
-                                            ${getOptimizedImageUrl(banner.image, 1920, 600)} 1920w
+                                            ${getOptimizedImageUrl(banner.image, 1920, 550)} 1920w
                                         `}
                                         sizes="100vw"
                                         alt={`Banner ${index + 1}`}
@@ -150,7 +150,7 @@ const Banner = () => {
 
             {/* Custom Dots */}
             {!loading && banners.length > 1 && (
-                <div className="flex justify-center my-2 md:my-4">
+                <div className="flex justify-center my-2">
                     {banners.map((_, index) => (
                         <motion.div
                             key={index}

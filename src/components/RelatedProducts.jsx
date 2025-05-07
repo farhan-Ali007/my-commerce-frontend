@@ -31,7 +31,7 @@ const RelatedProducts = ({ relatedProducts, currentPage, totalPages, onPageChang
                 </div>
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-5 lg:gap-6 pb-6">
-                    {products.map((product) => (
+                    {products.slice(0,5).map((product) => (
                         <ProductCard key={product._id} product={product} />
                     ))}
                 </div>

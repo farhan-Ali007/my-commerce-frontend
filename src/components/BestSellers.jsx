@@ -50,7 +50,7 @@ const BestSellers = () => {
 
     return (
         <div className="max-w-screen-xl mx-auto px-2 md:px-4 lg:px-4 my-4">
-            <h1 className="text-main text-center font-space text-3xl md:text-4xl font-extrabold px-5 mb-8 underline decoration-4 underline-offset-8">
+            <h1 className="text-main text-center font-space text-3xl md:text-4xl font-extrabold px-5 mb-8 ">
                 Best Sellers
             </h1>
 

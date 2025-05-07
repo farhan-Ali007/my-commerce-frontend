@@ -60,37 +60,29 @@ const Categories = () => {
                     ? Array.from({ length: 8 }).map((_, index) => (
                         <CategorySkeleton key={index} />
                     ))
-                    : categories?.slice(0, 16).map((category, index) => (
+                    : categories?.slice(0, 14).map((category, index) => (
                         <motion.div
-                            key={index}
-                            className="flex flex-col items-center"
-                            variants={itemVariants}
-                        >
-                            <Link to={`/category/${category.name}`} className="relative group cursor-pointer w-full">
-                                {/* Category Image with Hover Animation */}
-                                <motion.div
-                                    className="w-full h-20 md:h-24 lg:h-36  bg-cover bg-center overflow-hidden"
-                                    style={{ backgroundImage: `url(${category?.Image})` }}
-                                    variants={hoverVariants}  
-                                    whileHover="hover"
-                                />
-                                
-                                {/* Hover Effect */}
-                                <motion.div
-                                    className="absolute inset-0 flex w-full items-center justify-center bg-black bg-opacity-70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 "
-                                    initial={{ opacity: 0 }}
-                                    whileHover={{ opacity: 1 }}
-                                >
-                                    <span className="text-white text-sm md:text-xl capitalize font-bold">
-                                        {category?.name}
-                                    </span>
-                                </motion.div>
-                            </Link>
-
-                            <span className="text-sm  text-center mt-2 capitalize font-medium font-poppins md:block">
-                                {category?.name}
-                            </span>
-                        </motion.div>
+                        key={index}
+                        className="flex flex-col items-center"
+                        variants={itemVariants}
+                    >
+                        <Link to={`/category/${category.slug}`} className="relative group cursor-pointer w-full">
+                            <motion.div
+                                className="w-full h-20 md:h-24 lg:h-36 bg-cover bg-center  overflow-hidden shadow-md"
+                                style={{ backgroundImage: `url(${category?.Image})` }}
+                                whileHover={{
+                                    scale: 1.05,
+                                    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.3)"
+                                }}
+                                transition={{ duration: 0.3 }}
+                            />
+                        </Link>
+                    
+                        <span className="text-sm text-center mt-2 capitalize font-medium font-poppins md:block">
+                            {category?.name}
+                        </span>
+                    </motion.div>
+                    
                     ))}
             </motion.div>
         </div>

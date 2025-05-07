@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { TiShoppingCart } from 'react-icons/ti';
 import { TbTruckDelivery } from 'react-icons/tb';
-import { useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { truncateTitle } from '../../helpers/truncateTitle';
 import { addToCart } from '../../store/cartSlice';
-import { truncateTitle } from '../../helpers/truncateTitle'
 import CartDrawer from '../drawers/CartDrawer';
+import { addItemToCart } from '../../functions/cart'
 
 const ShopCard = ({ product }) => {
     const dispatch = useDispatch();
+    const navigateTo = useNavigate();
+    const { user } = useSelector((state) => state.auth);
+    const userId = user?._id;
     const { images, title, averageRating, price, slug, salePrice, brand, freeShipping, deliveryCharges } = product;
     const id = product._id;
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -92,10 +95,51 @@ const ShopCard = ({ product }) => {
         }
     };
 
+    const currentCartItems = useSelector((state) => state.cart.products);
+    // console.log("Current Cart Items:", currentCartItems);
+    const handleByNow = useCallback(async () => {
+        const variantsForBackend = []
+        const cartItem = {
+            productId: product?._id,
+            title: product?.title,
+            price: product?.salePrice ? product?.salePrice : product?.price,
+            image: product?.images[0],
+            count: 1,
+            selectedVariants: variantsForBackend,
+            freeShipping: product?.freeShipping,
+            deliveryCharges: deliveryCharges
+        };
+
+        try {
+            // 1. Add the new item to Redux cart
+            dispatch(addToCart(cartItem));
+            // 3. Prepare the payload for the backend
+            const updatedCartItems = [...currentCartItems, cartItem];
+            const cartPayload = {
+                products: updatedCartItems.map(item => ({
+                    productId: item.productId,
+                    title: item.title,
+                    price: item.price,
+                    image: item.image,
+                    count: item.count,
+                    selectedVariants: item.selectedVariants,
+                    freeShipping: item.freeShipping,
+                    deliveryCharges: item.deliveryCharges
+                }))
+            };
+            await addItemToCart(userId, cartPayload);
+            navigateTo("/cart/checkout");
+            toast.success("Proceeding to checkout!");
+        } catch (error) {
+            toast.error("Failed to proceed to checkout. Please try again.");
+            console.error("Error during Buy Now:", error);
+        }
+    }, [, product, dispatch, userId, navigateTo]);
+
     return (
         <>
             <motion.div
-                className="max-w-[300px] relative flex-shrink-0 min-h-auto bg-white overflow-hidden shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col items-stretch"
+                className=" max-w-[220px] relative min-h-auto bg-white overflow-hidden mb-4 shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -105,13 +149,22 @@ const ShopCard = ({ product }) => {
             >
                 <Link to={`/product/${slug}`} className="overflow-hidden w-full mb-4">
                     <motion.img
-                        className="w-full h-48 object-contain aspect-square transform transition-transform duration-300"
+                        className="w-full h-48 object-cover aspect-square transform transition-transform duration-300"
                         src={isHovered && images[1] ? images[1] : images[0]}
                         alt={title}
                         loading="lazy"
                         whileHover={{ scale: 1.1 }}
                     />
                 </Link>
+
+                <div className="absolute top-[158px] left-0 right-0 flex md:hidden justify-between">
+                    <button onClick={handleAddToCart} className="w-1/2 bg-red-600 text-white font-semibold py-2 text-[12px] hover:bg-red-700 transition">
+                        Add To Cart
+                    </button>
+                    <button onClick={handleByNow} className="w-1/2 bg-blue-800 text-white font-semibold py-2 text-[12px] hover:bg-blue-900 transition">
+                        Buy Now
+                    </button>
+                </div>
 
                 {/* Free Shipping Tag */}
                 {freeShipping && (
@@ -125,8 +178,39 @@ const ShopCard = ({ product }) => {
                     </motion.span>
                 )}
 
+                <AnimatePresence>
+                    {isHovered && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="absolute top-[167px] left-0 right-0 hidden md:flex justify-between"
+                        >
+                            <button
+                                onClick={handleAddToCart}
+                                className="w-1/2 bg-red-600 text-white font-semibold py-1 text-[12px] hover:bg-red-700 transition"
+                            >
+                                Add To Cart
+                            </button>
+                            <button
+                                onClick={handleByNow}
+                                className="w-1/2 bg-blue-800 text-white font-semibold py-1 text-[12px] hover:bg-blue-900 transition"
+                            >
+                                Buy Now
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <div className="mx-2 justify-start font-roboto mb-2">
-                    <h2 className="font-bold text-base md:text-lg mb-2">{truncateTitle(title, 45)}</h2>
+                    <Link to={`/product/${slug}`} className='no-underline text-black'>
+                        <h2
+                            onMouseEnter={() => setIsHovered(false)}
+                            className="font-medium text-base mb-2">
+                            {truncateTitle(title, 45)}
+                        </h2>
+                    </Link>
                     <div className="flex items-center mb-1 gap-1">
                         <div className="flex items-center gap-1">
                             {renderStars(averageRating || 0)}
@@ -139,30 +223,14 @@ const ShopCard = ({ product }) => {
                         {brand?.name?.replace(/-/g, ' ')}
                     </Link>
                     <p className="text-gray-900 text-sm md:text-xl font-semibold">
-                        Rs.{' '}
                         {salePrice ? (
-                            <span className="line-through text-gray-400 text-sm">{price}</span>
+                            <span className="line-through text-gray-400 text-sm">Rs.{price}</span>
                         ) : (
-                            <span>{price}</span>
+                            <span>Rs.{price}</span>
                         )}{' '}
-                        {salePrice}
+                        Rs.{salePrice}
                     </p>
                 </div>
-
-             {/* Add to Cart Button with Slide-Up Animation */}
-                <motion.div
-                    className="w-full  flex-row text-center justify-between items-center mb-2 gap-1 px-3 overflow-hidden"
-                >
-                    <motion.button
-                        onClick={handleAddToCart}
-                        className="w-full flex items-center justify-center gap-1 md:gap-0 lg:gap-2 opacity-70 hover:opacity-90 text-sm md:text-sm lg:text-[1rem] text-main hover:text-white hover:bg-main border-2 border-main font-bold py-2 px-3"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        <TiShoppingCart className="text-xl" /> Add to Cart
-                    </motion.button>
-                </motion.div>
-
 
                 <CartDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={() => setIsDrawerOpen(false)} />
             </motion.div>

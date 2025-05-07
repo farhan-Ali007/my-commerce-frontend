@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 const AdminBanner = () => {
     const [banners, setBanners] = useState([]);
     const [image, setImage] = useState(null);
-    const [previewImage, setPreviewImage] = useState(null); // Preview for updating
+    const [previewImage, setPreviewImage] = useState(null);
     const [link, setLink] = useState("");
     const [isActive, setIsActive] = useState(true);
     const [editMode, setEditMode] = useState(false);
@@ -173,7 +173,7 @@ const AdminBanner = () => {
                     className="w-full bg-main bg-opacity-70 hover:bg-opacity-90 text-white py-2 rounded-lg transition"
                     disabled={loading}
                 >
-                    {editMode ? "Update Banner" : "Add Banner"}
+                    {editMode ? "Update Banner (1920x550)" : "Add Banner (1920x550)"}
                 </button>
             </form>
 
@@ -189,7 +189,8 @@ const AdminBanner = () => {
                                 <img
                                     src={banner.image}
                                     alt="Banner"
-                                    className="w-32 h-16 object-cover rounded-lg"
+                                    loading="lazy"
+                                    className="w-32 h-16 object-contain rounded-lg"
                                 />
                                 <div className="flex-1 ml-4 mt-4 md:mt-0">
                                     <a href={banner.link} target="_blank" rel="noopener noreferrer"

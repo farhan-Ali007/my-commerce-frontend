@@ -6,7 +6,7 @@ import { truncateTitle } from '../../helpers/truncateTitle';
 import { motion } from 'framer-motion';
 
 const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
-    const cartItems = useSelector((state) => state.cart.items);
+    const cartItems = useSelector((state) => state.cart.products);
 
     const [delayedOpen, setDelayedOpen] = useState(false);
 
@@ -19,7 +19,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
     }, [isDrawerOpen]);
 
     // Calculate cart total from Redux state
-    const cartTotal = cartItems.reduce((total, item) => total + item.price * item.count, 0);
+    const cartTotal = cartItems?.reduce((total, item) => total + item.price * item.count, 0);
 
     return (
         <Drawer
@@ -59,10 +59,10 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
                     ) : (
                         <p className="text-center text-gray-500">Your cart is empty</p>
                     )}
-                    <div className="text-xl flex justify-between border-t-2 border-b-2 py-2">
-                        <p>Subtotal:</p>
-                        <p>Rs. {cartTotal}</p>
-                    </div>
+                </div>
+                <div className="text-xl flex justify-between border-t-2 border-b-2 py-2">
+                    <p>Subtotal:</p>
+                    <p>Rs. {cartTotal}</p>
                 </div>
                 <Link
                     to="/cart"

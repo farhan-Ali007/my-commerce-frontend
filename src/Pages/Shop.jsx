@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from "react";
-import ShopCard from "../components/cards/ShopCard";
-import { getAllCategories } from "../functions/categories";
-import { getAllProducts } from "../functions/product";
-import { getAllBrands } from '../functions/brand';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { IoChevronDown, IoFilter } from "react-icons/io5";
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
-import { IoFilter, IoChevronDown } from "react-icons/io5";
+import ShopCard from "../components/cards/ShopCard";
+import FilterDrawer from "../components/drawers/FilterDrawer";
+import { getAllBrands } from '../functions/brand';
+import { getAllCategories } from "../functions/categories";
+import { getAllProducts } from "../functions/product";
 import {
     filterByCategory,
     filterByPrice,
+    filterByPriceRange,
     filterByRating,
     filterProductsByBrand,
-    getMinMaxPrice,
-    filterByPriceRange
+    getMinMaxPrice
 } from "../functions/search";
-import FilterDrawer from "../components/drawers/FilterDrawer";
 
 const Shop = () => {
     const [priceFilter, setPriceFilter] = useState("");
@@ -24,12 +25,15 @@ const Shop = () => {
     const [ratingFilter, setRatingFilter] = useState(null);
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
+    // console.log("Products in shop page----->", products);
     const [loading, setLoading] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [brandFilter, setBrandFilter] = useState(null);
     const [priceRange, setPriceRange] = useState([0, 10000]);
     const [brands, setBrands] = useState([]);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
 
     const toggleFilterDrawer = () => {
         setIsFilterOpen(!isFilterOpen);
@@ -38,14 +42,7 @@ const Shop = () => {
         setIsSortOpen(!isSortOpen);
     };
 
-    const handleSortSelection = (value) => {
-        setPriceFilter(value);
-        setIsSortOpen(false);
-        // Handle your sort logic here
-    };
 
-
-    // Fetch all categories
     const fetchAllCategories = async () => {
         try {
             const response = await getAllCategories();
@@ -55,7 +52,6 @@ const Shop = () => {
         }
     };
 
-    // Fetch all brands
     const fetchAllBrands = async () => {
         try {
             const response = await getAllBrands();
@@ -65,7 +61,6 @@ const Shop = () => {
         }
     };
 
-    // Fetch min and max price on component mount
     useEffect(() => {
         const fetchMinMaxPrice = async () => {
             try {
@@ -80,69 +75,89 @@ const Shop = () => {
         fetchMinMaxPrice();
     }, []);
 
-    // Fetch categories and brands on component mount
     useEffect(() => {
         fetchAllCategories();
         fetchAllBrands();
     }, []);
 
     // Fetch products based on filters
-    const fetchFilteredProducts = async () => {
+    const fetchFilteredProducts = async (page = 1) => {
         setLoading(true);
         try {
-            let filteredProducts = [];
+            let response;
 
-            if (!priceFilter && categoryFilter.length === 0 && !ratingFilter && !brandFilter && !minPrice && !maxPrice) {
-                const allProductsResponse = await getAllProducts();
-                filteredProducts = allProductsResponse?.products || [];
-            } else {
-                if (priceFilter) {
-                    const priceResponse = await filterByPrice({ price: priceFilter });
-                    filteredProducts = priceResponse?.products || [];
-                }
-                if (categoryFilter.length > 0) {
-                    const categoryResponse = await filterByCategory({ categories: categoryFilter });
-                    filteredProducts = filteredProducts.length
-                        ? filteredProducts.filter((product) =>
-                            categoryResponse.products.some((p) => p._id === product._id)
-                        )
-                        : categoryResponse?.products || [];
-                }
-                if (ratingFilter > 0) {
-                    const ratingResponse = await filterByRating({ rating: ratingFilter });
-                    filteredProducts = filteredProducts.length
-                        ? filteredProducts.filter((product) =>
-                            ratingResponse.products.some((p) => p._id === product._id)
-                        )
-                        : ratingResponse?.products || [];
-                }
-                if (brandFilter) {
-                    const brandResponse = await filterProductsByBrand(brandFilter);
-                    filteredProducts = filteredProducts.length
-                        ? filteredProducts.filter((product) =>
-                            brandResponse.products.some((p) => p._id === product._id)
-                        )
-                        : brandResponse?.products || [];
-                }
-                if (minPrice && maxPrice) {
-                    const priceRangeResponse = await filterByPriceRange({ min: minPrice, max: maxPrice });
-                    filteredProducts = filteredProducts.length
-                        ? filteredProducts.filter((product) =>
-                            priceRangeResponse.products.some((p) => p._id === product._id)
-                        )
-                        : priceRangeResponse?.products || [];
-                }
+            if (priceFilter) {
+                response = await filterByPrice({ price: priceFilter, page });
+            }
+            else if (categoryFilter.length > 0) {
+                response = await filterByCategory({ categories: categoryFilter, page });
+            }
+            else if (ratingFilter > 0) {
+                response = await filterByRating({ rating: ratingFilter, page });
+            }
+            else if (brandFilter) {
+                response = await filterProductsByBrand(brandFilter, page);
+            }
+            else if (minPrice && maxPrice) {
+                response = await filterByPriceRange({ min: minPrice, max: maxPrice }, page);
+            }
+            else {
+                response = await getAllProducts(page);
             }
 
-            setProducts(filteredProducts);
+            console.log("Response from get all products api--------->", response);
+            // console.log("Final API response:", response);
+            setProducts(response?.products || []);
+            setTotalPages(response?.totalPages || 0);
+            setCurrentPage(response?.currentPage || 1);
         } catch (error) {
-            console.log("Error in fetching filtered products", error);
+            console.error("Error fetching products:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Fetch products when filters change
+    const getVisiblePages = () => {
+        const visiblePages = [];
+        const maxVisiblePages = 5; // You can adjust this number
+
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = startPage + maxVisiblePages - 1;
+
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            visiblePages.push(i);
+        }
+
+        return visiblePages;
+    };
+
+    const handlePageChange = (pageNumber) => {
+        console.log(`Changing to page ${pageNumber}, current filters:`, {
+            priceFilter,
+            categoryFilter,
+            ratingFilter,
+            brandFilter,
+            minPrice,
+            maxPrice
+        });
+        if (pageNumber < 1 || pageNumber > totalPages) return;
+        setCurrentPage(pageNumber);
+        fetchFilteredProducts(pageNumber);
+    };
+
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+        fetchFilteredProducts(currentPage);
+    }, [currentPage]);
+
     useEffect(() => {
         fetchFilteredProducts();
     }, [priceFilter, categoryFilter, ratingFilter, brandFilter, minPrice, maxPrice]);
@@ -172,6 +187,11 @@ const Shop = () => {
         setCategoryFilter([]);
         setBrandFilter(null);
         setIsFilterOpen(false);
+    };
+
+    const handleSortSelection = (value) => {
+        setPriceFilter(value);
+        setIsSortOpen(false);
     };
 
     const handlePriceRangeChange = (value) => {
@@ -212,7 +232,7 @@ const Shop = () => {
                         </span>
                         <IoChevronDown className={`transition-transform ${isSortOpen ? 'transform rotate-180' : ''}`} />
                     </button>
-                    
+
                     {isSortOpen && (
                         <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200  shadow-lg">
                             <button
@@ -260,7 +280,7 @@ const Shop = () => {
             />
 
             {/* Sidebar Filters (Desktop) */}
-            <div className="hidden md:block w-full h-full md:w-1/4 mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
+            <div className="hidden md:block w-full h-full md:w-[20%] mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
                 {/* Price Range Filter */}
                 <div className="mb-2 md:mb-3 w-full text-main">
                     <h4 className="text-lg font-bold mb-1 font-space">Price Range</h4>
@@ -304,7 +324,7 @@ const Shop = () => {
                         >
                             <option value="" disabled>Select</option>
                             {categories?.map((cat) => (
-                                <option key={cat._id} value={cat.name}>
+                                <option key={cat._id} value={cat.slug}>
                                     {cat.name}
                                 </option>
                             ))}
@@ -315,11 +335,11 @@ const Shop = () => {
                 {/* Brand Filter */}
                 <div className="mb-2 md:mb-3 w-full">
                     <h4 className="text-lg font-bold mb-2 font-space text-main">Filter By Brand</h4>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 capitalize gap-2">
                         {brands?.map((brand) => (
-                            <label key={brand._id} className="flex items-center">
+                            <label key={brand._id} className="flex items-center text-sm font-semibold text-gray-700 mb-15">
                                 <input
-                                    type="radio"
+                                    type="checkbox"
                                     name="brand"
                                     value={brand.name}
                                     checked={brandFilter === brand.name}
@@ -338,7 +358,7 @@ const Shop = () => {
                     {[5, 4, 3, 2, 1].map((rating) => (
                         <label key={rating} className="flex items-center mb-1">
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="rating"
                                 value={rating}
                                 checked={ratingFilter === rating}
@@ -364,19 +384,54 @@ const Shop = () => {
             </div>
 
             {/* Product Display */}
-            <div className="w-full md:w-3/4 p-1 md:p-4 lg:p-4">
+            <div className="w-full md:w-[80%] p-1 md:py-4 pl-1 md:pl-8  px-1 md:px-0">
                 {loading ? (
                     <p className="text-center text-gray-500">Loading...</p>
                 ) : (
-                    <div className="max-w-screen-lg grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {products.length > 0 ? (
-                            products.map((product) => (
-                                <ShopCard key={product._id} product={product} />
-                            ))
-                        ) : (
-                            <p className="text-gray-500">No products found.</p>
+                    <>
+                        <div className="max-w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            {products.length > 0 ? (
+                                products.map((product) => (
+                                    <ShopCard key={product._id} product={product} />
+                                ))
+                            ) : (
+                                <p className="text-gray-500">No products found.</p>
+                            )}
+                        </div>
+                        {/* Improved Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center mt-6 mb-4 space-x-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className={`p-2 rounded-full ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-main hover:bg-gray-100'}`}
+                                >
+                                    <FaChevronLeft />
+                                </button>
+
+                                {getVisiblePages().map((page) => (
+                                    <button
+                                        key={page}
+                                        onClick={() => handlePageChange(page)}
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center ${currentPage === page
+                                            ? 'bg-main text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className={`p-2 rounded-full ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-main hover:bg-gray-100'}`}
+                                >
+                                    <FaChevronRight />
+                                </button>
+                            </div>
                         )}
-                    </div>
+                    </>
                 )}
             </div>
         </div>

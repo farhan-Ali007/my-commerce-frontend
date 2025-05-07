@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { IoAddCircle, IoTrash } from 'react-icons/io5';
 import ReactQuill from "react-quill";
 import 'react-quill/dist/quill.snow.css';
-
-const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categories, tags, brands }) => {
+const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categories, subCategories, tags, brands }) => {
 
     console.log("Default values for product---------->", defaultValues);
 
@@ -14,6 +13,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         weight: "",
         images: [],
         category: "",
+        subCategory: "",
         price: "",
         salePrice: null,
         brand: "",
@@ -41,7 +41,9 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
             setFormData({
                 ...defaultValues,
                 variants: transformedVariants,
-                brand: defaultValues.brand?.name || ""
+                brand: defaultValues.brand?.name || "",
+                category: defaultValues.category?._id || "",
+                subCategory: defaultValues.subCategory?._id || defaultValues.subCategory || ""
             });
 
             // Handle images (either URL or File object)
@@ -153,14 +155,17 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         submissionData.append("weight", formData.weight);
         submissionData.append("brand", formData.brand);
         submissionData.append("stock", formData.stock);
+        submissionData.append("subCategory", formData.subCategory);
+        console.log("Submitting subcategory----------->", formData.subCategory);
 
         // Handle category
-        if (typeof formData.category === "object") {
-            submissionData.append("category", JSON.stringify(formData.category));
+        if (formData.category && typeof formData.category === "string") {
+            submissionData.append("category", formData.category); // If already a string, pass directly
+        } else if (formData.category && formData.category._id) {
+            submissionData.append("category", formData.category._id); // Extract _id if it's an object
         } else {
-            submissionData.append("category", formData.category);
+            console.error("Invalid category format received in handleSubmit.");
         }
-
         // Add tags
         submissionData.append("tags", (formData.tags || []).map(tag => tag.name).join(','));
 
@@ -216,6 +221,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
             weight: "",
             images: [],
             category: "",
+            subcategory: "",
             price: "",
             salePrice: "",
             brand: "",
@@ -358,7 +364,23 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                 >
                     <option value="">{defaultValues?.category.name}</option>
                     {categories?.map((category, index) => (
-                        <option key={index} value={category?.name}>{category?.name}</option>
+                        <option key={index} value={category?._id}>{category?.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            {/* sub Category */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2">subCategory</label>
+                <select
+                    name="subCategory"
+                    value={formData.subCategory}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                >
+                    <option value="">{defaultValues?.subCategory?.name}</option>
+                    {subCategories?.map((sub, index) => (
+                        <option key={index} value={sub?._id}>{sub?.name}</option>
                     ))}
                 </select>
             </div>
@@ -588,6 +610,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                     {buttonText}
                 </button>
             </div>
+
         </form>
     );
 };

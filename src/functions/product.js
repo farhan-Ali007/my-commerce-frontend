@@ -20,17 +20,19 @@ export const getMyProducts = async () => {
         const response = await axios.get(`${BASE_URL}/product/my-products`, { withCredentials: true })
         return response?.data;
     } catch (error) {
-        console.log("Error in getting my products")
+        console.log("Error in getting my products", error)
     }
 }
 
 export const getAllProducts = async (page = 1, limit = 8) => {
+    console.log("Page in get all products", page)
     try {
-        const response = await axios.get(`${BASE_URL}/product/getAll/?page=${page}&limit=${limit}`,
+        const response = await axios.get(`${BASE_URL}/product/getAll?page=${page}&limit=${limit}`,
             { withCredentials: true })
+        console.log("Response from get all products api--------->", response)
         return response?.data
     } catch (error) {
-        console.log("Error in getting all products", ero)
+        console.log("Error in getting all products", error)
     }
 }
 
@@ -108,25 +110,54 @@ export const getBestSellers = async (page = 1, limit = 6) => {
     }
 }
 
-export const getProductsBySub = async (subCategory) => {
-    // console.log("Sub category in functions ------>", subCategory)
+export const getProductsBySub = async (subCategory, page = 1, limit = 10) => {
     try {
-        const response = await axios.get(`${BASE_URL}/product/sub/${subCategory}`)
+        const response = await axios.get(`${BASE_URL}/product/sub/${subCategory}`, {
+            params: {
+                page,
+                limit
+            }
+        });
         return response?.data;
     } catch (error) {
-        console.log("Error in getting products by subCategory ", error)
+        console.log("Error in getting products by subCategory ", error);
+        throw error;
     }
 }
 
-export const getProductsByBrand = async (brand) => {
-    console.log("Brand category in functions ------>", brand)
+export const getProductsByBrand = async (brand, page = 1, limit = 10) => {
     try {
-        const response = await axios.get(`${BASE_URL}/search/filter/${brand}`)
+        const response = await axios.get(`${BASE_URL}/search/filter/${brand}`, {
+            params: {
+                page,
+                limit
+            }
+        });
         return response?.data;
     } catch (error) {
-        console.log("Error in getting products by brands ", error)
+        console.log("Error in getting products by brand", error);
+        throw error;
     }
 }
+
+export const getFeaturedProducts = async (page = 1, limit = 8) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/product/featured?page=${page}&limit=${limit}`)
+        return response?.data;
+    } catch (error) {
+        console.log("Error in getting featured products", error)
+    }
+}
+
+export const getNewArrivals = async (page = 1, limit = 8) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/product/new-arrivals?page=${page}&limit=${limit}`)
+        return response?.data;
+    } catch (error) {
+        console.log("Error in getting new arrivals", error)
+    }
+}
+
 
 
 

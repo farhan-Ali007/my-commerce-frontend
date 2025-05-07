@@ -20,7 +20,7 @@ const SingleProduct = () => {
     const navigateTo = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const userId = user?._id;
-    
+
     // State management
     const [product, setProduct] = useState({});
     const [originalPrice, setOriginalPrice] = useState(0);
@@ -36,7 +36,7 @@ const SingleProduct = () => {
     const [zoomStyle, setZoomStyle] = useState({});
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [loadedImages, setLoadedImages] = useState(new Set());
-    
+
     // Refs
     const imageRef = useRef(null);
     const thumbnailRef = useRef(null);
@@ -83,27 +83,44 @@ const SingleProduct = () => {
         if (!matchedVariant) {
             setSelectedVariants({});
         }
-    }, [loadedImages, handleImageLoad, product.variants]);
+    }, [loadedImages, handleImageLoad, product?.variants]);
+    // Inside your SingleProduct component
 
-    // Event handlers
     const handleMouseMove = useCallback((e) => {
         if (imageRef.current) {
+            const { naturalWidth, naturalHeight, width, height } = imageRef.current;
             const rect = imageRef.current.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            const backgroundX = (mouseX / rect.width) * imageRef.current.naturalWidth - 50;
-            const backgroundY = (mouseY / rect.height) * imageRef.current.naturalHeight - 50;
+
+            // Calculate mouse position relative to the image
+            const mouseX = Math.max(0, Math.min(e.clientX - rect.left, width));
+            const mouseY = Math.max(0, Math.min(e.clientY - rect.top, height));
+
+            // Calculate percentage position within the image
+            const xPercent = (mouseX / width) * 100;
+            const yPercent = (mouseY / height) * 100;
+
+            // Calculate background position (centered on cursor)
+            const backgroundX = (xPercent / 100) * naturalWidth - 125;
+            const backgroundY = (yPercent / 100) * naturalHeight - 125;
+
+            // Ensure we don't go outside image bounds
+            const boundedX = Math.max(0, Math.min(backgroundX, naturalWidth - 250));
+            const boundedY = Math.max(0, Math.min(backgroundY, naturalHeight - 250));
 
             setZoomStyle({
                 mouseX,
                 mouseY,
-                backgroundX,
-                backgroundY,
-                top: e.clientY - 50,
-                left: e.clientX - 50,
+                backgroundX: boundedX,
+                backgroundY: boundedY,
+                top: e.clientY - 125,
+                left: e.clientX - 125,
+                backgroundSize: `${naturalWidth}px ${naturalHeight}px`,
+                display: 'block'
             });
         }
     }, []);
+
+    // In your JSX, update the zoom lens div as shown above
 
     const handleMouseLeave = useCallback(() => {
         setZoomStyle({});
@@ -138,7 +155,7 @@ const SingleProduct = () => {
             setProduct(response?.product);
             setOriginalPrice(response?.product?.salePrice || response?.product?.price);
             setProductVariants(response?.product?.variants || []);
-            
+
             // Preload images when product data is fetched
             if (response?.product?.images?.length) {
                 response.product.images.forEach(img => {
@@ -147,7 +164,7 @@ const SingleProduct = () => {
                 });
                 setSelectedImage(response.product.images[0]);
             }
-            
+
             setLoading(false);
         } catch (error) {
             setLoading(false);
@@ -235,7 +252,12 @@ const SingleProduct = () => {
             toast.error("Failed to add the product to the cart. Please try again.");
             console.error("Error adding item to cart:", error);
         }
-    }, [prepareVariantsForBackend, selectedVariants, product, currentPrice, selectedQuantity, dispatch]);
+    }, [prepareVariantsForBackend, selectedVariants, product,
+        currentPrice, selectedQuantity, dispatch]);
+
+    const currentCartItems = useSelector((state) => state.cart.products);
+    console.log("Current Cart Items:", currentCartItems);
+
 
     const handleByNow = useCallback(async () => {
         const variantsForBackend = prepareVariantsForBackend();
@@ -267,14 +289,32 @@ const SingleProduct = () => {
         };
 
         try {
+            // 1. Add the new item to Redux cart
             dispatch(addToCart(cartItem));
-            await addItemToCart(userId, { products: [cartItem] });
-            navigateTo("/cart/checkout");
+            // 3. Prepare the payload for the backend
+            const updatedCartItems = [...currentCartItems, cartItem];
+            const cartPayload = {
+                products: updatedCartItems.map(item => ({
+                    productId: item.productId,
+                    title: item.title,
+                    price: item.price,
+                    image: item.image,
+                    count: item.count,
+                    selectedVariants: item.selectedVariants,
+                    freeShipping: item.freeShipping,
+                    deliveryCharges: item.deliveryCharges
+                }))
+            };
+            await addItemToCart(userId, cartPayload);
+            setTimeout(() => {
+                navigateTo("/cart/checkout");
+            }, 1000);
         } catch (error) {
             toast.error("Failed to proceed to checkout. Please try again.");
             console.error("Error during Buy Now:", error);
         }
     }, [prepareVariantsForBackend, selectedVariants, product, currentPrice, selectedQuantity, dispatch, userId, navigateTo]);
+
 
     const handleQuantityChange = useCallback((operation) => {
         setSelectedQuantity((prev) =>
@@ -292,9 +332,9 @@ const SingleProduct = () => {
         const phoneNumber = "923337494323";
         const productLink = window.location.href;
         const imageLink = product?.image;
-    
+
         const message = `*🛒 New Order Request*\n\n*Product:* ${product?.title}\n*Price:* Rs ${currentPrice}\n*Image:* ${imageLink}\n*View Product:* ${productLink}\n\nThank you!`;
-    
+
         const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
     }, [product, currentPrice]);
@@ -331,9 +371,9 @@ const SingleProduct = () => {
                 {/* Product Images */}
                 <div className="w-full md:w-1/2 flex flex-col md:flex-row">
                     {/* Main Image */}
-                    <div className="relative flex-1 order-1 md:order-2 mt-4 md:mt-0 md:ml-4">
+                    <div className="relative flex-1 order-1 md:order-2 mt-4 md:mt-3  ">
                         <div
-                            className="overflow-hidden aspect-square h-[300px] w-[300px] border border-red-100 mx-auto relative"
+                            className="overflow-hidden aspect-square h-[350px] w-[350px] border border-red-100 mx-auto relative"
                             onMouseMove={handleMouseMove}
                             onMouseLeave={handleMouseLeave}
                         >
@@ -341,9 +381,8 @@ const SingleProduct = () => {
                                 ref={imageRef}
                                 src={selectedImage || "https://via.placeholder.com/500"}
                                 alt={product?.title || "Product Image"}
-                                className={`w-full h-full object-contain cursor-pointer transition-opacity duration-300 ${
-                                    loadedImages.has(selectedImage) ? 'opacity-100' : 'opacity-0'
-                                }`}
+                                className={`w-full h-full object-cover cursor-pointer transition-opacity duration-300 ${loadedImages.has(selectedImage) ? 'opacity-100' : 'opacity-0'
+                                    }`}
                                 onLoad={() => handleImageLoad(selectedImage)}
                             />
                             {!loadedImages.has(selectedImage) && (
@@ -355,11 +394,11 @@ const SingleProduct = () => {
                                         position: "fixed",
                                         border: "1px solid #ccc",
                                         borderRadius: "50%",
-                                        width: "250px",
+                                        width: "280px",
+                                        height: "280px",
                                         zIndex: 2000,
-                                        height: "250px",
-                                        background: `url(${selectedImage || "https://via.placeholder.com/500"}) no-repeat`,
-                                        backgroundSize: `${imageRef.current?.width * 2}px ${imageRef.current?.height * 2}px`,
+                                        backgroundImage: `url(${selectedImage || "https://via.placeholder.com/500"})`,
+                                        backgroundSize: `${zoomStyle.backgroundSize || 'auto'}`,
                                         backgroundPosition: `-${zoomStyle.backgroundX}px -${zoomStyle.backgroundY}px`,
                                         pointerEvents: "none",
                                         boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.5)",
@@ -374,30 +413,29 @@ const SingleProduct = () => {
                     </div>
 
                     {/* Thumbnail List */}
-                    <div className="relative md:w-20 flex order-2 items-center md:order-1 max-h-72 flex-row md:flex-col mt-4 md:mt-0">
+                    <div className="relative md:w-20 flex order-2 items-center md:order-1 max-h-72 flex-row md:flex-col mt-8">
                         <button
                             onClick={() => scrollThumbnails("up")}
-                            className="hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 bg-none text-main font-semibold "
+                            className="hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 bg-none text-main font-extrabold "
                         >
                             <FaChevronUp strokeWidth={24} />
                         </button>
                         <button
                             onClick={() => scrollThumbnails("down")}
-                            className="hidden md:block absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-none text-main font-semibold "
+                            className="hidden md:block absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-none text-main font-extrabold "
                         >
                             <FaChevronDown strokeWidth={24} />
                         </button>
 
                         <div
                             ref={thumbnailRef}
-                            className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto whitespace-nowrap scrollbar-hide max-h-[300px] py-2 md:py-6"
+                            className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto whitespace-nowrap scrollbar-hide max-h-[300px] py-2 md:py-6 "
                         >
                             {product?.images?.map((image, index) => (
                                 <div
                                     key={index}
-                                    className={`h-16 w-16 bg-slate-200 rounded p-1 cursor-pointer flex-shrink-0 ${
-                                        selectedImage === image ? 'border-2 border-main' : 'border-none'
-                                    }`}
+                                    className={`h-16 w-16 bg-slate-200 rounded p-1 cursor-pointer flex-shrink-0 ${selectedImage === image ? 'border-2 border-main' : 'border-none'
+                                        }`}
                                     onMouseEnter={() => handleMouseEnterProduct(image)}
                                     onClick={() => setSelectedImage(image)}
                                 >
@@ -427,16 +465,16 @@ const SingleProduct = () => {
                 </div>
 
                 {/* Product Details */}
-                <div className="w-full md:w-1/2 ml-0 md:ml-5 py-4 max-w-screen-xl">
-                    <h1 className="text-2xl md:text-3xl font-space capitalize font-semibold text-gray-900 mb-2">
+                <div className="w-full md:w-1/2 ml-0 md:ml-5 py-0 md:py-4 max-w-screen-xl">
+                    <h1 className="text-[26px]  font-space capitalize font-semibold text-gray-900 mb-[6px]">
                         {product?.title || "Product Title"}
                     </h1>
                     {product?.category?.name && (
-                        <p className="text-sm text-gray-700">
-                            <strong>Category:</strong> {product.category.name}
+                        <p className="text-sm capitalize mb-1">
+                            <strong>Category:</strong> <Link to={`/category/${product?.category?.slug}`} className="no-underline text-base font-medium">{product.category.name}</Link>
                         </p>
                     )}
-                    <p className="text-base pl-2 md:pl-0 text-black"
+                    <p className="text-base font-space pl-2 md:pl-0 text-black"
                         dangerouslySetInnerHTML={{
                             __html: showFullDescription
                                 ? product?.description
@@ -445,7 +483,7 @@ const SingleProduct = () => {
                     />
                     <button
                         onClick={toggleDescription}
-                        className="text-main text-sm mb-2 font-semibold"
+                        className="text-main text-sm mb-1 font-semibold"
                     >
                         {showFullDescription ? "See less" : "See more"}
                     </button>
@@ -467,9 +505,8 @@ const SingleProduct = () => {
                                 onClick={() => handleQuantityChange("decrease")}
                                 disabled={selectedQuantity === 1}
                                 aria-label="Decrease quantity"
-                                className={`p-1 rounded-full text-2xl w-8 h-8 flex items-center justify-center ${
-                                    selectedQuantity === 1 ? "bg-gray-300" : "bg-main opacity-70"
-                                }`}
+                                className={`p-1 rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === 1 ? "bg-gray-300" : "bg-main opacity-70"
+                                    }`}
                             >
                                 -
                             </button>
@@ -478,9 +515,8 @@ const SingleProduct = () => {
                                 onClick={() => handleQuantityChange("increase")}
                                 aria-label="Increase quantity"
                                 disabled={selectedQuantity === product.stock}
-                                className={`p-1 rounded-full text-2xl w-8 h-8 flex items-center justify-center ${
-                                    selectedQuantity === product.stock ? "bg-gray-300" : "bg-main opacity-70"
-                                }`}
+                                className={`p-1 rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === product.stock ? "bg-gray-300" : "bg-main opacity-70"
+                                    }`}
                             >
                                 +
                             </button>
@@ -499,11 +535,10 @@ const SingleProduct = () => {
                                         <button
                                             key={idx}
                                             onClick={() => handleVariantChange(variant.name, value.value)}
-                                            className={`px-4 py-2 capitalize max-w-full border ${
-                                                selectedVariants[variant.name] === value.value
-                                                    ? "bg-main text-white"
-                                                    : "bg-gray-200"
-                                            }`}
+                                            className={`px-4 py-2 capitalize max-w-full border ${selectedVariants[variant.name] === value.value
+                                                ? "bg-main text-white"
+                                                : "bg-gray-200"
+                                                }`}
                                         >
                                             {value.value}
                                         </button>
@@ -541,10 +576,10 @@ const SingleProduct = () => {
 
             {/* Cart Drawer */}
             <CartDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
-            
+
             {/* Reviews Section */}
             <ReviewForm slug={slug} product={product} />
-            
+            <hr />
             {/* Related Products */}
             <RelatedProducts
                 relatedProducts={relatedProducts}

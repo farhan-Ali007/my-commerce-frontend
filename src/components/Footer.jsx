@@ -19,7 +19,7 @@ const Footer = () => {
                                 className="bg-transparent mx-auto mb-3 h-16 object-contain"
                             />
                             <p className="text-gray-600 text-sm px-4">
-                            Online Shopping in Pakistan at Its Finest.
+                                Online Shopping in Pakistan at Its Finest.
                             </p>
                         </div>
 
@@ -97,7 +97,7 @@ const Footer = () => {
                         {/* First Div: Image and Text */}
                         <div>
                             <img src="/logo.png" alt="Logo" className="bg-transparent mx-auto mb-4 h-20 md:h-28 lg:h-32 object-cover" />
-                            <p className="text-gray-600">Online Shopping in Pakistan at Its Finest.</p>
+                            <p className="text-gray-800 font-semibold text-base">Online Shopping in Pakistan at Its Finest.</p>
                         </div>
 
                         {/* Second Div: Quick Links */}
@@ -147,7 +147,7 @@ const Footer = () => {
                                     <FaFacebook className="text-gray-600 hover:text-[#4372E6]" size={30} />
                                 </a>
                                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="group">
-                                    <FaInstagram className="transition-all duration-300 fill-gray-500 group-hover:fill-[url(#instaGradient)]" size={30} />
+                                    <FaInstagram className="transition-all duration-300 fill-gray-500 hover:fill-[#E1306C]" size={30} />
                                 </a>
                                 <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">
                                     <FaTiktok className="text-gray-600 hover:text-black" size={30} />

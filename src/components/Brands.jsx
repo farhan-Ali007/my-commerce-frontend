@@ -27,7 +27,7 @@ const Brands = () => {
     });
 
     return (
-        <div ref={ref} className="container mx-auto px-2 md:px-0 lg:px-2 py-3 md:py-4">
+        <div ref={ref} className="container mx-auto px-2 md:px-0 lg:px-8 py-3 md:py-4">
             <h2 className="text-2xl md:text-3xl font-extrabold font-space text-main text-center mb-5">
                 Top Brands
             </h2>
@@ -38,7 +38,7 @@ const Brands = () => {
                 animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                 transition={{ duration: 0.6, ease: "easeOut", staggerChildren: 0.2 }}
             >
-                {brands?.slice(0, 8).map((brand, index) => (
+                {brands?.map((brand, index) => (
                     <motion.div 
                         key={index} 
                         className="flex flex-col items-center flex-shrink-0"
@@ -60,7 +60,7 @@ const Brands = () => {
                                 />
                             </div>
                         </Link>
-                        <span className="mt-2 text-sm font-medium text-gray-700 text-center">
+                        <span className="mt-2 text-sm uppercase font-semibold text-gray-700 text-center">
                             {brand.name}
                         </span>
                     </motion.div>

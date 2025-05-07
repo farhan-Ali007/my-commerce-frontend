@@ -4,8 +4,8 @@ import { MdDeleteOutline } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { addItemToCart } from '../functions/cart';
-import { clearCartRedux, removeFromCart, updateQuantity, removeVariant } from '../store/cartSlice';
-import { truncateTitle } from '../helpers/truncateTitle'
+import { truncateTitle } from '../helpers/truncateTitle';
+import { clearCartRedux, removeFromCart, removeVariant, updateQuantity } from '../store/cartSlice';
 
 const Cart = () => {
     const dispatch = useDispatch();
@@ -16,7 +16,7 @@ const Cart = () => {
     const [loading, setLoading] = useState(false);
     const { user } = useSelector((state) => state.auth);
     const userId = user?._id;
-    const cartItems = useSelector((state) => state.cart.items);
+    const cartItems = useSelector((state) => state.cart.products);
     console.log("cart items in redux---->", cartItems)
 
     useEffect(() => {
@@ -127,12 +127,12 @@ const Cart = () => {
     }
 
     return (
-        <div className="container mx-auto">
+        <div className="container min-h-screen mx-auto">
             <div className="flex flex-col lg:flex-row lg:gap-6 lg:justify-between p-4">
                 {/* View product */}
                 <div className="max-w-full lg:w-[60%] px-0 md:px-4 lg:px-5">
                     <h2 className="font-bold text-center text-xl md:text-2xl text-main py-2 md:py-4 lg:py-6">
-                        {cartData?.length > 0 ? "Your cart" : (
+                        {cartData?.length > 0 ? "" : (
                             <p className='font-bold text-xl md:text-2xl text-gray-600'>
                                 Empty cart. <Link to={"/shop"} className='text-main font-semibold underline'>Continue</Link>
                             </p>
@@ -144,7 +144,7 @@ const Cart = () => {
                             className="w-full bg-white h-auto my-2 border border-slate-300 rounded grid grid-cols-[96px,1fr] sm:grid-cols-[128px,1fr] p-2 sm:p-4"
                         >
                             {/* Product Image */}
-                            <div className="w-24 sm:w-32 h-24 sm:h-32 bg-slate-200 overflow-hidden">
+                            <div className=" w-24 md:w-28 h-24  md:h-28 bg-slate-200 overflow-hidden">
                                 <img
                                     src={product.image}
                                     className="w-full h-full object-contain mix-blend-multiply"
@@ -166,16 +166,16 @@ const Cart = () => {
                                 </div>
 
                                 {/* Product Title */}
-                                <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-ellipsis line-clamp-1">
+                                <h2 className="text-base  font-medium text-ellipsis line-clamp-1">
                                     {truncateTitle(product?.title, 30)}
                                 </h2>
                                 {/* Price Section */}
                                 <div className="flex items-center justify-between ">
                                     <p className="text-red-600 font-medium text-sm sm:text-base md:text-base">
-                                        {getEffectivePrice(product)}
+                                       Rs. {getEffectivePrice(product)}
                                     </p>
                                     <p className="text-slate-600 font-semibold text-sm sm:text-base md:text-lg">
-                                        {getEffectivePrice(product) * product.count}
+                                       Rs. {getEffectivePrice(product) * product.count}
                                     </p>
                                 </div>
 

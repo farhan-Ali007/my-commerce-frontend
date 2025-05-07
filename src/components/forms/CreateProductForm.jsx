@@ -110,7 +110,7 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if (!formData.title || !formData.description || !formData.price || !formData.stock || !formData.category || !formData.brand) {
+        if (!formData.title || !formData.description || !formData.price || !formData.stock || !formData.category || formData.images.length === 0) {
             alert("Please fill in all required fields.");
             return;
         }
@@ -286,17 +286,6 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
             </div>
 
             {/* Brand */}
-            {/* <div className="mb-4">
-                <label className="block font-medium mb-2">Brand</label>
-                <input
-                    type="text"
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleChange}
-                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
-                />
-            </div> */}
-
             <div className="mb-4">
                 <label className="block font-medium mb-2 text-main">Brand</label>
                 <select
@@ -538,7 +527,7 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
                             <button
                                 type="button"
                                 onClick={() => handleImageRemove(index)}
-                                className="absolute top-0 right-0 bg-red-500 text-white rounded-full text-sm p-1"
+                                className="absolute top-0 right-0 bg-red-500 text-white rounded-full text-sm px-2 py-1"
                             >
                                 &times;
                             </button>

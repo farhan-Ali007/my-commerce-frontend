@@ -116,7 +116,7 @@ const ReviewForm = ({ slug, product }) => {
 
             {/* Content based on selected tab */}
             {selectedTab === 'description' ? (
-                <div className="text-gray-800" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodedHTML) }} />
+                <div className="text-gray-800 font-space" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodedHTML) }} />
             ) : (
                 <div className="w-full">
                     {/* Rating Summary */}

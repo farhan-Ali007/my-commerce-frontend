@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from "react";
 import { FaAngleDown } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom"; 
+import { useNavigate, useLocation } from "react-router-dom";
 
 const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, setModalState }) => {
     const navigateTo = useNavigate();
@@ -52,8 +52,6 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
         const categorySlug = modalState.selectedCategory.slug;
         const subcategorySlug = subcategory.slug;
 
-        console.log("Category Slug:", categorySlug);
-        console.log("Subcategory Slug:", subcategorySlug);
 
         if (!categorySlug || !subcategorySlug) {
             console.error("Category or Subcategory slug is missing!");
@@ -83,7 +81,6 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                 setModalState({ isOpen: true, selectedCategory: category });
             }
         } else {
-            // Ensure the category has a valid slug before navigating
             if (category.slug) {
                 navigateTo(`/category/${category.slug}`);
             } else {
@@ -94,46 +91,48 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
 
     return (
         <>
-            <div className="py-4 hidden md:block bg-main">
-                <div className="container mx-auto px-2 flex flex-wrap justify-center gap-6">
-                    {categories.map((category) => (
-                        <div
-                            key={category._id}
-                            className="relative group"
-                            ref={(el) => (categoryRefs.current[category._id] = el)}
-                        >
+            {categories && categories.length > 0 && (
+                <div className="py-4 hidden md:block  bg-main">
+                    <div className="container mx-auto px-2 flex flex-wrap justify-center gap-6">
+                        {categories.map((category) => (
                             <div
-                                className={`flex items-center gap-1 cursor-pointer ${isCategoryActive(category)
-                                    ? "text-gray-700 "
-                                    : ""
-                                    }`}
-                                onClick={(e) => handleCategoryClick(category, e)}
-                                onMouseEnter={(e) => handleCategoryHover(category, e)}
+                                key={category._id}
+                                className="relative group"
+                                ref={(el) => (categoryRefs.current[category._id] = el)}
                             >
                                 <div
-                                    className={`text-white p-1 font-semibold text-xl capitalize hover:text-gray-300 ${isCategoryActive(category)
-                                        ? "text-gray-900"
+                                    className={`flex items-center justify-center gap-1 cursor-pointer ${isCategoryActive(category)
+                                        ? "text-gray-700 "
                                         : ""
                                         }`}
-                                    onClick={() => navigateTo(`/category/${category.slug}`)}
+                                    onClick={(e) => handleCategoryClick(category, e)}
+                                    onMouseEnter={(e) => handleCategoryHover(category, e)}
                                 >
-                                    {category.name}
-                                </div>
-                                {category?.subcategories?.length > 0 && (
                                     <div
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleCategoryClick(category, e);
-                                        }}
+                                        className={`text-white p-1 text-base lg:text-[18px] capitalize hover:text-gray-300 ${isCategoryActive(category)
+                                            ? "text-gray-900"
+                                            : ""
+                                            }`}
+                                        onClick={() => navigateTo(`/category/${category.slug}`)}
                                     >
-                                        <FaAngleDown className="text-gray-200 font-extrabold cursor-pointer" />
+                                        {category.name}
                                     </div>
-                                )}
+                                    {category?.subcategories?.length > 0 && (
+                                        <div
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCategoryClick(category, e);
+                                            }}
+                                        >
+                                            <FaAngleDown className="text-gray-200 font-extrabold cursor-pointer" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Modal for Subcategories */}
             <AnimatePresence>
@@ -153,8 +152,8 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                             padding: '10px',
                             border: 'none',
                             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-                            width: '200px',
-                            height: 'fit-content',
+                            maxWidth: '500px',
+                            maxHeight: '400px',
                             zIndex: 40,
                         }}
                         ref={modalRef}
@@ -164,7 +163,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                             setModalState({ isOpen: false, selectedCategory: null });
                         }}
                     >
-                        <div className="grid grid-cols-1 gap-2">
+                        <div className="flex flex-col gap-2 flex-wrap">
                             {modalState.selectedCategory?.subcategories.map((subcategory) => (
                                 <div
                                     key={subcategory._id}

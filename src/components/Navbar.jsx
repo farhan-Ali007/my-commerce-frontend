@@ -18,7 +18,7 @@ import { menuCategories } from '../functions/categories';
 
 const Navbar = () => {
     const location = useLocation();
-    const hideCategoryBarOn = ['/admin-dashboard', '/shop', '/order-history', '/category/:categorySlug', '/cart/checkout', '*', '/add-product', '/edit-product']
+    const hideCategoryBarOn = ['/admin-dashboard', '/shop', '/cart', '/order-history', '/category/:categorySlug', '/cart/checkout', '*', '/add-product', '/edit-product']
     const cart = useSelector((state) => state.cart);
     const searchState = useSelector((state) => state.search);
     const [selectedCategories, setSelectedCategories] = useState([]);
@@ -83,7 +83,7 @@ const Navbar = () => {
     const handleSearchChange = useCallback((e) => {
         const value = e.target.value;
         setSearch(value);
-        
+
         if (value.trim() === '') {
             // Clear search results when input is empty
             dispatch(setSearchQuery(''));
@@ -150,7 +150,7 @@ const Navbar = () => {
     const memoizedCategories = useMemo(() => selectedCategories, [selectedCategories]);
     return (
         <>
-            <div className="bg-gradient-to-r from-[#020024]  via-[#090979] to-[#00d4ff] text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center">
+            <div className="bg-gradient-to-r from-[#020024]  via-[#090979] to-[#00d4ff] text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center ">
                 <div className="mb-2 md:mb-0 pr-3 ">
                     <Marquee className='text-sm font-bold' speed={50} gradient={false}>Welcome to our store! Enjoy the best deals.</Marquee>
                 </div>
@@ -192,7 +192,7 @@ const Navbar = () => {
                                 <Link to="/cart" className="relative group z-20 cursor-pointer">
                                     <IoCartOutline className="text-3xl text-main " />
                                     <span className="absolute -top-2 -right-2 bg-main bg-opacity-90 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                        {cart.items?.length || 0}
+                                        {cart.products?.length || 0}
                                     </span>
                                 </Link>
 
@@ -201,8 +201,8 @@ const Navbar = () => {
                     </div>
                 </div>
                 {/* Search bar */}
-                <div className="container px-2 pt-2 md:pt-0 mb-3  md:mb-0 md:absolute top-3 md:top-5 rounded-full lg:top-4" ref={searchBarRef}>
-                    <div className="relative flex items-center bg-gray-50 rounded-full shadow-md w-full md:max-w-sm lg:max-w-md mx-auto z-10">
+                <div className="container px-2 pt-2 md:pt-0 mb-3 md:mb-0 md:absolute top-3 md:top-6 rounded-full lg:top-[18px]" ref={searchBarRef}>
+                    <div className="relative flex items-center bg-gray-50 rounded-full shadow-md w-full md:max-w-sm lg:max-w-md ml-0 md:ml-[230px] lg:ml-[400px] z-10">
                         <input
                             type="text"
                             placeholder="Search product here..."
@@ -211,7 +211,7 @@ const Navbar = () => {
                             onKeyDown={handleSearchKeyDown}
                             onChange={handleSearchChange}
                         />
-                        <div className="absolute right-1 lg:right-1 h-8 w-8 md:h-7 md:w-7 lg:h-9 lg:w-9 bg-main text-white flex items-center justify-center rounded-full transition-transform transform hover:scale-105">
+                        <div className="absolute right-1  h-8 w-8 md:h-7 md:w-7 lg:h-9 lg:w-9 bg-main text-white flex items-center justify-center rounded-full transition-transform transform hover:scale-105">
                             <FiSearch className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6" />
                         </div>
                     </div>
