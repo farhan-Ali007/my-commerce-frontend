@@ -52,7 +52,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                                 }`}
                         >
                             {category.subcategories.length > 0 && (
-                                <div className="pl-4 mt-2 rounded">
+                                <div className=" mt-2 rounded">
                                     {category.subcategories.map((subcategory) => (
                                         <Link
                                             key={subcategory._id}

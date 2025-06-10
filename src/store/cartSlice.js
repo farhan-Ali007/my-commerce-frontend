@@ -5,10 +5,13 @@ const cartSlice = createSlice({
     initialState: {
         products: JSON.parse(localStorage.getItem('cartproducts')) || [],
         cartTotal: Number(localStorage.getItem('cartTotal')) || 0,
+        freeShipping: false,
+        deliveryCharges: 0
     },
     reducers: {
         addToCart: (state, action) => {
             const newItem = action.payload;
+            console.log("Adding to cart with item:", newItem);
 
             // Check if the item with the same productId AND selectedVariants already exists
             const itemIndex = state.products.findIndex(
@@ -22,8 +25,16 @@ const cartSlice = createSlice({
                 state.products[itemIndex].count += newItem.count;
             } else {
                 // Otherwise, add the new item to the cart
-                state.products.push(newItem);
+                state.products.push({
+                    ...newItem,
+                    freeShipping: newItem.freeShipping ?? false,
+                    deliveryCharges: newItem.deliveryCharges ?? 0
+                });
             }
+
+            // Update cart level freeShipping and deliveryCharges based on products
+            state.freeShipping = state.products.some(item => item.freeShipping);
+            state.deliveryCharges = state.products.some(item => item.freeShipping) ? 0 : 200;
 
             // Update the cart total
             state.cartTotal = state.products.reduce((total, item) => total + item.price * item.count, 0);
@@ -33,13 +44,17 @@ const cartSlice = createSlice({
             localStorage.setItem('cartTotal', state.cartTotal.toString());
         },
 
-
         updateQuantity: (state, action) => {
             const itemIndex = state.products.findIndex(item => item.productId === action.payload.id);
             if (itemIndex >= 0) {
                 const item = state.products[itemIndex];
                 state.cartTotal += (action.payload.count - item.count) * item.price;
                 state.products[itemIndex].count = action.payload.count;
+                
+                // Update cart level freeShipping and deliveryCharges
+                state.freeShipping = state.products.some(item => item.freeShipping);
+                state.deliveryCharges = state.products.some(item => item.freeShipping) ? 0 : 200;
+                
                 localStorage.setItem('cartproducts', JSON.stringify(state.products));
                 localStorage.setItem('cartTotal', state.cartTotal.toString());
             }
@@ -49,6 +64,11 @@ const cartSlice = createSlice({
             if (itemIndex >= 0) {
                 state.cartTotal -= state.products[itemIndex].price * state.products[itemIndex].count;
                 state.products.splice(itemIndex, 1);
+                
+                // Update cart level freeShipping and deliveryCharges
+                state.freeShipping = state.products.some(item => item.freeShipping);
+                state.deliveryCharges = state.products.some(item => item.freeShipping) ? 0 : 200;
+                
                 localStorage.setItem('cartproducts', JSON.stringify(state.products));
                 localStorage.setItem('cartTotal', state.cartTotal.toString());
             }
@@ -67,6 +87,8 @@ const cartSlice = createSlice({
         clearCartRedux: (state) => {
             state.products = [];
             state.cartTotal = 0;
+            state.freeShipping = false;
+            state.deliveryCharges = 0;
             localStorage.removeItem('cartproducts');
             localStorage.removeItem('cartTotal');
         },

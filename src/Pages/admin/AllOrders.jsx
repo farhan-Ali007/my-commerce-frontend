@@ -58,8 +58,8 @@ const AllOrders = () => {
         order._id.toLowerCase().includes(searchQuery.toLowerCase())
     );
     return (
-        <div className="container mx-auto p-6 text-center">
-            <h1 className="text-3xl font-bold mb-6 text-main">All Orders [{`${orders.length}`}]</h1>
+        <div className="container p-6 mx-auto text-center">
+            <h1 className="mb-6 text-3xl font-bold text-main">All Orders [{`${orders.length}`}]</h1>
 
             {/* Search Bar */}
             <div className="mb-4">
@@ -68,7 +68,7 @@ const AllOrders = () => {
                     placeholder="Search Orders by Order ID"
                     value={searchQuery}
                     onChange={handleSearchChange}
-                    className="px-4 py-2 w-full sm:w-1/2 border rounded-full focus:ring-1 ring-main focus:outline-none"
+                    className="w-full px-4 py-2 border rounded-full sm:w-1/2 focus:ring-1 ring-main focus:outline-none"
                 />
             </div>
 
@@ -79,7 +79,7 @@ const AllOrders = () => {
                 <p>No orders available.</p>
             ) : (
                 <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto border-collapse border-1 border-black">
+                    <table className="min-w-full border-collapse border-black table-auto border-1">
                         <thead>
                             <tr>
                                 <th className="px-6 py-2 border">Order ID</th>
@@ -149,12 +149,38 @@ const AllOrders = () => {
                                     <td className="px-4 py-2 border">
                                         <ul style={{ listStyleType: "none" }}>
                                             {order.cartSummary?.map((product) => (
-                                                <li key={product._id} className="mb-4">
-                                                    <div>
-                                                        <strong className="text-main font-bold">{product.product?.title}</strong>
+                                                <li key={product._id} className="p-3 mb-6 rounded-lg bg-gray-50">
+                                                    {/* Product Basic Info */}
+                                                    <div className="mb-2">
+                                                        <strong className="text-lg font-bold text-main">{product.product?.title}</strong>
                                                     </div>
-                                                    <div>Price: Rs.{product.salePrice || product.price}</div>
-                                                    <div>count: {product?.count}</div>
+                                                    <div className="flex items-center gap-4 mb-2 text-sm">
+                                                        <span className="text-gray-700">Price: <span className="font-semibold">Rs.{product.salePrice || product.price}</span></span>
+                                                        <span className="text-gray-700">Quantity: <span className="font-semibold">{product?.count}</span></span>
+                                                    </div>
+                                                    
+                                                    {/* Variants Section */}
+                                                    {product.selectedVariants && product.selectedVariants.length > 0 && (
+                                                        <div className="pt-3 mt-3 border-t border-gray-200">
+                                                            <div className="flex flex-col gap-2">
+                                                                {product.selectedVariants.map((variant) => (
+                                                                    <div key={variant.name} className="flex items-start gap-2">
+                                                                        <span className="font-semibold text-gray-900 capitalize min-w-[80px]">{variant.name}:</span>
+                                                                        <div className="flex flex-wrap gap-1.5">
+                                                                            {variant.values.map((value, valueIndex) => (
+                                                                                <span
+                                                                                    key={`${variant.name}-${valueIndex}`}
+                                                                                    className="px-2.5 py-1 text-xs font-medium capitalize bg-main/10 text-main rounded-full border border-main/20"
+                                                                                >
+                                                                                    {value}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </li>
                                             ))}
                                         </ul>

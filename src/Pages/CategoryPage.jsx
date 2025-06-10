@@ -344,7 +344,7 @@ const CategoryPage = () => {
                     <h4 className="text-lg font-bold mb-2 font-space text-main">Filter By Brand</h4>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                         {brands?.map((brand) => (
-                            <label key={brand._id} className="text-sm font-semibold text-gray-700">
+                            <label key={brand._id} className="text-sm font-semibold text-main/90">
                                 <input
                                     type="checkbox"
                                     name="brand"

@@ -9,10 +9,10 @@ export default {
       fontFamily: {
         roboto: ['Roboto', 'sens-serif'],
         poppins: ['Poppins', 'sens-serif'],
-        space: ['Space Grotesk', 'sans-serif']
+        space: ['Space Grotesk', 'sans-serif'],
       },
       colors: {
-        main: "#0167CC" //#0167CC
+        main: "#02076C" //#0167CC
       },
       opacity: {
         10: '0.1',

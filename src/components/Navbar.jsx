@@ -15,21 +15,30 @@ import { fetchSearchResults, setSearchQuery } from '../store/searchSlice';
 import CategoryBar from './CategoryBar';
 import NavDrawer from './drawers/NavDrawer';
 import { menuCategories } from '../functions/categories';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Navbar = () => {
+const Navbar = React.memo(() => {
+    const hideCategoryBarOn = useMemo(() => [
+        '/admin-dashboard',
+        '/shop',
+        '/cart',
+        '/order-history',
+        '/cart/checkout',
+        '/add-product',
+    ], []);
+
     const location = useLocation();
-    const hideCategoryBarOn = ['/admin-dashboard', '/shop', '/cart', '/order-history', '/category/:categorySlug', '/cart/checkout', '*', '/add-product', '/edit-product']
     const cart = useSelector((state) => state.cart);
     const searchState = useSelector((state) => state.search);
-    const [selectedCategories, setSelectedCategories] = useState([]);
-    // console.log("Categories got from redux store------>", selectedCategories)
-    const navigateTo = useNavigate();
-    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
+    const navigateTo = useNavigate();
+
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [isFocused, setIsFocused] = useState(false);
     const [menuDisplay, setMenuDisplay] = useState(false);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(false);
-    const [categories, setCategories] = useState([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [modalState, setModalState] = useState({
         isOpen: false,
@@ -39,21 +48,29 @@ const Navbar = () => {
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [isMouseOverModal, setIsMouseOverModal] = useState(false);
 
+    const searchMenuRef = useRef(null);
+    const searchBarRef = useRef(null);
+    const modalRef = useRef(null);
+
+    const hideCategoryBar = useMemo(() =>
+        hideCategoryBarOn.includes(location.pathname) ||
+        /^\/edit-product\/[^/]+$/.test(location.pathname) ||
+        /^\/product\/[^/]+$/.test(location.pathname),
+        [hideCategoryBarOn, location.pathname]
+    );
+
     useEffect(() => {
-        const fetchSelecetedCategories = async () => {
+        const fetchSelectedCategories = async () => {
             try {
                 const response = await menuCategories();
+                // console.log("Response from menuCategories:", response);
                 setSelectedCategories(response.categories);
             } catch (error) {
                 console.error('Error fetching selected categories:', error);
             }
         }
-        fetchSelecetedCategories();
+        fetchSelectedCategories();
     }, []);
-
-    const searchMenuRef = useRef(null);
-    const searchBarRef = useRef(null);
-    const modalRef = useRef(null);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -85,7 +102,6 @@ const Navbar = () => {
         setSearch(value);
 
         if (value.trim() === '') {
-            // Clear search results when input is empty
             dispatch(setSearchQuery(''));
             setMenuDisplay(false);
         } else {
@@ -118,18 +134,19 @@ const Navbar = () => {
         setIsDrawerOpen(false);
     }, []);
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         try {
             setLoading(true);
             await logoutAPI();
             dispatch(setUser(null));
             toast.success("Logout successful");
             navigateTo("/");
-            setLoading(false);
         } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
             setLoading(false);
         }
-    };
+    }, [dispatch, navigateTo]);
 
     const handleProductSelect = useCallback((slug) => {
         setMenuDisplay(false);
@@ -146,111 +163,214 @@ const Navbar = () => {
         setIsDrawerOpen(!isDrawerOpen);
     }, [isDrawerOpen]);
 
+    const containerVariants = useMemo(() => ({
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    }), []);
+
+    const inputVariants = useMemo(() => ({
+        focused: { scale: 1.02, transition: { type: "spring", stiffness: 300 } },
+        unfocused: { scale: 1 },
+    }), []);
 
     const memoizedCategories = useMemo(() => selectedCategories, [selectedCategories]);
-    return (
-        <>
-            <div className="bg-gradient-to-r from-[#020024]  via-[#090979] to-[#00d4ff] text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center ">
-                <div className="mb-2 md:mb-0 pr-3 ">
-                    <Marquee className='text-sm font-bold' speed={50} gradient={false}>Welcome to our store! Enjoy the best deals.</Marquee>
-                </div>
-                <div className="flex gap-4 justify-center text-sm md:text-base">
-                    <Link to="/about" className=" hover:text-white no-underline hover:underline text-gray-200">About Us</Link>
-                    <Link to="/contact" className=" hover:text-white no-underline hover:underline text-gray-200">Become a Seller</Link>
-                    <Link to="/order-history" className=" hover:text-white no-underline hover:underline text-gray-200">Track Your orders</Link>
-                    <Link onClick={user && handleLogout} to={!user && "/login"} className="underline font-poppins text-gray-200 md:text-main hover:text-white">{user ? "Logout" : "Sign In"}</Link>
-                </div>
-            </div>
-            <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0 py-0 md:py-2">
-                <div className="container min-w-auto mx-auto px-4 md:px-2 lg:px-4 pt-2 pb-0 flex flex-col items-center lg:flex-row justify-between relative z-10">
-                    <div className="flex items-center justify-between w-full pr-0 md:pr-2 lg:pr-0">
-                        <CgMenu className="text-[26px] md:hidden text-main font-bold cursor-pointer" onClick={toggleDrawer} />
-                        <a href="/" className="flex-shrink-0 bg-contain">
-                            <img src="/logo.png" alt="Logo" className="w-full h-12 md:h-14" />
-                        </a>
-                        <div className="flex items-center gap-4 lg:gap-5">
-                            <div className='hidden md:hidden lg:flex text-orange-700 font-bold text-base items-center gap-1'>
-                                <span className='font-semibold text-xl'><FaMobileAlt size={32} /></span>
-                                <div className='flex flex-col items-center '>
-                                    <div className='text-black font-medium text-sm'>24<span className='text-xs'>/</span>7 Support</div>
-                                    <a href="tel:0333-7494323" className='text-main text-sm opacity-80 font-medium no-underline'>0333-7494323</a>
-                                </div>
-                            </div>
 
-                            <div className="flex items-center gap-2 md:gap-4 lg:gap-4 cursor-pointer relative">
-                                {user && user.role === "admin" ? (
-                                    <Link to="/admin-dashboard" className="relative group">
-                                        <FaUserShield className="text-3xl text-main" />
-                                    </Link>
-                                ) : (
-                                    ""
-                                )}
-                                <Link to="/shop" className="relative group z-20 cursor-pointer">
-                                    <AiOutlineShopping className="text-3xl text-main " />
-                                </Link>
+    const logoVariants = useMemo(() => ({
+        hidden: { x: -100, opacity: 0 },
+        visible: { 
+            x: 0, 
+            opacity: 1,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
+                duration: 0.8
+            }
+        }
+    }), []);
 
-                                <Link to="/cart" className="relative group z-20 cursor-pointer">
-                                    <IoCartOutline className="text-3xl text-main " />
-                                    <span className="absolute -top-2 -right-2 bg-main bg-opacity-90 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                        {cart.products?.length || 0}
-                                    </span>
-                                </Link>
+    const supportVariants = useMemo(() => ({
+        hidden: { x: 100, opacity: 0 },
+        visible: { 
+            x: 0, 
+            opacity: 1,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
+                duration: 0.8
+            }
+        }
+    }), []);
 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* Search bar */}
-                <div className="container px-2 pt-2 md:pt-0 mb-3 md:mb-0 md:absolute top-3 md:top-6 rounded-full lg:top-[18px]" ref={searchBarRef}>
-                    <div className="relative flex items-center bg-gray-50 rounded-full shadow-md w-full md:max-w-sm lg:max-w-md ml-0 md:ml-[230px] lg:ml-[400px] z-10">
-                        <input
-                            type="text"
-                            placeholder="Search product here..."
-                            className="w-full bg-transparent outline-none px-3 py-2 md:py-2 lg:py-[0.6rem] rounded-full"
-                            value={search}
-                            onKeyDown={handleSearchKeyDown}
-                            onChange={handleSearchChange}
-                        />
-                        <div className="absolute right-1  h-8 w-8 md:h-7 md:w-7 lg:h-9 lg:w-9 bg-main text-white flex items-center justify-center rounded-full transition-transform transform hover:scale-105">
-                            <FiSearch className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6" />
-                        </div>
-                    </div>
-                </div>
+    const topBarVariants = useMemo(() => ({
+        hidden: { y: -50, opacity: 0 },
+        visible: { 
+            y: 0, 
+            opacity: 1,
+            transition: {
+                duration: 0.5,
+                ease: "easeOut"
+            }
+        }
+    }), []);
 
-                {menuDisplay && searchState.results.length > 0 && (
-                    <div ref={searchMenuRef} className="absolute top-[7rem] md:top-[calc(100%+0.5rem)] left-0 gap-1 right-0 pb-1 mx-auto bg-transparent w-[97%] md:w-[40%] overflow-hidden backdrop-blur-md z-10">
-                        {searchState.results.map((product, index) => (
+    const renderSearchResults = useMemo(() => (
+        <AnimatePresence>
+            {menuDisplay && searchState.results.length > 0 && (
+                <motion.div
+                    ref={searchMenuRef}
+                    className="absolute top-[7rem] md:top-[calc(100%+0.5rem)] left-0 gap-1 md:gap-0 rounded-lg right-0 pb-1 mx-auto bg-transparent w-[97%] md:w-[70%] lg:w-[50%] overflow-hidden backdrop-blur-md z-10"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                    {searchState.results.map((product, index) => (
+                        <motion.div
+                            key={product._id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                        >
                             <Link
-                                key={product._id}
                                 to={`/product/${product.slug}`}
-                                className={`block px-4 py-2 no-underline hover:bg-gray-100 shadow-sm rounded-full mt-1 bg-white ${selectedIndex === index ? "bg-gray-200" : ""
+                                className={`block px-4 py-2 no-underline hover:bg-gray-100 shadow-sm rounded-full md:rounded-none bg-white ${selectedIndex === index ? "bg-gray-200" : ""}
                                     }`}
                                 onMouseEnter={() => handleMouseEnter(index)}
                                 onClick={() => handleProductSelect(product.slug)}
                             >
-                                {truncateTitle(product.title, 35)}
+                                <span className="md:hidden">{truncateTitle(product.title, 35)}</span>
+                                <span className="hidden text-sm md:inline">
+                                    {truncateTitle(product.title, 60)}
+                                </span>
                             </Link>
-                        ))}
-                    </div>
-                )}
+                        </motion.div>
+                    ))}
+                </motion.div>
+            )}
+        </AnimatePresence>
+    ), [menuDisplay, searchState.results, selectedIndex, handleMouseEnter, handleProductSelect]);
 
-                {menuDisplay && searchState.results.length === 0 && (
-                    <div ref={searchMenuRef} className="absolute top-[calc(100%+0.5rem)] left-0 right-0 mx-auto bg-white shadow-lg max-w-lg w-3/4 rounded-full overflow-hidden backdrop-blur-md z-10">
-                        <p className="block px-4 py-2 text-center text-gray-500">No product matched</p>
+    const renderNoResults = useMemo(() => (
+        menuDisplay && searchState.results.length === 0 && (
+            <div ref={searchMenuRef} className="absolute top-[calc(100%+0.5rem)] left-0 right-0 mx-auto bg-white shadow-lg max-w-lg w-3/4 rounded-full overflow-hidden backdrop-blur-md z-10">
+                <p className="block px-4 py-2 text-center text-gray-500">No product matched</p>
+            </div>
+        )
+    ), [menuDisplay, searchState.results.length]);
+
+    return (
+        <>
+            {/* Top bar */}
+            <motion.div 
+                className="bg-gradient-to-r from-[#020024] via-[#090979] to-[#00d4ff] text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
+                variants={topBarVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                <div className="pr-3 mb-2 md:mb-0">
+                    <Marquee className='text-sm font-bold' speed={50} gradient={false}>Welcome to our store! Enjoy the best deals.</Marquee>
+                </div>
+                <div className="flex justify-center gap-4 text-sm md:text-base">
+                    <Link to="/about" className="text-gray-200 no-underline hover:text-white hover:underline">About Us</Link>
+                    <Link to="/contact" className="text-gray-200 no-underline hover:text-white hover:underline">Become a Seller</Link>
+                    <Link to="/order-history" className="text-gray-200 no-underline hover:text-white hover:underline">Track Your orders</Link>
+                    <Link onClick={user && handleLogout} to={!user && "/login"} className="text-gray-200 underline font-poppins md:text-main hover:text-white">{user ? "Logout" : "Sign In"}</Link>
+                </div>
+            </motion.div>
+
+            <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0 py-0 md:py-2">
+                <div className="container relative z-10 flex flex-col items-center justify-between px-4 pt-2 pb-0 mx-auto min-w-auto md:px-2 lg:px-4 lg:flex-row">
+                    <div className="flex items-center justify-between w-full pr-0 md:pr-2 lg:pr-0">
+                        <CgMenu className="text-[26px] md:hidden text-main font-bold cursor-pointer" onClick={toggleDrawer} />
+                        <motion.a
+                            href="/"
+                            className="flex-shrink-0 bg-contain"
+                            variants={logoVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                            <img src="/logo.png" alt="Logo" className="w-full h-12 md:h-14" loading="eager" />
+                        </motion.a>
+                        <motion.div
+                            className="flex items-center gap-4 lg:gap-5"
+                            variants={supportVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                            <div className='items-center hidden gap-1 text-base font-bold text-orange-700 md:hidden lg:flex'>
+                                <span className='text-xl font-semibold'><FaMobileAlt size={32} /></span>
+                                <div className='flex flex-col items-center'>
+                                    <div className='text-sm font-medium text-black'>24<span className='text-xs'>/</span>7 Support</div>
+                                    <a href="tel:0333-7494323" className='text-sm font-medium no-underline text-main opacity-80'>0333-7494323</a>
+                                </div>
+                            </div>
+
+                            <div className="relative flex items-center gap-2 cursor-pointer md:gap-4 lg:gap-4">
+                                {user?.role === "admin" && (
+                                    <Link to="/admin-dashboard" className="relative group">
+                                        <FaUserShield className="text-3xl text-main" />
+                                    </Link>
+                                )}
+                                <Link to="/shop" className="relative z-20 cursor-pointer group">
+                                    <AiOutlineShopping className="text-3xl text-main" />
+                                </Link>
+
+                                <Link to="/cart" className="relative z-20 cursor-pointer group">
+                                    <IoCartOutline className="text-3xl text-main" />
+                                    <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-main bg-opacity-90">
+                                        {cart.products?.length || 0}
+                                    </span>
+                                </Link>
+                            </div>
+                        </motion.div>
                     </div>
-                )}
+                </div>
+
+                <motion.div
+                    className="container px-2 pt-2 md:pt-0 mb-3 md:mb-0 md:absolute top-3 md:top-6 rounded-full lg:top-[18px]"
+                    ref={searchBarRef}
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <motion.div
+                        className="relative flex items-center bg-gray-50 rounded-full border md:border-[1.5px] border-main shadow-md w-full md:max-w-sm lg:max-w-md ml-0 md:ml-[230px] lg:ml-[400px] z-10"
+                        variants={inputVariants}
+                        animate={isFocused ? "focused" : "unfocused"}
+                    >
+                        <input
+                            type="text"
+                            placeholder="Search product here..."
+                            className="w-full bg-transparent outline-none px-3 py-2 md:py-2 lg:py-[0.6rem] rounded-full placeholder-main/70"
+                            value={search}
+                            onKeyDown={handleSearchKeyDown}
+                            onChange={handleSearchChange}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                            aria-label="Search products"
+                        />
+                        <div className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 md:h-7 md:w-7 lg:h-9 lg:w-9 bg-main hover:scale-105">
+                            <FiSearch className="w-4 h-4 md:h-5 md:w-5 lg:h-6 lg:w-6" />
+                        </div>
+                    </motion.div>
+                </motion.div>
+
+                {renderSearchResults}
+                {renderNoResults}
             </header>
 
-            {!hideCategoryBarOn.includes(location.pathname) &&
-                < CategoryBar
+            {!hideCategoryBar && (
+                <CategoryBar
                     categories={memoizedCategories}
                     modalState={modalState}
                     modalPosition={modalPosition}
                     setModalPosition={setModalPosition}
-                    setModalState={setModalState} />
-            }
+                    setModalState={setModalState}
+                />
+            )}
 
-            {/* Drawer for Mobile */}
             <NavDrawer
                 isDrawerOpen={isDrawerOpen}
                 toggleDrawer={toggleDrawer}
@@ -259,6 +379,8 @@ const Navbar = () => {
             />
         </>
     );
-};
+});
 
-export default React.memo(Navbar);
+Navbar.displayName = 'Navbar';
+
+export default Navbar;

@@ -105,7 +105,7 @@ const Shop = () => {
                 response = await getAllProducts(page);
             }
 
-            console.log("Response from get all products api--------->", response);
+            // console.log("Response from get all products api--------->", response);
             // console.log("Final API response:", response);
             setProducts(response?.products || []);
             setTotalPages(response?.totalPages || 0);
@@ -293,7 +293,7 @@ const Shop = () => {
                             onInput={handlePriceRangeChange}
                             className="w-full text-main"
                         />
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-sm text-black font-semibold">
                             <span>Rs {priceRange[0]}</span>
                             <span>Rs {priceRange[1]}</span>
                         </div>
@@ -337,14 +337,14 @@ const Shop = () => {
                     <h4 className="text-lg font-bold mb-2 font-space text-main">Filter By Brand</h4>
                     <div className="grid grid-cols-1 lg:grid-cols-2 capitalize gap-2">
                         {brands?.map((brand) => (
-                            <label key={brand._id} className="flex items-center text-sm font-semibold text-gray-700 mb-15">
+                            <label key={brand._id} className="flex items-center text-sm font-semibold text-main/90 mb-15">
                                 <input
                                     type="checkbox"
                                     name="brand"
                                     value={brand.name}
                                     checked={brandFilter === brand.name}
                                     onChange={handleBrandChange}
-                                    className="mr-2"
+                                    className="mr-2 text-main"
                                 />
                                 {brand.name}
                             </label>

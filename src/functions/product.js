@@ -29,7 +29,7 @@ export const getAllProducts = async (page = 1, limit = 8) => {
     try {
         const response = await axios.get(`${BASE_URL}/product/getAll?page=${page}&limit=${limit}`,
             { withCredentials: true })
-        console.log("Response from get all products api--------->", response)
+        // console.log("Response from get all products api--------->", response)
         return response?.data
     } catch (error) {
         console.log("Error in getting all products", error)

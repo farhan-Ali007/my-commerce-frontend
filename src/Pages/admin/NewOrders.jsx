@@ -105,12 +105,38 @@ const NewOrders = () => {
                                     <td className="px-4 py-2 border">
                                         <ul>
                                             {order.cartSummary?.map((product) => (
-                                                <li key={product._id} className="mb-4">
-                                                    <div>
-                                                        <strong className="text-main font-bold">{product.product?.title}</strong>
+                                                <li key={product._id} className="mb-6 p-3 bg-gray-50 rounded-lg">
+                                                    {/* Product Basic Info */}
+                                                    <div className="mb-2">
+                                                        <strong className="text-main font-bold text-lg">{product.product?.title}</strong>
                                                     </div>
-                                                    <div>Price: Rs.{product.salePrice || product.price}</div>
-                                                    <div>count: {product?.count}</div>
+                                                    <div className="flex items-center gap-4 mb-2 text-sm">
+                                                        <span className="text-gray-700">Price: <span className="font-semibold">Rs.{product.salePrice || product.price}</span></span>
+                                                        <span className="text-gray-700">Quantity: <span className="font-semibold">{product?.count}</span></span>
+                                                    </div>
+                                                    
+                                                    {/* Variants Section */}
+                                                    {product.selectedVariants && product.selectedVariants.length > 0 && (
+                                                        <div className="mt-3 pt-3 border-t border-gray-200">
+                                                            <div className="flex flex-col gap-2">
+                                                                {product.selectedVariants.map((variant) => (
+                                                                    <div key={variant.name} className="flex items-start gap-2">
+                                                                        <span className="font-semibold text-gray-900 capitalize min-w-[80px]">{variant.name}:</span>
+                                                                        <div className="flex flex-wrap gap-1.5">
+                                                                            {variant.values.map((value, valueIndex) => (
+                                                                                <span
+                                                                                    key={`${variant.name}-${valueIndex}`}
+                                                                                    className="px-2.5 py-1 text-xs font-medium bg-main/10 text-main rounded-full border border-main/20"
+                                                                                >
+                                                                                    {value}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </li>
                                             ))}
                                         </ul>

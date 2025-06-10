@@ -32,7 +32,7 @@ const ProductCard = ({ product }) => {
             count: 1,
             selectedVariants: variantsForBackend,
             freeShipping: product?.freeShipping,
-            deliveryCharges: product?.deliveryCharges
+            deliveryCharges: product?.freeShipping ? 0 : product?.deliveryCharges
         };
 
         try {
@@ -45,8 +45,6 @@ const ProductCard = ({ product }) => {
     }, [product, userId, navigateTo, dispatch]);
 
     const currentCartItems = useSelector((state) => state.cart.products);
-    // console.log("Current Cart Items:", currentCartItems);
-
 
     const handleByNow = useCallback(async () => {
         const variantsForBackend = []
@@ -58,13 +56,11 @@ const ProductCard = ({ product }) => {
             count: 1,
             selectedVariants: variantsForBackend,
             freeShipping: product?.freeShipping,
-            deliveryCharges: product?.deliveryCharges
+            deliveryCharges: product?.freeShipping ? 0 : product?.deliveryCharges
         };
 
         try {
-            // 1. Add the new item to Redux cart
             dispatch(addToCart(cartItem));
-            // 3. Prepare the payload for the backend
             const updatedCartItems = [...currentCartItems, cartItem];
             const cartPayload = {
                 products: updatedCartItems.map(item => ({
@@ -85,18 +81,35 @@ const ProductCard = ({ product }) => {
             toast.error("Failed to proceed to checkout. Please try again.");
             console.error("Error during Buy Now:", error);
         }
-    }, [, product, dispatch, userId, navigateTo]);
-
-
+    }, [product, dispatch, userId, navigateTo, currentCartItems]);
 
     const cardVariants = {
         hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-        hover: { scale: 1.05, transition: { duration: 0.3 } },
+        visible: { 
+            opacity: 1, 
+            y: 0, 
+            transition: { 
+                duration: 0.3,
+                ease: "easeOut"
+            } 
+        },
+        hover: { 
+            scale: 1.02, 
+            transition: { 
+                duration: 0.2,
+                ease: "easeOut"
+            } 
+        },
     };
 
     const imageVariants = {
-        hover: { scale: 1.1, transition: { duration: 0.3 } },
+        hover: { 
+            scale: 1.05, 
+            transition: { 
+                duration: 0.2,
+                ease: "easeOut"
+            } 
+        },
     };
 
     const renderStars = (rating) => {
@@ -159,7 +172,7 @@ const ProductCard = ({ product }) => {
 
     return (
         <motion.div
-            className="max-w-sm bg-white h-[350px]  overflow-hidden shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="max-w-sm bg-white h-[320px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col items-stretch relative"
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
@@ -168,10 +181,10 @@ const ProductCard = ({ product }) => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <Link to={`/product/${slug}`} className="overflow-hidden w-full mb-4" style={{ height: `${imageHeight}px` }}>
-                <div className="w-full h-full relative">
+            <Link to={`/product/${slug}`} className="w-full mb-4 overflow-hidden" style={{ height: `${imageHeight}px` }}>
+                <div className="relative w-full h-full">
                     <motion.img
-                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        className="absolute top-0 left-0 object-cover w-full h-full"
                         src={getOptimizedImageUrl(isHovered && images[1] ? images[1] : images[0])}
                         alt={title}
                         loading="lazy"
@@ -181,46 +194,47 @@ const ProductCard = ({ product }) => {
                         variants={imageVariants}
                         whileHover="hover"
                     />
-                    <div className="absolute top-[146px] left-0 right-0 flex lg:hidden justify-between">
-                        <button onClick={handleAddToCart} className="w-1/2 bg-red-600 text-white font-semibold py-2 text-[12px] hover:bg-red-700 transition">
-                            Add To Cart
-                        </button>
-                        <button onClick={handleByNow} className="w-1/2 bg-blue-800 text-white font-semibold py-2 text-[12px] hover:bg-blue-900 transition">
-                            Buy Now
-                        </button>
-                    </div>
                 </div>
             </Link>
+            <div className="absolute top-[146px] left-0 right-0 flex lg:hidden justify-between">
+                <button onClick={handleAddToCart} className="w-1/2 bg-red-600 text-white font-semibold py-2 text-[10px] hover:bg-red-700 transition">
+                    Add To Cart
+                </button>
+                <button onClick={handleByNow} className="w-1/2 bg-blue-800 text-white font-semibold py-2 text-[10px] hover:bg-blue-900 transition">
+                    Buy Now
+                </button>
+            </div>
 
             {freeShipping && (
                 <motion.span
-                    className="absolute top-0 right-0 bg-green-600 rounded-s-sm flex items-center gap-1 text-white text-xs font-medium px-2 py-1 shadow-md"
-                    initial={{ opacity: 0, y: -20 }}
-                    whileInView={{ opacity: 1, y: 0, transition: { duration: 0.5 } }}
+                    className="absolute top-0 right-0 bg-main/90 rounded-s-sm flex items-center gap-1 text-white text-[10px] md:text-xs font-medium px-2 py-1 shadow-md will-change-transform"
+                    initial={{ opacity: 0, y: -10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                     viewport={{ once: true, amount: 0.2 }}
                 >
-                    <TbTruckDelivery size={20} /> Free Shipping
+                    <TbTruckDelivery size={18} /> Free Shipping
                 </motion.span>
             )}
 
             <AnimatePresence>
                 {isHovered && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="absolute top-[155px] left-0 right-0 hidden md:flex justify-between"
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="absolute top-[162px] left-0 right-0 hidden lg:flex justify-between will-change-transform"
                     >
                         <button
                             onClick={handleAddToCart}
-                            className="w-1/2 bg-red-600 text-white font-semibold py-1 text-[12px] hover:bg-red-700 transition"
+                            className="w-1/2 bg-red-600 text-white font-semibold py-1 text-[12px] hover:bg-red-700 transition-colors duration-200"
                         >
                             Add To Cart
                         </button>
                         <button
                             onClick={handleByNow}
-                            className="w-1/2 bg-blue-800 text-white font-semibold py-1 text-[12px] hover:bg-blue-900 transition"
+                            className="w-1/2 bg-main text-white font-semibold py-1 text-[12px] hover:bg-blue-800 transition-colors duration-200"
                         >
                             Buy Now
                         </button>
@@ -228,31 +242,30 @@ const ProductCard = ({ product }) => {
                 )}
             </AnimatePresence>
 
-
-            <div className="mx-2 justify-start font-roboto mb-4">
+            <div className="justify-start mx-2 mb-4 font-roboto">
                 <Link to={`/product/${slug}`} className='text-black no-underline'>
                     <h2
                         onMouseEnter={() => setIsHovered(true)}
-                        className="font-medium text-base mb-2">
+                        className="mb-2 text-sm font-medium">
                         {truncateTitle(title, 45)}
                     </h2>
                 </Link>
-                <div className="flex items-center mb-1 gap-1">
+                <div className="flex items-center gap-1 mb-1">
                     <div className="flex items-center gap-1">
                         {renderStars(averageRating || 0)}
-                        {totalReviews > 0 && <span className="text-gray-500 text-sm ml-2 font-bold">({totalReviews})</span>}
+                        {totalReviews > 0 && <span className="ml-2 text-sm font-bold text-gray-500">({totalReviews})</span>}
                     </div>
                 </div>
-                <div className="flex items-center gap-x-2 justify-between flex-nowrap">
-                    <p className="text-gray-900 flex flex-col text-sm font-medium">
+                <div className="flex items-center justify-between gap-x-2 flex-nowrap">
+                    <p className="flex flex-col text-sm font-semibold text-main/90">
                         {salePrice ? (
-                            <span className="line-through text-gray-400 text-sm">Rs. {price}</span>
+                            <span className="text-sm text-gray-400 line-through">Rs. {price}</span>
                         ) : (
                             <span>Rs. {price}</span>
                         )}{' '}
                         Rs.{salePrice}
                     </p>
-                    {off && <p className="p-1 border-2 text-center text-xs sm:text-sm border-main">{off}% Off</p>}
+                    {off && <p className="p-1 text-xs text-center border-2 sm:text-sm border-main">{off}% Off</p>}
                 </div>
             </div>
         </motion.div>

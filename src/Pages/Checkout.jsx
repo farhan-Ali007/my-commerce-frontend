@@ -15,7 +15,7 @@ const Checkout = () => {
     const cartState = useSelector((state) => state.cart);
     const userId = user?._id;
     const [cartItems, setCartItems] = useState(null);
-    // console.log("Cart items in checkout", cartItems)
+    console.log("Cart items in checkout", cartItems)
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         firstName: '',
@@ -52,13 +52,13 @@ const Checkout = () => {
                 deliveryCharges: data.deliveryCharges || 0
             };
         } else {
-            // For guests: handle both possible Redux cart structures
+            // For guests: use the Redux cart state values
             const productsArray = Array.isArray(data) ? data : data.products || [];
             return {
                 products: productsArray,
-                deliveryCharges: calculateGuestDeliveryCharges(productsArray),
-                freeShipping: calculateGuestDeliveryCharges(productsArray) === 0,
-                cartTotal: productsArray.reduce((sum, item) => sum + (item.price * item.count), 0)
+                deliveryCharges: data.deliveryCharges || 0,
+                freeShipping: data.freeShipping || false,
+                cartTotal: data.cartTotal || productsArray.reduce((sum, item) => sum + (item.price * item.count), 0)
             };
         }
     };
@@ -76,7 +76,7 @@ const Checkout = () => {
                     cartData = normalizeCartData(cartState, false);
                 }
 
-                console.log('Normalized Cart Data:', cartData);
+                // console.log('Normalized Cart Data:', cartData);
                 setCartItems(cartData);
             } catch (error) {
                 console.error('Error fetching cart data:', error);
@@ -182,11 +182,11 @@ const Checkout = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-screen">
+            <div className="flex items-center justify-center h-screen">
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    className="w-12 h-12 border-4 border-main border-t-transparent rounded-full"
+                    className="w-12 h-12 border-4 rounded-full border-main border-t-transparent"
                 ></motion.div>
             </div>
         );
@@ -195,10 +195,10 @@ const Checkout = () => {
     if (!cartItems?.products?.length) {
         return (
             <div className="flex flex-col items-center justify-center h-96">
-                <h2 className="text-2xl font-bold text-gray-700 mb-4">Your cart is empty</h2>
+                <h2 className="mb-4 text-2xl font-bold text-gray-700">Your cart is empty</h2>
                 <button
                     onClick={() => navigateTo('/shop')}
-                    className="bg-main text-white px-6 py-2 rounded-lg hover:bg-main-dark transition"
+                    className="px-6 py-2 text-white transition rounded-lg bg-main hover:bg-main-dark"
                 >
                     Continue Shopping
                 </button>
@@ -217,7 +217,7 @@ const Checkout = () => {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="text-2xl md:text-3xl lg:text-3xl font-roboto font-extrabold text-main text-center mb-2 md:mb-6"
+                    className="mb-2 text-2xl font-extrabold text-center md:text-3xl lg:text-3xl font-roboto text-main md:mb-6"
                 >
                     Checkout
                 </motion.h2>
@@ -227,16 +227,16 @@ const Checkout = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.6 }}
-                    className="bg-white p-6 rounded-lg shadow-lg mb-8"
+                    className="p-6 mb-8 bg-white rounded-lg shadow-lg"
                 >
-                    <h3 className="text-xl font-bold mb-4">Order Summary</h3>
+                    <h3 className="mb-4 text-xl font-bold">Order Summary</h3>
                     <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border">
+                        <table className="w-full border border-collapse">
                             <thead>
                                 <tr className="bg-gray-50">
-                                    <th className="border p-2 text-left">Product</th>
-                                    <th className="border p-2 text-center">Quantity</th>
-                                    <th className="border p-2 text-right">Price</th>
+                                    <th className="p-2 text-left border">Product</th>
+                                    <th className="p-2 text-center border">Quantity</th>
+                                    <th className="p-2 text-right border">Price</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -248,18 +248,18 @@ const Checkout = () => {
                                         transition={{ duration: 0.3, delay: index * 0.1 }}
                                         className="hover:bg-gray-50"
                                     >
-                                        <td className="border p-2 flex items-center">
+                                        <td className="flex items-center p-2 border">
                                             <img
                                                 src={item.image || item.product.images[0]}
                                                 alt={item.title}
-                                                className="w-16 h-16 object-cover rounded mr-3"
+                                                className="object-cover w-16 h-16 mr-3 rounded"
                                             />
                                             <span title={item.title}>
                                                 {truncateTitle(item.title, 40)}
                                             </span>
                                         </td>
-                                        <td className="border p-2 text-center">{item.count}</td>
-                                        <td className="border p-2 text-right">
+                                        <td className="p-2 text-center border">{item.count}</td>
+                                        <td className="p-2 text-right border">
                                             Rs.{(item.price * item.count).toLocaleString()}
                                         </td>
                                     </motion.tr>
@@ -267,18 +267,18 @@ const Checkout = () => {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colSpan="2" className="border p-2 text-right font-bold">
+                                    <td colSpan="2" className="p-2 font-bold text-right border">
                                         Subtotal
                                     </td>
-                                    <td className="border p-2 text-right">
+                                    <td className="p-2 text-right border">
                                         Rs.{calculateTotalPrice().toLocaleString()}
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colSpan="2" className="border p-2 text-right font-bold">
+                                    <td colSpan="2" className="p-2 font-bold text-right border">
                                         Delivery charges
                                     </td>
-                                    <td className="border p-2 text-right">
+                                    <td className="p-2 text-right border">
                                         {cartItems.freeShipping ? (
                                             <span className="text-green-600">Free Shipping</span>
                                         ) : (
@@ -287,10 +287,10 @@ const Checkout = () => {
                                     </td>
                                 </tr>
                                 <tr className="bg-gray-50">
-                                    <td colSpan="2" className="border p-2 text-right font-bold text-lg">
+                                    <td colSpan="2" className="p-2 text-lg font-bold text-right border">
                                         Total Price
                                     </td>
-                                    <td className="border p-2 text-right font-bold text-lg">
+                                    <td className="p-2 text-lg font-bold text-right border">
                                         Rs.{(calculateTotalPrice() + cartItems.deliveryCharges).toLocaleString()}
                                     </td>
                                 </tr>
@@ -304,39 +304,39 @@ const Checkout = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
-                    className="bg-white p-6 rounded-lg shadow-lg mb-8"
+                    className="p-6 mb-8 bg-white rounded-lg shadow-lg"
                 >
-                    <h3 className="text-xl font-bold mb-4">Shipping Address</h3>
-                    <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h3 className="mb-4 text-xl font-bold">Shipping Address</h3>
+                    <form className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                            <label className="block mb-1 text-sm font-medium text-gray-700">First Name *</label>
                             <input
                                 type="text"
                                 name="firstName"
                                 value={formData.firstName}
                                 onChange={handleInputChange}
-                                className="border p-2 rounded w-full"
+                                className="w-full p-2 border rounded"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                            <label className="block mb-1 text-sm font-medium text-gray-700">Last Name *</label>
                             <input
                                 type="text"
                                 name="lastName"
                                 value={formData.lastName}
                                 onChange={handleInputChange}
-                                className="border p-2 rounded w-full"
+                                className="w-full p-2 border rounded"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Province/State *</label>
+                            <label className="block mb-1 text-sm font-medium text-gray-700">Province/State *</label>
                             <select
                                 name="province"
                                 value={formData.province}
                                 onChange={handleInputChange}
-                                className="border p-2 rounded w-full"
+                                className="w-full p-2 border rounded"
                                 required
                             >
                                 <option value="">Select Province/State</option>
@@ -348,56 +348,56 @@ const Checkout = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                            <label className="block mb-1 text-sm font-medium text-gray-700">City *</label>
                             <input
                                 type="text"
                                 name="city"
                                 value={formData.city}
                                 onChange={handleInputChange}
-                                className="border p-2 rounded w-full"
+                                className="w-full p-2 border rounded"
                                 required
                             />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
+                            <label className="block mb-1 text-sm font-medium text-gray-700">Street Address *</label>
                             <input
                                 type="text"
                                 name="streetAddress"
                                 value={formData.streetAddress}
                                 onChange={handleInputChange}
-                                className="border p-2 rounded w-full"
+                                className="w-full p-2 border rounded"
                                 required
                             />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Apartment, Suite, etc. (optional)</label>
+                            <label className="block mb-1 text-sm font-medium text-gray-700">Apartment, Suite, etc. (optional)</label>
                             <input
                                 type="text"
                                 name="apartment"
                                 value={formData.apartment}
                                 onChange={handleInputChange}
-                                className="border p-2 rounded w-full"
+                                className="w-full p-2 border rounded"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number *</label>
+                            <label className="block mb-1 text-sm font-medium text-gray-700">Mobile Number *</label>
                             <input
                                 type="tel"
                                 name="mobile"
                                 value={formData.mobile}
                                 onChange={handleInputChange}
-                                className="border p-2 rounded w-full"
+                                className="w-full p-2 border rounded"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                            <label className="block mb-1 text-sm font-medium text-gray-700">Email *</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleInputChange}
-                                className="border p-2 rounded w-full"
+                                className="w-full p-2 border rounded"
                                 required
                             />
                         </div>
@@ -409,15 +409,15 @@ const Checkout = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.8 }}
-                    className="bg-white p-6 rounded-lg shadow-lg mb-8"
+                    className="p-6 mb-8 bg-white rounded-lg shadow-lg"
                 >
-                    <h3 className="text-xl font-medium mb-4">Additional Instructions</h3>
+                    <h3 className="mb-4 text-xl font-medium">Additional Instructions</h3>
                     <textarea
                         name="additionalInstructions"
                         placeholder="Enter any special instructions here..."
                         value={formData.additionalInstructions}
                         onChange={handleInputChange}
-                        className="border p-2 rounded w-full h-32"
+                        className="w-full h-32 p-2 border rounded"
                     ></textarea>
                 </motion.div>
 
@@ -426,18 +426,18 @@ const Checkout = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 1 }}
-                    className="text-center mb-8"
+                    className="mb-8 text-center"
                 >
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handlePlaceOrder}
                         disabled={loading}
-                        className="bg-main hover:bg-main-dark text-white py-3 px-8 rounded-lg shadow-md text-lg font-medium w-full md:w-auto"
+                        className="w-full px-8 py-3 text-lg font-medium text-white rounded-lg shadow-md bg-main hover:bg-main-dark md:w-auto"
                     >
                         {loading ? (
                             <span className="flex items-center justify-center">
-                                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 mr-2 -ml-1 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>

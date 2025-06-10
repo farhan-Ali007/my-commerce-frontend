@@ -97,7 +97,7 @@ const ReviewForm = ({ slug, product }) => {
     const ratingSummary = calculateRatingSummary();
 
     return (
-        <div className="max-w-screen-xl mx-auto px-2 md:px-4 py-4 md:py-6 lg:py-2">
+        <div className="max-w-screen-xl px-4 py-4 mx-auto md:px-16 md:py-6 lg:py-2">
             {/* Tab Navigation */}
             <div className="flex gap-4 mb-6">
                 <button
@@ -155,14 +155,14 @@ const ReviewForm = ({ slug, product }) => {
                         <p>No reviews yet. Be the first to leave review.</p>
                     ) : (
                         reviews.map((review) => (
-                            <div key={review._id} className="mb-6 flex items-center gap-4 border-b pb-6">
+                            <div key={review._id} className="flex items-center gap-4 pb-6 mb-6 border-b">
                                 <img
                                     src={"/user.jpg"}
                                     alt={review.reviewerId.username}
-                                    className="w-16 h-16 rounded-full object-cover"
+                                    className="object-cover w-16 h-16 rounded-full"
                                 />
                                 <div>
-                                    <h3 className="font-semibold text-lg text-gray-900">{review.reviewerId.username}</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900">{review.reviewerId.username}</h3>
                                     <div className="mt-2">
                                         <p className="text-gray-800">"{review.reviewText}"</p>
                                     </div>
@@ -187,8 +187,8 @@ const ReviewForm = ({ slug, product }) => {
                     )}
 
                     {/* Review Form - Now inside reviews tab and full width */}
-                    <div className="w-full md:w-1/3 bg-gray-50 p-4 md:p-6 rounded-lg shadow-lg mt-8">
-                        <h2 className="text-3xl font-space font-semibold text-center text-gray-900 mb-6">Leave Review</h2>
+                    <div className="w-full p-4 mt-8 rounded-lg shadow-lg md:w-1/3 bg-gray-50 md:p-6">
+                        <h2 className="mb-6 text-3xl font-semibold text-center text-gray-900 font-space">Leave Review</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
@@ -200,7 +200,7 @@ const ReviewForm = ({ slug, product }) => {
                                     name="email"
                                     value={formData.email}
                                     disabled
-                                    className="w-full px-4 py-2 mt-2 outline-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-100"
+                                    className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gray-100"
                                     placeholder="Your Email"
                                 />
                             </div>
@@ -214,7 +214,7 @@ const ReviewForm = ({ slug, product }) => {
                                     value={formData.review}
                                     onChange={handleInputChange}
                                     rows="4"
-                                    className="w-full px-4 py-2 mt-2 rounded-lg border outline-none border-gray-300 focus:ring-2 focus:ring-gray-100"
+                                    className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-gray-100"
                                     placeholder="Write your review"
                                 ></textarea>
                             </div>
@@ -239,7 +239,7 @@ const ReviewForm = ({ slug, product }) => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full py-2 px-4 bg-main opacity-60 hover:opacity-80 text-white font-bold rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                className="w-full px-4 py-2 font-bold text-white rounded-lg bg-main opacity-60 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-violet-500"
                             >
                                 Submit Review
                             </button>

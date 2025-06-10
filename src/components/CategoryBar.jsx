@@ -89,11 +89,62 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
         }
     };
 
+    const modalVariants = {
+        hidden: { 
+            opacity: 0,
+            y: -10,
+            scale: 0.8,
+            transformOrigin: "top left",
+            filter: "blur(10px)"
+        },
+        visible: { 
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            filter: "blur(0px)",
+            transition: {
+                type: "spring",
+                stiffness: 400,
+                damping: 20,
+                duration: 0.2,
+                staggerChildren: 0.05
+            }
+        },
+        exit: { 
+            opacity: 0,
+            y: -5,
+            scale: 0.9,
+            filter: "blur(5px)",
+            transition: {
+                duration: 0.15,
+                ease: "easeInOut"
+            }
+        }
+    };
+
+    const subcategoryVariants = {
+        hidden: { 
+            opacity: 0, 
+            x: -10,
+            scale: 0.9
+        },
+        visible: (i) => ({
+            opacity: 1,
+            x: 0,
+            scale: 1,
+            transition: {
+                delay: i * 0.03, // Faster stagger
+                duration: 0.2,
+                ease: [0.25, 0.1, 0.25, 1] // Custom easing
+            }
+        })
+    };
+
     return (
         <>
             {categories && categories.length > 0 && (
-                <div className="py-4 hidden md:block  bg-main">
-                    <div className="container mx-auto px-2 flex flex-wrap justify-center gap-6">
+                <div className="hidden py-4 md:block bg-main">
+                    <div className="container flex flex-wrap justify-center gap-6 px-2 mx-auto">
                         {categories.map((category) => (
                             <div
                                 key={category._id}
@@ -101,15 +152,15 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                                 ref={(el) => (categoryRefs.current[category._id] = el)}
                             >
                                 <div
-                                    className={`flex items-center justify-center gap-1 cursor-pointer ${isCategoryActive(category)
-                                        ? "text-gray-700 "
+                                    className={`flex items-center justify-center gap-1 cursor-pointer transition-all duration-200 ${isCategoryActive(category)
+                                        ? "text-gray-700"
                                         : ""
                                         }`}
                                     onClick={(e) => handleCategoryClick(category, e)}
                                     onMouseEnter={(e) => handleCategoryHover(category, e)}
                                 >
                                     <div
-                                        className={`text-white p-1 text-base lg:text-[18px] capitalize hover:text-gray-300 ${isCategoryActive(category)
+                                        className={`text-white p-1 text-base lg:text-[18px] capitalize hover:text-gray-300 transition-colors duration-200 ${isCategoryActive(category)
                                             ? "text-gray-900"
                                             : ""
                                             }`}
@@ -118,14 +169,16 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                                         {category.name}
                                     </div>
                                     {category?.subcategories?.length > 0 && (
-                                        <div
+                                        <motion.div
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleCategoryClick(category, e);
                                             }}
+                                            whileHover={{ rotate: 180 }}
+                                            transition={{ duration: 0.2 }}
                                         >
-                                            <FaAngleDown className="text-gray-200 font-extrabold cursor-pointer" />
-                                        </div>
+                                            <FaAngleDown className="font-extrabold text-gray-200 cursor-pointer" />
+                                        </motion.div>
                                     )}
                                 </div>
                             </div>
@@ -134,27 +187,29 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                 </div>
             )}
 
-            {/* Modal for Subcategories */}
+            {/* Enhanced Modal for Subcategories */}
             <AnimatePresence>
                 {modalState.isOpen && (
                     <motion.div
                         key="modal"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        variants={modalVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
                         style={{
                             position: 'absolute',
                             top: `${modalPosition.top}px`,
                             left: `${modalPosition.left}px`,
-                            borderRadius: "5px",
+                            borderRadius: "8px",
                             background: 'white',
-                            padding: '10px',
+                            padding: '15px',
                             border: 'none',
-                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
                             maxWidth: '500px',
                             maxHeight: '400px',
                             zIndex: 40,
+                            backdropFilter: 'blur(10px)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
                         }}
                         ref={modalRef}
                         onMouseEnter={() => setIsMouseOverModal(true)}
@@ -163,17 +218,37 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                             setModalState({ isOpen: false, selectedCategory: null });
                         }}
                     >
-                        <div className="flex flex-col gap-2 flex-wrap">
-                            {modalState.selectedCategory?.subcategories.map((subcategory) => (
-                                <div
+                        <motion.div 
+                            className="flex flex-col flex-wrap gap-2"
+                            variants={{
+                                hidden: { opacity: 0 },
+                                visible: { 
+                                    opacity: 1,
+                                    transition: {
+                                        staggerChildren: 0.03
+                                    }
+                                }
+                            }}
+                        >
+                            {modalState.selectedCategory?.subcategories.map((subcategory, index) => (
+                                <motion.div
                                     key={subcategory._id}
-                                    className="p-2 bg-white rounded cursor-pointer hover:bg-main hover:border-l-4 border-main hover:bg-opacity-20 transition-colors duration-200"
+                                    custom={index}
+                                    variants={subcategoryVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    whileHover={{ 
+                                        x: 5,
+                                        backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                                        transition: { duration: 0.2 }
+                                    }}
+                                    className="p-3 transition-all duration-200 bg-white rounded-lg cursor-pointer hover:border-l-4 border-main"
                                     onClick={() => handleSubcategoryClick(subcategory)}
                                 >
-                                    <span className="font-bold capitalize text-main">{subcategory.name}</span>
-                                </div>
+                                    <span className="font-semibold capitalize text-main text-[15px]">{subcategory.name}</span>
+                                </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -14,7 +14,7 @@ const ShopCard = ({ product }) => {
     const navigateTo = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const userId = user?._id;
-    const { images, title, averageRating, price, slug, salePrice, brand, freeShipping, deliveryCharges } = product;
+    const { images, title, averageRating, price, slug, salePrice, brand, freeShipping  } = product;
     const id = product._id;
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -80,14 +80,16 @@ const ShopCard = ({ product }) => {
             count: 1,
             title: product.title,
             image: product.images[0],
-            freeShipping: product?.freeShipping,
-            deliveryCharges: product?.deliveryCharges,
+            freeShipping: product.freeShipping,
+            deliveryCharges: product.deliveryCharges
         };
 
-        console.log("Cart items------>", cartItem)
+        // console.log("Cart item before dispatch:", cartItem)
+        // console.log("Product object in handleAddToCart:", product)
 
         try {
             dispatch(addToCart(cartItem));
+            // console.log("Cart item after dispatch:", cartItem)
             setIsDrawerOpen(true);
         } catch (error) {
             toast.error('Failed to add the product to the cart. Please try again.');
@@ -100,14 +102,14 @@ const ShopCard = ({ product }) => {
     const handleByNow = useCallback(async () => {
         const variantsForBackend = []
         const cartItem = {
-            productId: product?._id,
-            title: product?.title,
-            price: product?.salePrice ? product?.salePrice : product?.price,
-            image: product?.images[0],
+            productId: product._id,
+            title: product.title,
+            price: product.salePrice ? product.salePrice : product.price,
+            image: product.images[0],
             count: 1,
             selectedVariants: variantsForBackend,
-            freeShipping: product?.freeShipping,
-            deliveryCharges: deliveryCharges
+            freeShipping: product.freeShipping,
+            deliveryCharges: product.deliveryCharges
         };
 
         try {
@@ -139,7 +141,7 @@ const ShopCard = ({ product }) => {
     return (
         <>
             <motion.div
-                className=" max-w-[220px] relative min-h-auto bg-white overflow-hidden mb-4 shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col"
+                className=" max-w-[220px] relative min-h-auto rounded-lg bg-white overflow-hidden mb-4 shadow-md hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -157,11 +159,11 @@ const ShopCard = ({ product }) => {
                     />
                 </Link>
 
-                <div className="absolute top-[158px] left-0 right-0 flex md:hidden justify-between">
-                    <button onClick={handleAddToCart} className="w-1/2 bg-red-600 text-white font-semibold py-2 text-[12px] hover:bg-red-700 transition">
+                <div className="absolute top-[162px] left-0 right-0 flex lg:hidden justify-between">
+                    <button onClick={handleAddToCart} className="w-1/2 bg-red-600 text-white font-semibold py-2 text-[10px] hover:bg-red-700 transition">
                         Add To Cart
                     </button>
-                    <button onClick={handleByNow} className="w-1/2 bg-blue-800 text-white font-semibold py-2 text-[12px] hover:bg-blue-900 transition">
+                    <button onClick={handleByNow} className="w-1/2 bg-blue-800 text-white font-semibold py-2 text-[10px] hover:bg-blue-900 transition">
                         Buy Now
                     </button>
                 </div>
@@ -169,7 +171,7 @@ const ShopCard = ({ product }) => {
                 {/* Free Shipping Tag */}
                 {freeShipping && (
                     <motion.span
-                        className="absolute top-0 right-0 bg-green-600 flex  rounded-s-sm items-center gap-1 text-white text-xs font-semibold px-2 py-1 shadow-md"
+                        className="absolute top-0 right-0 bg-main/90 flex  rounded-s-sm items-center gap-1 text-white text-[10px] md:text-xs font-semibold px-2 py-1 shadow-md"
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
@@ -185,7 +187,7 @@ const ShopCard = ({ product }) => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 20 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="absolute top-[167px] left-0 right-0 hidden md:flex justify-between"
+                            className="absolute top-[167px] left-0 right-0 hidden lg:flex justify-between"
                         >
                             <button
                                 onClick={handleAddToCart}
@@ -195,7 +197,7 @@ const ShopCard = ({ product }) => {
                             </button>
                             <button
                                 onClick={handleByNow}
-                                className="w-1/2 bg-blue-800 text-white font-semibold py-1 text-[12px] hover:bg-blue-900 transition"
+                                className="w-1/2 bg-main text-white font-semibold py-1 text-[12px] hover:bg-blue-800 transition"
                             >
                                 Buy Now
                             </button>
@@ -207,7 +209,7 @@ const ShopCard = ({ product }) => {
                     <Link to={`/product/${slug}`} className='no-underline text-black'>
                         <h2
                             onMouseEnter={() => setIsHovered(false)}
-                            className="font-medium text-base mb-2">
+                            className="font-medium text-sm mb-2">
                             {truncateTitle(title, 45)}
                         </h2>
                     </Link>
@@ -218,11 +220,11 @@ const ShopCard = ({ product }) => {
                     </div>
                     <Link
                         to={`/products/${brand?.name}`}
-                        className="text-main opacity-60 no-underline hover:opacity-90 hover:underline font-bold text-sm uppercase"
+                        className="text-main/70 no-underline hover:text-main/90 hover:underline font-bold text-sm uppercase"
                     >
                         {brand?.name?.replace(/-/g, ' ')}
                     </Link>
-                    <p className="text-gray-900 text-sm md:text-xl font-semibold">
+                    <p className="text-main/90 text-sm md:text-xl font-semibold">
                         {salePrice ? (
                             <span className="line-through text-gray-400 text-sm">Rs.{price}</span>
                         ) : (
