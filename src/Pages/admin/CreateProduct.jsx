@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import CreateProductForm from '../../components/forms/CreateProductForm';
 import { createProduct } from '../../functions/product';
 import toast from 'react-hot-toast';
@@ -15,6 +15,7 @@ const CreateProduct = () => {
   const [subCategories, setSubCategories] = useState([])
   const [brands, setBrands] = useState([])
   const [tags, setTags] = useState([])
+  const createProductFormRef = useRef(null);
 
 
   const fetchCategories = async () => {
@@ -95,6 +96,9 @@ const CreateProduct = () => {
       setLoading(false);
       toast.success(response?.message || "Product created successfully");
       navigateTo('/admin-dashboard')
+      if (createProductFormRef.current) {
+        createProductFormRef.current.resetForm();
+      }
     } catch (error) {
       console.log("Error in creating product", error);
       setLoading(false);
@@ -122,6 +126,7 @@ const CreateProduct = () => {
         subCategories={subCategories}
         brands={brands}
         tags={tags}
+        ref={createProductFormRef}
       />
     </div>
   );

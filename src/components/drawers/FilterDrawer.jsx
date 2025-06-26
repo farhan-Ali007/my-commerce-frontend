@@ -1,9 +1,7 @@
 // components/FilterDrawer.js
 import React from 'react';
 import Drawer from 'react-modern-drawer';
-import { useState } from 'react';
 import 'react-modern-drawer/dist/index.css';
-import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 import { IoIosClose } from "react-icons/io";
 
@@ -26,30 +24,30 @@ const FilterDrawer = ({
             onClose={toggleDrawer}
             direction='left'
             size={300}
-            className='h-screen !z-[1200] p-4 overflow-y-auto '
+            className='h-screen !z-[1200] p-4 overflow-y-auto bg-white rounded-lg shadow-md'
         >
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-main">Filters</h2>
+                <h2 className="text-xl font-bold text-primary">Filters</h2>
                 <button
                     onClick={toggleDrawer}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-secondary hover:text-primary"
                 >
-                    <IoIosClose size={30} className="font-extrabold text-main" />
+                    <IoIosClose size={30} className="font-extrabold text-secondary" />
                 </button>
             </div>
             {/* Category Filter */}
             <div className="mb-4">
-                <h4 className="text-lg font-bold mb-2 font-space text-main">By Category</h4>
+                <h4 className="text-lg font-bold mb-2 font-space text-secondary">By Category</h4>
                 <div className="space-y-2">
                     {categories?.map((cat) => (
-                        <label key={cat._id} className="flex items-center capitalize">
+                        <label key={cat._id} className="flex items-center capitalize text-primary">
                             <input
                                 type="checkbox"
                                 name="category"
                                 value={cat.slug}
                                 checked={categoryFilter[0] === cat.name}
                                 onChange={handleCategoryChange}
-                                className="mr-2"
+                                className="mr-2 text-secondary"
                             />
                             {cat.name}
                         </label>
@@ -59,17 +57,17 @@ const FilterDrawer = ({
 
             {/* Brand Filter */}
             <div className="mb-4">
-                <h4 className="text-lg font-bold mb-2 font-space text-main">By Brand</h4>
+                <h4 className="text-lg font-bold mb-2 font-space text-secondary">By Brand</h4>
                 <div className="grid grid-cols-2 gap-2">
                     {brands?.map((brand) => (
-                        <label key={brand._id} className="flex items-center">
+                        <label key={brand._id} className="flex items-center text-primary">
                             <input
                                 type="checkbox"
                                 name="brand"
                                 value={brand.name}
                                 checked={brandFilter === brand.name}
                                 onChange={handleBrandChange}
-                                className="mr-2"
+                                className="mr-2 text-secondary"
                             />
                             {brand.name}
                         </label>
@@ -79,17 +77,17 @@ const FilterDrawer = ({
 
             {/* Rating Filter */}
             <div className="mb-4">
-                <h4 className="text-lg font-bold mb-2 font-space text-main">By Rating</h4>
+                <h4 className="text-lg font-bold mb-2 font-space text-secondary">By Rating</h4>
                 <div className="space-y-2">
                     {[5, 4, 3, 2, 1].map((rating) => (
-                        <label key={rating} className="flex items-center">
+                        <label key={rating} className="flex items-center text-primary">
                             <input
                                 type="checkbox"
                                 name="rating"
                                 value={rating}
                                 checked={ratingFilter === rating}
                                 onChange={handleRatingChange}
-                                className="mr-2"
+                                className="mr-2 text-secondary"
                             />
                             <div className="flex">
                                 {[...Array(rating)].map((_, index) => (

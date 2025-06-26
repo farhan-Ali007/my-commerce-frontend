@@ -25,6 +25,9 @@ const Navbar = React.memo(() => {
         '/order-history',
         '/cart/checkout',
         '/add-product',
+        '/404',
+        '*',
+        '/pages/',
     ], []);
 
     const location = useLocation();
@@ -54,6 +57,7 @@ const Navbar = React.memo(() => {
 
     const hideCategoryBar = useMemo(() =>
         hideCategoryBarOn.includes(location.pathname) ||
+        location.pathname.startsWith('/pages/') ||
         /^\/edit-product\/[^/]+$/.test(location.pathname) ||
         /^\/product\/[^/]+$/.test(location.pathname),
         [hideCategoryBarOn, location.pathname]
@@ -264,7 +268,7 @@ const Navbar = React.memo(() => {
         <>
             {/* Top bar */}
             <motion.div 
-                className="bg-gradient-to-r from-[#020024] via-[#090979] to-[#00d4ff] text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
+                className="bg-gradient-to-r from-[#000000] to-[#FFB828] text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
                 variants={topBarVariants}
                 initial="hidden"
                 animate="visible"
@@ -276,17 +280,17 @@ const Navbar = React.memo(() => {
                     <Link to="/about" className="text-gray-200 no-underline hover:text-white hover:underline">About Us</Link>
                     <Link to="/contact" className="text-gray-200 no-underline hover:text-white hover:underline">Become a Seller</Link>
                     <Link to="/order-history" className="text-gray-200 no-underline hover:text-white hover:underline">Track Your orders</Link>
-                    <Link onClick={user && handleLogout} to={!user && "/login"} className="text-gray-200 underline font-poppins md:text-main hover:text-white">{user ? "Logout" : "Sign In"}</Link>
+                    <Link onClick={user && handleLogout} to={!user && "/login"} className="text-gray-200 underline font-poppins md:text-primary hover:text-white">{user ? "Logout" : "Sign In"}</Link>
                 </div>
             </motion.div>
 
             <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0 py-0 md:py-2">
                 <div className="container relative z-10 flex flex-col items-center justify-between px-4 pt-2 pb-0 mx-auto min-w-auto md:px-2 lg:px-4 lg:flex-row">
                     <div className="flex items-center justify-between w-full pr-0 md:pr-2 lg:pr-0">
-                        <CgMenu className="text-[26px] md:hidden text-main font-bold cursor-pointer" onClick={toggleDrawer} />
+                        <CgMenu className="text-[26px] md:hidden text-primary font-bold cursor-pointer" onClick={toggleDrawer} />
                         <motion.a
                             href="/"
-                            className="flex-shrink-0 bg-contain"
+                            className="flex-shrink-0 w-40 h-12 sm:w-48 sm:h-14 md:w-auto md:h-auto"
                             variants={logoVariants}
                             initial="hidden"
                             animate="visible"
@@ -299,27 +303,27 @@ const Navbar = React.memo(() => {
                             initial="hidden"
                             animate="visible"
                         >
-                            <div className='items-center hidden gap-1 text-base font-bold text-orange-700 md:hidden lg:flex'>
+                            <div className='items-center hidden gap-1 text-base font-bold text-secondary md:hidden lg:flex'>
                                 <span className='text-xl font-semibold'><FaMobileAlt size={32} /></span>
                                 <div className='flex flex-col items-center'>
                                     <div className='text-sm font-medium text-black'>24<span className='text-xs'>/</span>7 Support</div>
-                                    <a href="tel:0333-7494323" className='text-sm font-medium no-underline text-main opacity-80'>0333-7494323</a>
+                                    <a href="tel:0307-1111832" className='text-sm font-medium no-underline text-primary hover:text-secondary opacity-80'>0307-1111832</a>
                                 </div>
                             </div>
 
                             <div className="relative flex items-center gap-2 cursor-pointer md:gap-4 lg:gap-4">
                                 {user?.role === "admin" && (
                                     <Link to="/admin-dashboard" className="relative group">
-                                        <FaUserShield className="text-3xl text-main" />
+                                        <FaUserShield className="text-3xl text-secondary" />
                                     </Link>
                                 )}
                                 <Link to="/shop" className="relative z-20 cursor-pointer group">
-                                    <AiOutlineShopping className="text-3xl text-main" />
+                                    <AiOutlineShopping className="text-3xl text-secondary" />
                                 </Link>
 
                                 <Link to="/cart" className="relative z-20 cursor-pointer group">
-                                    <IoCartOutline className="text-3xl text-main" />
-                                    <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-main bg-opacity-90">
+                                    <IoCartOutline className="text-3xl text-secondary" />
+                                    <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-primary bg-opacity-90">
                                         {cart.products?.length || 0}
                                     </span>
                                 </Link>
@@ -336,14 +340,14 @@ const Navbar = React.memo(() => {
                     animate="visible"
                 >
                     <motion.div
-                        className="relative flex items-center bg-gray-50 rounded-full border md:border-[1.5px] border-main shadow-md w-full md:max-w-sm lg:max-w-md ml-0 md:ml-[230px] lg:ml-[400px] z-10"
+                        className="relative flex items-center bg-gray-50 rounded-full border md:border-[1.5px] border-secondary shadow-md w-full md:max-w-sm lg:max-w-md ml-0 md:ml-[230px] lg:ml-[400px] z-10"
                         variants={inputVariants}
                         animate={isFocused ? "focused" : "unfocused"}
                     >
                         <input
                             type="text"
                             placeholder="Search product here..."
-                            className="w-full bg-transparent outline-none px-3 py-2 md:py-2 lg:py-[0.6rem] rounded-full placeholder-main/70"
+                            className="w-full bg-transparent outline-none px-3 py-2 md:py-2 lg:py-[0.6rem] rounded-full placeholder-primary/70"
                             value={search}
                             onKeyDown={handleSearchKeyDown}
                             onChange={handleSearchChange}
@@ -351,7 +355,7 @@ const Navbar = React.memo(() => {
                             onBlur={() => setIsFocused(false)}
                             aria-label="Search products"
                         />
-                        <div className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 md:h-7 md:w-7 lg:h-9 lg:w-9 bg-main hover:scale-105">
+                        <div className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 md:h-7 md:w-7 lg:h-9 lg:w-9 bg-primary hover:scale-105">
                             <FiSearch className="w-4 h-4 md:h-5 md:w-5 lg:h-6 lg:w-6" />
                         </div>
                     </motion.div>

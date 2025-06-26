@@ -1,14 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { truncateTitle } from '../../helpers/truncateTitle';
 import { TbTruckDelivery } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../store/cartSlice';
 import { toast } from 'react-hot-toast'
-import { addItemToCart } from '../../functions/cart'
+import { addItemToCart, getMyCart } from '../../functions/cart'
 import { motion, AnimatePresence } from "framer-motion";
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, backendCartItems = [] }) => {
     const dispatch = useDispatch();
     const navigateTo = useNavigate();
     const { user } = useSelector((state) => state.auth);
@@ -44,10 +44,8 @@ const ProductCard = ({ product }) => {
         }
     }, [product, userId, navigateTo, dispatch]);
 
-    const currentCartItems = useSelector((state) => state.cart.products);
-
     const handleByNow = useCallback(async () => {
-        const variantsForBackend = []
+        const variantsForBackend = [];
         const cartItem = {
             productId: product?._id,
             title: product?.title,
@@ -60,19 +58,23 @@ const ProductCard = ({ product }) => {
         };
 
         try {
+            // Defensive: always use an array
+            const items = Array.isArray(backendCartItems) ? backendCartItems : [];
+            const existing = items.find(item => item.productId === cartItem.productId);
+            let updatedCartItems;
+            if (existing) {
+                updatedCartItems = items.map(item =>
+                    item.productId === cartItem.productId
+                        ? { ...item, count: item.count + 1 }
+                        : item
+                );
+            } else {
+                updatedCartItems = [...items, cartItem];
+            }
+
             dispatch(addToCart(cartItem));
-            const updatedCartItems = [...currentCartItems, cartItem];
             const cartPayload = {
-                products: updatedCartItems.map(item => ({
-                    productId: item.productId,
-                    title: item.title,
-                    price: item.price,
-                    image: item.image,
-                    count: item.count,
-                    selectedVariants: item.selectedVariants,
-                    freeShipping: item.freeShipping,
-                    deliveryCharges: item.deliveryCharges
-                }))
+                products: updatedCartItems
             };
             await addItemToCart(userId, cartPayload);
             navigateTo("/cart/checkout");
@@ -81,7 +83,7 @@ const ProductCard = ({ product }) => {
             toast.error("Failed to proceed to checkout. Please try again.");
             console.error("Error during Buy Now:", error);
         }
-    }, [product, dispatch, userId, navigateTo, currentCartItems]);
+    }, [product, dispatch, userId, navigateTo, backendCartItems]);
 
     const cardVariants = {
         hidden: { opacity: 0, y: 20 },
@@ -172,7 +174,7 @@ const ProductCard = ({ product }) => {
 
     return (
         <motion.div
-            className="max-w-sm bg-white h-[320px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-main transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="max-w-sm bg-white h-[320px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
@@ -196,18 +198,18 @@ const ProductCard = ({ product }) => {
                     />
                 </div>
             </Link>
-            <div className="absolute top-[146px] left-0 right-0 flex lg:hidden justify-between">
-                <button onClick={handleAddToCart} className="w-1/2 bg-red-600 text-white font-semibold py-2 text-[10px] hover:bg-red-700 transition">
+            <div className="absolute top-[148px] left-0 right-0 flex lg:hidden justify-between">
+                <button onClick={handleAddToCart} className="w-1/2 bg-primary/80 text-white font-semibold py-2 text-[10px] hover:bg-primary transition">
                     Add To Cart
                 </button>
-                <button onClick={handleByNow} className="w-1/2 bg-blue-800 text-white font-semibold py-2 text-[10px] hover:bg-blue-900 transition">
+                <button onClick={handleByNow} className="w-1/2 bg-secondary/80 text-white font-semibold py-2 text-[10px] hover:bg-secondary transition">
                     Buy Now
                 </button>
             </div>
 
             {freeShipping && (
                 <motion.span
-                    className="absolute top-0 right-0 bg-main/90 rounded-s-sm flex items-center gap-1 text-white text-[10px] md:text-xs font-medium px-2 py-1 shadow-md will-change-transform"
+                    className="absolute top-0 right-0 bg-secondary rounded-s-sm flex items-center gap-1 text-primary text-[10px] md:text-xs font-medium px-2 py-1 shadow-md will-change-transform"
                     initial={{ opacity: 0, y: -10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
@@ -228,13 +230,13 @@ const ProductCard = ({ product }) => {
                     >
                         <button
                             onClick={handleAddToCart}
-                            className="w-1/2 bg-red-600 text-white font-semibold py-1 text-[12px] hover:bg-red-700 transition-colors duration-200"
+                            className="w-1/2 bg-primary/80 text-white font-semibold py-1 text-[12px] hover:bg-primary transition-colors duration-200"
                         >
                             Add To Cart
                         </button>
                         <button
                             onClick={handleByNow}
-                            className="w-1/2 bg-main text-white font-semibold py-1 text-[12px] hover:bg-blue-800 transition-colors duration-200"
+                            className="w-1/2 bg-secondary/80 text-white font-semibold py-1 text-[12px] hover:bg-secondary transition-colors duration-200"
                         >
                             Buy Now
                         </button>
@@ -253,11 +255,11 @@ const ProductCard = ({ product }) => {
                 <div className="flex items-center gap-1 mb-1">
                     <div className="flex items-center gap-1">
                         {renderStars(averageRating || 0)}
-                        {totalReviews > 0 && <span className="ml-2 text-sm font-bold text-gray-500">({totalReviews})</span>}
+                        {totalReviews > 0 && <span className="ml-2 text-sm font-bold text-primary">({totalReviews})</span>}
                     </div>
                 </div>
                 <div className="flex items-center justify-between gap-x-2 flex-nowrap">
-                    <p className="flex flex-col text-sm font-semibold text-main/90">
+                    <p className="flex flex-col text-sm font-semibold text-primary/90">
                         {salePrice ? (
                             <span className="text-sm text-gray-400 line-through">Rs. {price}</span>
                         ) : (
@@ -265,7 +267,7 @@ const ProductCard = ({ product }) => {
                         )}{' '}
                         Rs.{salePrice}
                     </p>
-                    {off && <p className="p-1 text-xs text-center border-2 sm:text-sm border-main">{off}% Off</p>}
+                    {off && <p className="p-1 text-xs text-primary text-center border-2 sm:text-sm border-secondary">{off}% Off</p>}
                 </div>
             </div>
         </motion.div>

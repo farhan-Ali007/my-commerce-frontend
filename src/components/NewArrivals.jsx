@@ -58,7 +58,7 @@ const NewArrivals = React.memo(() => {
     const CustomPrevArrow = useCallback((props) => (
         <button
             {...props}
-            className="absolute left-0 top-[50%] transform -translate-y-1/2 bg-main opacity-70 text-white p-2 rounded-full z-10 hover:opacity-90"
+            className="absolute left-0 top-[50%] transform -translate-y-1/2 bg-primary opacity-70 text-secondary hover:text-white p-2 rounded-full z-10 hover:opacity-90"
             aria-label="Previous slide"
         >
             <FaArrowLeft />
@@ -68,7 +68,7 @@ const NewArrivals = React.memo(() => {
     const CustomNextArrow = useCallback((props) => (
         <button
             {...props}
-            className="absolute right-0 top-[50%] transform -translate-y-1/2 bg-main opacity-70 text-white p-2 rounded-full z-10 hover:opacity-90"
+            className="absolute right-0 top-[50%] transform -translate-y-1/2 bg-primary opacity-70 text-secondary hover:text-white p-2 rounded-full z-10 hover:opacity-90"
             aria-label="Next slide"
         >
             <FaArrowRight />
@@ -153,7 +153,7 @@ const NewArrivals = React.memo(() => {
                     className={`p-2 rounded-full ${
                         currentPage === 1 
                             ? 'text-gray-400 cursor-not-allowed' 
-                            : 'text-main hover:bg-gray-100'
+                            : 'text-secondary hover:bg-primary'
                     }`}
                     aria-label="Previous page"
                 >
@@ -166,7 +166,7 @@ const NewArrivals = React.memo(() => {
                         onClick={() => handlePageChange(page)}
                         className={`w-10 h-10 rounded-full flex items-center justify-center ${
                             currentPage === page
-                                ? 'bg-main text-white'
+                                ? 'bg-primary text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                         aria-label={`Go to page ${page}`}
@@ -182,7 +182,7 @@ const NewArrivals = React.memo(() => {
                     className={`p-2 rounded-full ${
                         currentPage === totalPages 
                             ? 'text-gray-400 cursor-not-allowed' 
-                            : 'text-main hover:bg-gray-100'
+                            : 'text-secondary hover:bg-primary'
                     }`}
                     aria-label="Next page"
                 >
@@ -210,11 +210,11 @@ const NewArrivals = React.memo(() => {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.5 }}
             >
-                <div className="flex-grow h-[0.5px] mr-4 bg-main/90"></div>
-                <h1 className="text-2xl font-extrabold text-center text-main font-space md:text-4xl whitespace-nowrap">
+                <div className="flex-grow h-[0.5px] mr-4 bg-primary"></div>
+                <h1 className="text-2xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
                     New Arrivals
                 </h1>
-                <div className="flex-grow h-[0.5px] ml-4 bg-main/90"></div>
+                <div className="flex-grow h-[0.5px] ml-4 bg-primary"></div>
             </motion.div>
 
             {loading ? (

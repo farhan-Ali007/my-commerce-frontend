@@ -63,7 +63,7 @@ const ProductsByBrand = () => {
 
     return (
         <div className="w-full min-h-screen px-4 md:px-8">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-center text-main my-3 md:my-6 capitalize">
+            <h1 className="text-2xl md:text-3xl text-secondary font-extrabold text-center  my-3 md:my-6 capitalize">
                 {brand.replace(/-/g, ' ')}
             </h1>
 
@@ -95,9 +95,10 @@ const ProductsByBrand = () => {
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 1}
-                                className={`p-2 rounded-full ${currentPage === 1 ? 
-                                    'text-gray-400 cursor-not-allowed' : 
-                                    'text-main hover:bg-gray-100'}`}
+                                className={`p-2 rounded-full ${currentPage === 1 ?
+                                    'text-gray-400 cursor-not-allowed' :
+                                    'text-secondary hover:bg-primary'}`}
+                                aria-label="Previous page"
                             >
                                 <FaChevronLeft />
                             </button>
@@ -108,9 +109,11 @@ const ProductsByBrand = () => {
                                     onClick={() => handlePageChange(page)}
                                     className={`w-10 h-10 rounded-full flex items-center justify-center ${
                                         currentPage === page
-                                            ? 'bg-main text-white'
+                                            ? 'bg-primary text-white'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
+                                    aria-label={`Go to page ${page}`}
+                                    aria-current={currentPage === page ? 'page' : undefined}
                                 >
                                     {page}
                                 </button>
@@ -119,9 +122,10 @@ const ProductsByBrand = () => {
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === totalPages}
-                                className={`p-2 rounded-full ${currentPage === totalPages ? 
-                                    'text-gray-400 cursor-not-allowed' : 
-                                    'text-main hover:bg-gray-100'}`}
+                                className={`p-2 rounded-full ${currentPage === totalPages ?
+                                    'text-gray-400 cursor-not-allowed' :
+                                    'text-secondary hover:bg-primary'}`}
+                                aria-label="Next page"
                             >
                                 <FaChevronRight />
                             </button>

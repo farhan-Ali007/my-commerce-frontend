@@ -22,9 +22,9 @@ export const getMyOrders = async (userId) => {
     }
 }
 
-export const getAllOrders = async () => {
+export const getAllOrders = async (page = 1, limit = 10) => {
     try {
-        const response = await axios.get(`${BASE_URL}/order/all`, { withCredentials: true })
+        const response = await axios.get(`${BASE_URL}/order/all?page=${page}&limit=${limit}`, { withCredentials: true })
         return response?.data
     } catch (error) {
         console.log("Error in fetching all orders", error)

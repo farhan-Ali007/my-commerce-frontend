@@ -117,13 +117,13 @@ const Categories = React.memo(() => {
     return (
         <div className="max-w-screen-xl px-6 py-2 mx-auto overflow-hidden md:py-4 md:px-14">
             <h2
-                className="mb-5 text-2xl font-extrabold text-center md:text-4xl font-space text-main"
+                className="mb-5 text-2xl font-extrabold text-center md:text-4xl font-space text-secondary"
             >
                 Browse Categories
             </h2>
 
             <div
-                className="grid grid-cols-4 gap-2 md:grid-cols-7 lg:grid-cols-7"
+                className="grid grid-cols-4 gap-4 md:gap-2 md:grid-cols-7 lg:grid-cols-7"
             >
                 {renderCategories}
             </div>

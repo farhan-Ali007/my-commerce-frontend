@@ -22,28 +22,28 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
             onClose={toggleDrawer}
             size={350}
             direction="left"
-            className="!z-[1200] drawer h-screen overflow-y-auto relative"
+            className="!z-[1200] drawer h-screen overflow-y-auto relative bg-white rounded-lg shadow-md"
         >
             <div className="p-4">
                 <div className='flex justify-between items-center'>
                     <div>
-                        <h2 className="text-xl font-bold mb-4 text-main">Categories</h2>
+                        <h2 className="text-xl font-bold mb-4 text-primary">Categories</h2>
                     </div>
                     <div>
-                        <IoIosClose className='font-extrabold mb-2 text-main' size={40} onClick={closeDrawer} />
+                        <IoIosClose className='font-extrabold mb-2 text-secondary' size={40} onClick={closeDrawer} />
                     </div>
                 </div>
                 {categories.map((category) => (
                     <div key={category._id} className="mb-2">
                         <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleCategoryExpansion(category._id)}>
-                            <Link to={`/category/${category.name}`} className="text-gray-700 text-[18px] no-underline font-bold capitalize">
+                            <Link to={`/category/${category.slug}`} className="text-primary text-[18px] no-underline font-bold capitalize">
                                 {category.name}
                             </Link>
                             {category?.subcategories.length > 0 && (
                                 expandedCategories.includes(category._id) ? (
-                                    <FaAngleDown className="text-gray-500 font-bold" />
+                                    <FaAngleDown className="text-secondary font-bold" />
                                 ) : (
-                                    <FaAngleRight className="text-gray-500 font-extrabold" />
+                                    <FaAngleRight className="text-secondary font-extrabold" />
                                 )
                             )}
                         </div>
@@ -57,7 +57,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                                         <Link
                                             key={subcategory._id}
                                             to={`/category/${category.slug}/subcategory/${subcategory.slug}`}
-                                            className="block capitalize mb-2 bg-main bg-opacity-10 border-main border-l-4 no-underline text-main py-1 pl-2 rounded"
+                                            className="block capitalize mb-2 bg-transparent bg-opacity-10 border-secondary border-l-4 no-underline text-primary py-1 pl-2 rounded hover:bg-secondary hover:text-white transition-colors"
                                         >
                                             {subcategory.name}
                                         </Link>

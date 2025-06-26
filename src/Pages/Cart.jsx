@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { addItemToCart } from '../functions/cart';
 import { truncateTitle } from '../helpers/truncateTitle';
+import {clearCart} from '../functions/cart'
 import { clearCartRedux, removeFromCart, removeVariant, updateQuantity } from '../store/cartSlice';
 import { motion } from 'framer-motion';
 
@@ -56,13 +57,14 @@ const Cart = () => {
         toast.success('Product removed from cart.');
     };
 
-    const handleRemoveVariant = (productId, variantValue) => {
-        dispatch(removeVariant({ productId, variantValue }));
-    };
-
     const handleClearCart = async () => {
         try {
             dispatch(clearCartRedux());
+            if(userId){
+               const response =  await clearCart(userId)
+               dispatch(clearCartRedux())
+                // console.log("Clear cart response------>" ,response )
+            }
             setData({ products: [] });
             setCartData([])
             toast.success('Cart cleared successfully.');
@@ -80,11 +82,7 @@ const Cart = () => {
         0
     );
 
-    const deliveryCharges = cartData.length === 0 || totalPrice >= 2000
-        ? 0
-        : cartData.every(item => item.freeShipping)  // If all products have freeShipping
-            ? 0
-            : 200; // Flat delivery charge if any product has freeShipping false
+    const deliveryCharges = cartData.some(item => item.deliveryCharges === 200) ? 200 : 0;
 
 
     const totalBill = totalPrice + deliveryCharges;
@@ -148,7 +146,7 @@ const Cart = () => {
                             </h2>
                             <Link 
                                 to="/shop"
-                                className="inline-block px-8 py-3 font-semibold text-white no-underline transition duration-300 transform rounded-full bg-main hover:bg-main-dark hover:scale-105"
+                                className="inline-block px-8 py-3 font-semibold text-primary no-underline transition duration-300 transform rounded-full bg-secondary hover:bg-main-dark hover:scale-105"
                             >
                                 Continue Shopping
                             </Link>
@@ -186,10 +184,10 @@ const Cart = () => {
                                     {/* Remove Button */}
                                     <div
                                         onClick={() => handleRemoveItem(product.productId)}
-                                        className="absolute top-0 right-0 mx-1 mt-2 text-white rounded cursor-pointer bg-main opacity-70 hover:opacity-90 sm:mx-2"
+                                        className="absolute top-0 right-0 mx-1 mt-2 text-white rounded cursor-pointer bg-secondary/70 hover:bg-secondary/90 sm:mx-2"
                                     >
                                         <button className="flex items-center justify-center text-sm bg-white sm:text-lg">
-                                            <MdDeleteOutline size={24} className="text-main" />
+                                            <MdDeleteOutline size={24} className="text-secondary/80 hover:text-secondary" />
                                         </button>
                                     </div>
 
@@ -199,10 +197,10 @@ const Cart = () => {
                                     </h2>
                                     {/* Price Section */}
                                     <div className="flex items-center justify-between ">
-                                        <p className="text-sm font-medium text-red-600 sm:text-base md:text-base">
+                                        <p className="text-sm font-medium text-secondary sm:text-base md:text-base">
                                             Rs. {getEffectivePrice(product)}
                                         </p>
-                                        <p className="text-sm font-semibold text-slate-600 sm:text-base md:text-lg">
+                                        <p className="text-sm font-semibold text-primary sm:text-base md:text-lg">
                                             Rs. {getEffectivePrice(product) * product.count}
                                         </p>
                                     </div>
@@ -211,7 +209,7 @@ const Cart = () => {
                                     <div className="flex items-center gap-2 mt-2 sm:gap-3">
                                         <button
                                             onClick={() => handleQuantityChange(product.productId, 'decrement')}
-                                            className="flex items-center justify-center w-6 h-6 text-red-600 border border-red-600 rounded hover:bg-red-600 hover:text-white md:w-7 md:h-7"
+                                            className="flex items-center justify-center w-6 h-6 text-secondary border border-secondary rounded hover:bg-primary hover:text-white md:w-7 md:h-7"
                                             disabled={product?.count <= 1}
                                         >
                                             -
@@ -219,7 +217,7 @@ const Cart = () => {
                                         <span className="text-sm sm:text-base">{product?.count}</span>
                                         <button
                                             onClick={() => handleQuantityChange(product.productId, 'increment')}
-                                            className="flex items-center justify-center w-6 h-6 text-red-600 border border-red-600 rounded hover:bg-red-600 hover:text-white md:w-7 md:h-7"
+                                            className="flex items-center justify-center w-6 h-6 text-secondary border border-secondary rounded hover:bg-primary hover:text-white md:w-7 md:h-7"
                                             disabled={product.count >= 200}
                                         >
                                             +
@@ -239,7 +237,7 @@ const Cart = () => {
                                                             {variant.values.map((value, valueIndex) => (
                                                                 <span
                                                                     key={`${variant.name}-${valueIndex}`}
-                                                                    className="px-3 py-1 text-xs font-medium bg-main/10 text-main"
+                                                                    className="px-3 py-1 capitalize text-xs font-medium bg-main/10 text-secondary"
                                                                 >
                                                                     {value}
                                                                 </span>
@@ -258,34 +256,34 @@ const Cart = () => {
 
                     {/* Summary */}
                     {cartData && cartData.length > 0 && <div className="w-full lg:w-[40%] flex mt-4 flex-col items-center">
-                        <h2 className="mb-2 text-xl font-extrabold md:text-2xl lg:text-3xl text-main md:mb-4">
+                        <h2 className="mb-2 text-xl font-extrabold md:text-2xl lg:text-3xl text-secondary md:mb-4">
                             Summary
                         </h2>
                         <div className="w-full max-w-sm mt-0 mb-4 bg-white shadow-md md:sticky md:top-20">
                             <div className="p-4 space-y-3">
-                                <div className="flex justify-between text-base md:text-lg text-slate-600">
+                                <div className="flex justify-between text-base md:text-lg text-primary">
                                     <p>SubTotal</p>
                                     <p>Rs. {totalPrice}</p>
                                 </div>
-                                <div className="flex justify-between text-base md:text-lg text-slate-600">
+                                <div className="flex justify-between text-base md:text-lg text-primary">
                                     <p>Delivery Charges</p>
                                     <p>Rs. {deliveryCharges}</p>
                                 </div>
                                 <hr className="my-2" />
-                                <div className="flex justify-between text-lg font-semibold md:text-xl text-main">
+                                <div className="flex justify-between text-lg font-semibold md:text-xl text-primary">
                                     <p>Total Bill</p>
-                                    <p>Rs. {totalBill}</p>
+                                    <p className='text-secondary'>Rs. {totalBill}</p>
                                 </div>
                                 <hr className="my-2" />
                                 <button
                                     onClick={handleCheckout}
-                                    className="w-full py-2 text-white transition duration-200 bg-main hover:bg-main-dark"
+                                    className="w-full py-2 text-white transition duration-200 bg-primary/80  hover:bg-primary"
                                 >
                                     Proceed to Payment
                                 </button>
                                 <button
                                     onClick={handleClearCart}
-                                    className="w-full py-2 text-white transition duration-200 bg-red-500 hover:bg-red-700"
+                                    className="w-full py-2 text-primary font-semibold transition duration-200 bg-secondary/80 hover:bg-secondary"
                                 >
                                     Clear Cart
                                 </button>

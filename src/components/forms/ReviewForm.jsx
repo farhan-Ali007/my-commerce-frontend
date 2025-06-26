@@ -101,13 +101,13 @@ const ReviewForm = ({ slug, product }) => {
             {/* Tab Navigation */}
             <div className="flex gap-4 mb-6">
                 <button
-                    className={`text-lg font-semibold ${selectedTab === 'description' ? 'text-gray-900 border-b-2 font-space border-gray-900' : 'text-gray-500 font-space'}`}
+                    className={`text-lg font-semibold ${selectedTab === 'description' ? 'text-gray-900 border-b-2 font-space border-gray-900' : 'text-secondary font-space'}`}
                     onClick={() => setSelectedTab('description')}
                 >
                     Description
                 </button>
                 <button
-                    className={`text-lg font-semibold ${selectedTab === 'reviews' ? 'text-gray-900 border-b-2 font-space border-gray-900' : 'text-gray-500 font-space'}`}
+                    className={`text-lg font-semibold ${selectedTab === 'reviews' ? 'text-gray-900 border-b-2 font-space border-gray-900' : 'text-secondary font-space'}`}
                     onClick={() => setSelectedTab('reviews')}
                 >
                     Reviews
@@ -116,7 +116,7 @@ const ReviewForm = ({ slug, product }) => {
 
             {/* Content based on selected tab */}
             {selectedTab === 'description' ? (
-                <div className="text-gray-800 font-space" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodedHTML) }} />
+                <div className="text-black font-space" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodedHTML) }} />
             ) : (
                 <div className="w-full">
                     {/* Rating Summary */}
@@ -239,7 +239,7 @@ const ReviewForm = ({ slug, product }) => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full px-4 py-2 font-bold text-white rounded-lg bg-main opacity-60 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                className="w-full px-4 py-2 font-bold text-primary rounded-lg bg-secondary/80 hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-violet-500"
                             >
                                 Submit Review
                             </button>

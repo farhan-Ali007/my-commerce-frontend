@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, forwardRef, useImperativeHandle } from "react";
 import { IoAddCircle, IoTrash } from 'react-icons/io5';
 import { IoIosAdd } from 'react-icons/io'
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCategories, tags, brands }) => {
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import toast from 'react-hot-toast';
+
+const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categories, subCategories, tags, brands }, ref) => {
     const [formData, setFormData] = useState({
         title: "",
+        slug: "",
         description: "",
         longDescription: "",
         weight: "",
@@ -19,9 +23,35 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
         stock: "",
         tags: [],
         variants: [{ name: "", values: [{ value: "", image: "", price: "" }] }],
+        metaDescription: "",
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [freeShipping, setFreeShipping] = useState(false);
+
+    const resetForm = () => {
+        setFormData({
+            title: "",
+            slug: "",
+            description: "",
+            weight: "",
+            images: [],
+            category: "",
+            subCategory: "",
+            price: "",
+            salePrice: "",
+            brand: "",
+            stock: "",
+            tags: [],
+            variants: [{ name: "", values: [{ value: "", image: "" }] }],
+            metaDescription: "",
+        });
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        setImagePreviews([]);
+    };
+
+    useImperativeHandle(ref, () => ({
+        resetForm: resetForm,
+    }));
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -39,10 +69,13 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
             ...prev,
             images: [...prev.images, ...newImages],
         }));
+        const newPreviews = newImages.map((file) => URL.createObjectURL(file));
         setImagePreviews((prev) => [
             ...prev,
-            ...newImages.map((file) => URL.createObjectURL(file)),
+            ...newPreviews,
         ]);
+        console.log("New images added:", newImages);
+        console.log("New image previews generated:", newPreviews);
     };
 
     const handleImageRemove = (index) => {
@@ -51,6 +84,22 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
             images: prev.images.filter((_, i) => i !== index),
         }));
         setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleOnDragEnd = (result) => {
+        if (!result.destination) return;
+
+        const items = Array.from(imagePreviews);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        setImagePreviews(items);
+
+        // Also reorder the actual image files in formData.images
+        const newImages = Array.from(formData.images);
+        const [reorderedImage] = newImages.splice(result.source.index, 1);
+        newImages.splice(result.destination.index, 0, reorderedImage);
+        setFormData((prev) => ({ ...prev, images: newImages }));
     };
 
     const handleVariantChange = (variantIndex, field, value, valueIndex = null) => {
@@ -110,8 +159,40 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if (!formData.title || !formData.description || !formData.price || !formData.stock || !formData.category || formData.images.length === 0) {
-            alert("Please fill in all required fields.");
+        if (!formData.title) {
+            toast.error("Product title is required.");
+            return;
+        }
+        if (!formData.description) {
+            toast.error("Product description is required.");
+            return;
+        }
+        if (!formData.price) {
+            toast.error("Product price is required.");
+            return;
+        }
+        if (!formData.stock) {
+            toast.error("Product stock is required.");
+            return;
+        }
+        if (!formData.category) {
+            toast.error("Product category is required.");
+            return;
+        }
+        if (formData.images.length === 0) {
+            toast.error("At least one product image is required.");
+            return;
+        }
+        if (!formData.longDescription) {
+            toast.error("Product long description is required.");
+            return;
+        }
+        if (!formData.brand) {
+            toast.error("Product brand is required.");
+            return;
+        }
+        if (formData.tags.length === 0) {
+            toast.error("At least one tag is required.");
             return;
         }
 
@@ -128,6 +209,10 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
         submissionData.append("stock", formData.stock);
         submissionData.append("freeShipping", freeShipping);
         submissionData.append("tags", (formData.tags || []).map(tag => tag.name).join(','));
+        submissionData.append("metaDescription", formData.metaDescription);
+        if (formData.slug) {
+            submissionData.append("slug", formData.slug);
+        }
 
         // Handle variants
         const validVariants = formData.variants
@@ -159,28 +244,6 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
         });
 
         onSubmit(submissionData);
-        setTimeout(() => {
-            resetForm();
-        }, 5000);
-    };
-
-    const resetForm = () => {
-        setFormData({
-            title: "",
-            description: "",
-            weight: "",
-            images: [],
-            category: "",
-            subCategory: "",
-            price: "",
-            salePrice: "",
-            brand: "",
-            stock: "",
-            tags: [],
-            variants: [{ name: "", values: [{ value: "", image: "" }] }],
-        });
-        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-        setImagePreviews([]);
     };
 
     const handlePaste = (event) => {
@@ -221,6 +284,19 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
                     value={formData.title}
                     onChange={handleChange}
                     className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                />
+            </div>
+
+            {/* Slug */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2 text-main">Slug (Optional)</label>
+                <input
+                    type="text"
+                    name="slug"
+                    value={formData.slug}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                    placeholder="Auto-generated if left empty"
                 />
             </div>
 
@@ -270,7 +346,18 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
                 </div>
             </div>
 
-
+            {/* Meta Description */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2 text-main">Meta Description</label>
+                <textarea
+                    name="metaDescription"
+                    value={formData.metaDescription}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                    placeholder="Enter a short summary for SEO (max 160 characters)"
+                    maxLength={160}
+                />
+            </div>
 
             {/* Weight */}
             <div className="mb-4">
@@ -516,23 +603,45 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
                     className="hidden"
                     onChange={handleImageChange}
                 />
-                <div className="mt-2 flex flex-wrap gap-2 justify-start max-w-full">
-                    {imagePreviews.map((image, index) => (
-                        <div key={index} className="relative">
-                            <img
-                                src={image}
-                                alt={`Preview ${index}`}
-                                className="w-20 h-20 object-cover rounded-md"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => handleImageRemove(index)}
-                                className="absolute top-0 right-0 bg-red-500 text-white rounded-full text-sm px-2 py-1"
-                            >
-                                &times;
-                            </button>
-                        </div>
-                    ))}
+                <div className="flex flex-wrap gap-2 mt-4">
+                    <DragDropContext onDragEnd={handleOnDragEnd}>
+                        <Droppable droppableId="images" direction="horizontal">
+                            {(provided) => (
+                                <div
+                                    className="flex flex-wrap gap-2"
+                                    {...provided.droppableProps}
+                                    ref={provided.innerRef}
+                                >
+                                    {imagePreviews.map((preview, index) => (
+                                        <Draggable key={preview} draggableId={preview} index={index}>
+                                            {(provided) => (
+                                                <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    className="relative w-24 h-24 rounded-md overflow-hidden"
+                                                >
+                                                    <img
+                                                        src={preview}
+                                                        alt="Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleImageRemove(index)}
+                                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                                                    >
+                                                        <IoTrash />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
                 </div>
 
             </div>
@@ -560,6 +669,6 @@ const CreateProductForm = ({ buttonText, onSubmit, formTitle, categories, subCat
             </div>
         </form>
     );
-};
+});
 
 export default CreateProductForm;

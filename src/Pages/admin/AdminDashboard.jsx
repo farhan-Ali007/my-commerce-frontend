@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaUsers, FaBoxOpen, FaShoppingCart, FaTags, FaCrown } from 'react-icons/fa';
+import { FaUsers, FaBoxOpen, FaShoppingCart, FaTags, FaCrown, FaFileAlt } from 'react-icons/fa';
 import { BiSolidCategory } from 'react-icons/bi';
 import { RiMenuUnfoldFill } from "react-icons/ri";
 import { GiVerticalBanner } from "react-icons/gi";
@@ -15,6 +15,7 @@ import AdminSubs from './AdminSubs';
 import MenuCategories from './MenuCategories';
 import AdminBanner from './AdminBanner';
 import AdminBrands from './AdminBrands';
+import AdminDynamicPages from './AdminDynamicPages';
 
 const AdminDashboard = () => {
   const [selectedPage, setSelectedPage] = useState('allProducts');
@@ -25,6 +26,7 @@ const AdminDashboard = () => {
     if (savedPage) {
       setSelectedPage(savedPage);
     }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   useEffect(() => {
@@ -53,6 +55,8 @@ const AdminDashboard = () => {
         return <div><AdminSubs /></div>
       case 'newOrders':
         return <div><NewOrders /></div>;
+      case 'dynamicPages':
+        return <div><AdminDynamicPages /></div>;
       default:
         return <div>Select a page from the navigation</div>;
     }
@@ -142,11 +146,18 @@ const AdminDashboard = () => {
             <MdFiberNew className="text-lg" />
             New Orders
           </button>
+          <button
+            className={`flex items-center gap-3 py-2 px-4 text-left ${selectedPage === 'dynamicPages' ? 'bg-gray-700 rounded-full' : 'hover:bg-gray-700 rounded-full'}`}
+            onClick={() => { setSelectedPage('dynamicPages'); setIsSidebarOpen(false); }}
+          >
+            <FaFileAlt className="text-lg" />
+            Pages
+          </button>
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className="w-full lg:w-4/5 p-2 lg:p-8 bg-gray-100 overflow-y-auto overflow-x-hidden">
+      <div className="w-full lg:w-4/5 p-2 lg:p-8 lg:pt-0 bg-gray-100 overflow-y-auto overflow-x-hidden">
         {renderContent()}
       </div>
     </div>

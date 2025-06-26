@@ -15,9 +15,9 @@ export const createProduct = async (data) => {
     }
 }
 
-export const getMyProducts = async () => {
+export const getMyProducts = async (page = 1, limit = 8) => {
     try {
-        const response = await axios.get(`${BASE_URL}/product/my-products`, { withCredentials: true })
+        const response = await axios.get(`${BASE_URL}/product/my-products?page=${page}&limit=${limit}`, { withCredentials: true })
         return response?.data;
     } catch (error) {
         console.log("Error in getting my products", error)

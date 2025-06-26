@@ -10,7 +10,7 @@ const BestSellers = React.memo(() => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [error, setError] = useState(null);
-    const productsPerPage = 5;
+    const productsPerPage = 10;
 
     const headingVariants = useMemo(() => ({
         hidden: { opacity: 0, y: 50 },
@@ -104,7 +104,7 @@ const BestSellers = React.memo(() => {
             <div className="flex justify-center mt-6">
                 <motion.button
                     onClick={loadMoreProducts}
-                    className="px-6 py-2 font-semibold text-white transition-all rounded-sm bg-main opacity-70 hover:opacity-90 md:px-8 md:py-4 hover:bg-opacity-90"
+                    className="px-6 py-2 font-semibold text-secondary transition-all rounded-sm bg-primary opacity-70 hover:opacity-90 md:px-8 md:py-4 hover:bg-opacity-90"
                     variants={buttonVariants}
                     initial="hidden"
                     whileInView="visible"
@@ -142,11 +142,11 @@ const BestSellers = React.memo(() => {
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.5 }}
             >
-                <div className="flex-grow h-[0.5px] mr-4 bg-main/90"></div>
-                <h1 className="text-3xl font-extrabold text-center text-main font-space md:text-4xl whitespace-nowrap">
+                <div className="flex-grow h-[0.5px] mr-4 bg-primary"></div>
+                <h1 className="text-3xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
                     Best Sellers
                 </h1>
-                <div className="flex-grow h-[0.5px] ml-4 bg-main/90"></div>
+                <div className="flex-grow h-[0.5px] ml-4 bg-primary"></div>
             </motion.div>
 
             {loading && currentPage === 1 ? renderSkeletons : renderProducts}

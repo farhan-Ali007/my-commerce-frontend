@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import { IoAddCircle, IoTrash } from 'react-icons/io5';
 import ReactQuill from "react-quill";
 import 'react-quill/dist/quill.snow.css';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+
 const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categories, subCategories, tags, brands }) => {
 
-    console.log("Default values for product---------->", defaultValues);
+    // console.log("Default values for product---------->", defaultValues);
 
     const [formData, setFormData] = useState({
         title: "",
+        slug: "",
         description: "",
         longDescription: "",
         weight: "",
@@ -40,10 +43,11 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
 
             setFormData({
                 ...defaultValues,
+                slug: defaultValues.slug || "",
                 variants: transformedVariants,
                 brand: defaultValues.brand?.name || "",
                 category: defaultValues.category?._id || "",
-                subCategory: defaultValues.subCategory?._id || defaultValues.subCategory || ""
+                subCategory: defaultValues.subCategory?._id || defaultValues.subCategory || "",
             });
 
             // Handle images (either URL or File object)
@@ -95,6 +99,22 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
             images: prev.images.filter((_, i) => i !== index),
         }));
         setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleOnDragEnd = (result) => {
+        if (!result.destination) return;
+
+        const items = Array.from(imagePreviews);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        setImagePreviews(items);
+
+        // Also reorder the actual image files in formData.images
+        const newImages = Array.from(formData.images);
+        const [reorderedImage] = newImages.splice(result.source.index, 1);
+        newImages.splice(result.destination.index, 0, reorderedImage);
+        setFormData((prev) => ({ ...prev, images: newImages }));
     };
 
     const handleVariantChange = (variantIndex, valueIndex, field, value) => {
@@ -157,6 +177,9 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         submissionData.append("stock", formData.stock);
         submissionData.append("subCategory", formData.subCategory);
         console.log("Submitting subcategory----------->", formData.subCategory);
+        if (formData.slug) {
+            submissionData.append("slug", formData.slug);
+        }
 
         // Handle category
         if (formData.category && typeof formData.category === "string") {
@@ -207,6 +230,15 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         const existingImageUrls = formData.images.filter((image) => typeof image === "string");
         submissionData.append("existingImages", JSON.stringify(existingImageUrls));
 
+        // Add freeShipping value
+        submissionData.append("freeShipping", freeShipping);
+
+        // Debug: Log freeShipping and all FormData entries
+        // console.log("[EditProductForm] freeShipping value:", freeShipping);
+        for (let pair of submissionData.entries()) {
+            console.log(`[EditProductForm] FormData: ${pair[0]} =`, pair[1]);
+        }
+
         onSubmit(submissionData);
         setTimeout(() => {
             resetForm();
@@ -216,6 +248,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
     const resetForm = () => {
         setFormData({
             title: "",
+            slug: "",
             description: "",
             longDescription: "",
             weight: "",
@@ -276,6 +309,18 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                 />
             </div>
 
+            {/* Slug */}
+            <div className="mb-4">
+                <label className="block font-medium mb-2 text-main">Slug (Optional)</label>
+                <input
+                    type="text"
+                    name="slug"
+                    value={formData.slug}
+                    onChange={handleChange}
+                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                    placeholder="Auto-generated if left empty"
+                />
+            </div>
 
             {/* Description */}
             <div className="mb-4">
@@ -568,23 +613,45 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                     onChange={handleImageChange}
                     className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
                 />
-                <div className="mt-2 flex gap-2">
-                    {imagePreviews.map((image, index) => (
-                        <div key={index} className="relative">
-                            <img
-                                src={image}
-                                alt={`Preview ${index}`}
-                                className="w-20 h-20 object-cover rounded-md"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => handleImageRemove(index)}
-                                className="absolute top-0 right-0 bg-red-500 text-white rounded-full text-sm p-1"
-                            >
-                                &times;
-                            </button>
-                        </div>
-                    ))}
+                <div className="flex flex-wrap gap-2 mt-4">
+                    <DragDropContext onDragEnd={handleOnDragEnd}>
+                        <Droppable droppableId="images" direction="horizontal">
+                            {(provided) => (
+                                <div
+                                    className="flex flex-wrap gap-2"
+                                    {...provided.droppableProps}
+                                    ref={provided.innerRef}
+                                >
+                                    {imagePreviews.map((preview, index) => (
+                                        <Draggable key={preview} draggableId={preview} index={index}>
+                                            {(provided) => (
+                                                <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    className="relative w-24 h-24 rounded-md overflow-hidden"
+                                                >
+                                                    <img
+                                                        src={preview}
+                                                        alt="Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleImageRemove(index)}
+                                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                                                    >
+                                                        <IoTrash />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
                 </div>
             </div>
 

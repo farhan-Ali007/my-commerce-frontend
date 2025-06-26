@@ -215,22 +215,22 @@ const Shop = () => {
     };
 
     return (
-        <div className="max-w-screen mx-2 md:mx-5 flex flex-col md:flex-row">
+        <div className="container mx-auto p-4">
             {/* Mobile Filter Button */}
-            <div className="md:hidden flex justify-between items-center mb-4">
+            <div className="lg:hidden flex justify-between items-center mb-4">
                 {/* Sort Filter Dropdown */}
                 <div className="relative flex-1 mt-2 justify-center">
                     <button
                         onClick={toggleSortDropdown}
                         className="w-full flex items-center bg-white justify-between border border-gray-200  px-2 py-2 text-main focus:outline-none"
                     >
-                        <span className="flex items-center font-semibold gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <span className="flex items-center text-primary font-semibold gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
                             </svg>
                             SORT
                         </span>
-                        <IoChevronDown className={`transition-transform ${isSortOpen ? 'transform rotate-180' : ''}`} />
+                        <IoChevronDown className={`transition-transform text-secondary ${isSortOpen ? 'transform rotate-180' : ''}`} />
                     </button>
 
                     {isSortOpen && (
@@ -253,9 +253,9 @@ const Shop = () => {
 
                 <button
                     onClick={toggleFilterDrawer}
-                    className="flex  justify-center items-center w-1/2 gap-2 border font-semibold border-gray-200 bg-white text-main px-3 mt-2 py-2 "
+                    className="flex  justify-center items-center w-1/2 gap-2 border font-semibold border-gray-200 bg-white text-primary px-3 mt-2 py-2 "
                 >
-                    <IoFilter size={24} /> Filters
+                    <IoFilter size={24} className="text-secondary" /> Filters
                 </button>
             </div>
 
@@ -279,160 +279,177 @@ const Shop = () => {
                 brands={brands}
             />
 
-            {/* Sidebar Filters (Desktop) */}
-            <div className="hidden md:block w-full h-full md:w-[20%] mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
-                {/* Price Range Filter */}
-                <div className="mb-2 md:mb-3 w-full text-main">
-                    <h4 className="text-lg font-bold mb-1 font-space">Price Range</h4>
-                    <div className="flex flex-col justify-start gap-2">
-                        <RangeSlider
-                            min={100}
-                            max={10000}
-                            step={100}
-                            value={priceRange}
-                            onInput={handlePriceRangeChange}
-                            className="w-full text-main"
-                        />
-                        <div className="flex justify-between text-sm text-black font-semibold">
-                            <span>Rs {priceRange[0]}</span>
-                            <span>Rs {priceRange[1]}</span>
+            <div className="flex flex-col lg:flex-row lg:space-x-6">
+                {/* Filters (Desktop) */}
+                <div className="hidden lg:block lg:w-1/4 p-4 bg-white rounded-lg shadow-md h-fit sticky top-4">
+                    <h3 className="text-xl font-semibold mb-4 text-primary">Filter Products</h3>
+
+                    {/* Price Range Filter */}
+                    <div className="mb-2 md:mb-3 w-full text-secondary">
+                        <h4 className="text-lg font-bold mb-1 font-space">Price Range</h4>
+                        <div className="flex flex-col justify-start gap-2">
+                            <RangeSlider
+                                min={100}
+                                max={10000}
+                                step={100}
+                                value={priceRange}
+                                onInput={handlePriceRangeChange}
+                                className="w-full text-secondary"
+                            />
+                            <div className="flex justify-between text-sm text-black font-semibold">
+                                <span>Rs {priceRange[0]}</span>
+                                <span>Rs {priceRange[1]}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="flex md:flex-col gap-2 items-center md:items-start">
-                    {/* Sort Filter */}
-                    <div className="mb-2 md:mb-3 w-1/2 md:w-full">
-                        <h4 className="text-lg font-bold mb-1 font-space text-main">Sort By Price</h4>
-                        <select
-                            value={priceFilter || ""}
-                            onChange={handlePriceChange}
-                            className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
-                        >
-                            <option value="" disabled>Select</option>
-                            <option value="low">Low to High</option>
-                            <option value="high">High to Low</option>
-                        </select>
+                    <div className="flex md:flex-col gap-2 items-center md:items-start">
+                        {/* Sort Filter */}
+                        <div className="mb-2 md:mb-3 w-1/2 md:w-full">
+                            <h4 className="text-lg font-bold mb-1 font-space text-secondary">Sort By Price</h4>
+                            <select
+                                value={priceFilter || ""}
+                                onChange={handlePriceChange}
+                                className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
+                            >
+                                <option value="" disabled>Select</option>
+                                <option value="low">Low to High</option>
+                                <option value="high">High to Low</option>
+                            </select>
+                        </div>
+
+                        {/* Category Filter */}
+                        <div className="mb-2 md:mb-3 w-1/2 md:w-full">
+                            <h4 className="text-lg font-bold mb-2 font-space text-secondary">By Category</h4>
+                            <select
+                                value={categoryFilter[0] || ""}
+                                onChange={handleCategoryChange}
+                                className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
+                            >
+                                <option value="" disabled>Select</option>
+                                {categories?.map((cat) => (
+                                    <option key={cat._id} value={cat.slug}>
+                                        {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
-                    {/* Category Filter */}
-                    <div className="mb-2 md:mb-3 w-1/2 md:w-full">
-                        <h4 className="text-lg font-bold mb-2 font-space text-main">By Category</h4>
-                        <select
-                            value={categoryFilter[0] || ""}
-                            onChange={handleCategoryChange}
-                            className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-md focus:outline-none"
-                        >
-                            <option value="" disabled>Select</option>
-                            {categories?.map((cat) => (
-                                <option key={cat._id} value={cat.slug}>
-                                    {cat.name}
-                                </option>
+                    {/* Brand Filter */}
+                    <div className="mb-2 md:mb-3 w-full">
+                        <h4 className="text-lg font-bold mb-2 font-space text-secondary">Filter By Brand</h4>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 capitalize gap-2">
+                            {brands?.map((brand) => (
+                                <label key={brand._id} className="flex items-center text-sm font-semibold text-primary mb-15">
+                                    <input
+                                        type="checkbox"
+                                        name="brand"
+                                        value={brand.name}
+                                        checked={brandFilter === brand.name}
+                                        onChange={handleBrandChange}
+                                        className="mr-2 text-secondary"
+                                    />
+                                    {brand.name}
+                                </label>
                             ))}
-                        </select>
+                        </div>
                     </div>
-                </div>
 
-                {/* Brand Filter */}
-                <div className="mb-2 md:mb-3 w-full">
-                    <h4 className="text-lg font-bold mb-2 font-space text-main">Filter By Brand</h4>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 capitalize gap-2">
-                        {brands?.map((brand) => (
-                            <label key={brand._id} className="flex items-center text-sm font-semibold text-main/90 mb-15">
+                    {/* Rating Filter */}
+                    <div className="mb-2">
+                        <h4 className="text-lg font-medium font-space text-primary">Filter By Rating</h4>
+                        {[5, 4, 3, 2, 1].map((rating) => (
+                            <label key={rating} className="flex items-center mb-1">
                                 <input
                                     type="checkbox"
-                                    name="brand"
-                                    value={brand.name}
-                                    checked={brandFilter === brand.name}
-                                    onChange={handleBrandChange}
-                                    className="mr-2 text-main"
+                                    name="rating"
+                                    value={rating}
+                                    checked={ratingFilter === rating}
+                                    onChange={handleRatingChange}
+                                    className="mr-2"
                                 />
-                                {brand.name}
+                                <div className="flex">
+                                    {[...Array(rating)].map((_, index) => (
+                                        <svg
+                                            key={index}
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="w-4 h-4 text-yellow-500"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                        >
+                                            <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
+                                        </svg>
+                                    ))}
+                                </div>
                             </label>
                         ))}
                     </div>
                 </div>
-
-                {/* Rating Filter */}
-                <div className="mb-2">
-                    <h4 className="text-lg font-medium font-space text-main">Filter By Rating</h4>
-                    {[5, 4, 3, 2, 1].map((rating) => (
-                        <label key={rating} className="flex items-center mb-1">
-                            <input
-                                type="checkbox"
-                                name="rating"
-                                value={rating}
-                                checked={ratingFilter === rating}
-                                onChange={handleRatingChange}
-                                className="mr-2"
-                            />
-                            <div className="flex">
-                                {[...Array(rating)].map((_, index) => (
-                                    <svg
-                                        key={index}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="w-4 h-4 text-yellow-500"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
-                                    </svg>
-                                ))}
-                            </div>
-                        </label>
-                    ))}
-                </div>
-            </div>
-
-            {/* Product Display */}
-            <div className="w-full md:w-[80%] p-1 md:py-4 pl-1 md:pl-8  px-1 md:px-0">
-                {loading ? (
-                    <p className="text-center text-gray-500">Loading...</p>
-                ) : (
-                    <>
-                        <div className="max-w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                            {products.length > 0 ? (
-                                products.map((product) => (
-                                    <ShopCard key={product._id} product={product} />
-                                ))
-                            ) : (
-                                <p className="text-gray-500">No products found.</p>
-                            )}
+                {/* Products Grid */}
+                <div className="w-full lg:w-3/4">
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-t-primary border-b-4 border-b-secondary opacity-90"></div>
                         </div>
-                        {/* Improved Pagination */}
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center mt-6 mb-4 space-x-2">
-                                <button
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                    className={`p-2 rounded-full ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-main hover:bg-gray-100'}`}
-                                >
-                                    <FaChevronLeft />
-                                </button>
+                    ) : products.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {products.map((product) => (
+                                <ShopCard key={product._id} product={product} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-10">
+                            <p className="text-xl text-gray-600">No products found matching your criteria.</p>
+                        </div>
+                    )}
 
-                                {getVisiblePages().map((page) => (
-                                    <button
-                                        key={page}
-                                        onClick={() => handlePageChange(page)}
-                                        className={`w-10 h-10 rounded-full flex items-center justify-center ${currentPage === page
-                                            ? 'bg-main text-white'
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center mt-6 mb-4 space-x-2">
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className={`p-2 rounded-full ${
+                                    currentPage === 1
+                                        ? 'text-gray-400 cursor-not-allowed'
+                                        : 'text-secondary hover:bg-primary'
+                                }`}
+                                aria-label="Previous page"
+                            >
+                                <FaChevronLeft />
+                            </button>
+
+                            {getVisiblePages().map((page) => (
+                                <button
+                                    key={page}
+                                    onClick={() => handlePageChange(page)}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                        currentPage === page
+                                            ? 'bg-primary text-white'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
-                                    >
-                                        {page}
-                                    </button>
-                                ))}
-
-                                <button
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                    className={`p-2 rounded-full ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-main hover:bg-gray-100'}`}
+                                    }`}
+                                    aria-label={`Go to page ${page}`}
+                                    aria-current={currentPage === page ? 'page' : undefined}
                                 >
-                                    <FaChevronRight />
+                                    {page}
                                 </button>
-                            </div>
-                        )}
-                    </>
-                )}
+                            ))}
+
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                className={`p-2 rounded-full ${
+                                    currentPage === totalPages
+                                        ? 'text-gray-400 cursor-not-allowed'
+                                        : 'text-secondary hover:bg-primary'
+                                }`}
+                                aria-label="Next page"
+                            >
+                                <FaChevronRight />
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

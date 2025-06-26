@@ -1,19 +1,24 @@
-import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Helmet } from 'react-helmet-async';
 import { toast } from 'react-hot-toast';
 import { FaChevronDown, FaChevronLeft, FaChevronRight, FaChevronUp, FaWhatsapp } from "react-icons/fa6";
 import { TiShoppingCart } from "react-icons/ti";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import CartDrawer from "../../components/drawers/CartDrawer";
-import { Helmet } from 'react-helmet-async'
-import ReviewForm from "../../components/forms/ReviewForm";
-import RelatedProducts from "../../components/RelatedProducts";
 import SingleProductSkeleton from "../../components/skeletons/SingleProductSkeleton";
-import { addItemToCart } from "../../functions/cart";
 import { getProductBySlug, getRelatedProducts } from "../../functions/product";
-import { addToCart } from '../../store/cartSlice';
 import { getProductSchemaData } from "../../helpers/getProductSchema";
-import { motion, AnimatePresence } from "framer-motion";
+import { addToCart } from '../../store/cartSlice';
+
+const LazyRelatedProducts = lazy(() => import('../../components/RelatedProducts'));
+const LazyReviewForm = lazy(() => import('../../components/forms/ReviewForm'));
+const LazyCartDrawer = lazy(() => import('../../components/drawers/CartDrawer'));
+
+function stripHtml(html) {
+  if (!html) return '';
+  return html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+}
 
 const SingleProduct = () => {
     const dispatch = useDispatch();
@@ -21,9 +26,11 @@ const SingleProduct = () => {
     const navigateTo = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const userId = user?._id;
+    const currentCartItems = useSelector((state) => state.cart.products);
 
     // State management
     const [product, setProduct] = useState({});
+    console.log("Product in single product page------>", product)
     const [originalPrice, setOriginalPrice] = useState(0);
     const [productVariants, setProductVariants] = useState([]);
     const [totalPages, setTotalPages] = useState(null);
@@ -38,14 +45,11 @@ const SingleProduct = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [loadedImages, setLoadedImages] = useState(new Set());
     const [error, setError] = useState(null);
-    const [hoveredVariantImage, setHoveredVariantImage] = useState(null); // New state for hovered variant image
-    const [hoverPreviewPosition, setHoverPreviewPosition] = useState({ x: 0, y: 0 }); // New state for preview position
-
-    // Refs
+    const [hoveredVariantImage, setHoveredVariantImage] = useState(null);
+    const [hoverPreviewPosition, setHoverPreviewPosition] = useState({ x: 0, y: 0 });
     const imageRef = useRef(null);
     const thumbnailRef = useRef(null);
 
-    // Memoized calculations
     const currentPrice = useMemo(() => {
         if (!product) return 0;
 
@@ -113,21 +117,6 @@ const SingleProduct = () => {
             setSelectedImage(imageURL);
         }
 
-        // // Removed logic that updates selectedVariants on mouse enter to allow clicking to select variants.
-        // let variantValueMatched = false;
-        // for(const variant of product?.variants || []) {
-        //     for(const value of variant.values) {
-        //         if (value.image === imageURL) {
-        //             variantValueMatched = true;
-        //             break;
-        //         }
-        //     }
-        //     if (variantValueMatched) break;
-        // }
-        // if (!variantValueMatched || product?.images.includes(imageURL)) {
-        //     // Clear selections if it's a main image or unassociated image (on hover) - removed
-        // }
-
     }, [loadedImages, handleImageLoad, product?.variants, product?.images]);
 
     const handleMouseMove = useCallback((e) => {
@@ -178,7 +167,7 @@ const SingleProduct = () => {
 
     const handleVariantImageMouseLeave = useCallback(() => {
         setHoveredVariantImage(null);
-        setHoveredPreviewPosition({ x: 0, y: 0 }); // Reset position
+        setHoverPreviewPosition({ x: 0, y: 0 }); // Reset position
     }, []);
 
     const scrollThumbnails = useCallback((direction) => {
@@ -280,9 +269,11 @@ const SingleProduct = () => {
         // Only update if the image is different from the current one to prevent unnecessary re-renders
         if (selectedImage !== imageToSet) {
             setSelectedImage(imageToSet);
+        } else {
+            // console.log("useEffect: selectedImage is already set to:", selectedImage);
         }
 
-    }, [selectedVariants, product?.images, product?.variants, selectedImage]);
+    }, [selectedVariants, product?.images, product?.variants]);
 
 
     // Variant and cart handlers
@@ -379,10 +370,7 @@ const SingleProduct = () => {
     }, [prepareVariantsForBackend, selectedVariants, product,
         currentPrice, selectedQuantity, dispatch]);
 
-     const currentCartItems = useSelector((state) => state.cart.products);
-
-
-    const handleByNow = useCallback(async () => {
+     const handleByNow = useCallback(async () => {
         // Add validation here if certain variants are required before proceeding
 
         const variantsForBackend = prepareVariantsForBackend();
@@ -422,15 +410,13 @@ const SingleProduct = () => {
 
             toast.success("Proceeding to checkout...");
             // Adding a small delay to allow Redux state update before navigation
-            setTimeout(() => {
-                 navigateTo("/cart/checkout");
-            }, 50);
+            navigateTo("/cart/checkout");
 
         } catch (error) {
             toast.error("Failed to proceed to checkout. Please try again.");
             console.error("Error during Buy Now:", error);
         }
-    }, [prepareVariantsForBackend, selectedVariants, product, currentPrice, selectedQuantity, dispatch, navigateTo]);
+    }, [prepareVariantsForBackend, selectedVariants, product, currentPrice, selectedQuantity, dispatch]);
 
 
     const handleQuantityChange = useCallback((operation) => {
@@ -446,7 +432,7 @@ const SingleProduct = () => {
     }, [showFullDescription]);
 
     const handleWhatsAppOrder = useCallback(() => {
-        const phoneNumber = "923337494323";
+        const phoneNumber = "923071111832";
         const productLink = window.location.href;
         const imageLink = product?.image;
 
@@ -466,8 +452,8 @@ const SingleProduct = () => {
     return (
         <div className="px-4 pt-1 max-w-screen md:px-5 md:pt-3">
             <Helmet>
-                <title>{`${product?.title || "Product"} | Etimad Mart`}</title>
-                <meta name="description" content={product?.description?.substring(0, 160) || ""} />
+                <title>{product.title ? `${product.title} | Etimad Mart` : 'Product | Etimad Mart'}</title>
+                <meta name="description" content={product.metaDescription || product.description || ''} />
                 <meta property="og:type" content="product" />
                 <meta property="og:title" content={product?.title || "Product"} />
                 <meta property="og:description" content={product?.description?.substring(0, 160) || ""} />
@@ -481,7 +467,14 @@ const SingleProduct = () => {
             </Helmet>
 
             <script type="application/ld+json">
-                {JSON.stringify(schemaData)}
+                {JSON.stringify({
+                    "@context": "https://schema.org/",
+                    "@type": "Product",
+                    "name": product.title,
+                    "image": product.images,
+                    "description": stripHtml(product.metaDescription || product.description),
+                    // ...rest of your schema
+                })}
             </script>
 
             <div className="flex flex-col gap-10 md:flex-row">
@@ -498,6 +491,8 @@ const SingleProduct = () => {
                                 ref={imageRef}
                                 src={selectedImage || "https://via.placeholder.com/500"}
                                 alt={product?.title || "Product Image"}
+                                width="350"
+                                height="350"
                                 className={`w-full h-full object-cover cursor-pointer transition-opacity duration-300 ${loadedImages.has(selectedImage) ? 'opacity-100' : 'opacity-0'
                                     }`}
                                 onLoad={() => handleImageLoad(selectedImage)}
@@ -530,39 +525,43 @@ const SingleProduct = () => {
                     </div>
 
                     {/* Thumbnail List */}
-                    <div className="relative flex flex-row items-center order-2 mt-8 md:w-20 md:order-1 max-h-72 md:flex-col">
+                    <div className="relative flex flex-row items-center order-2 mt-8 md:w-20 md:order-1 max-h-80 md:flex-col">
                         <button
                             onClick={() => scrollThumbnails("up")}
-                            className="absolute top-0 hidden font-extrabold transform -translate-x-1/2 md:block left-1/2 bg-none text-main "
+                            className="absolute top-0 hidden font-extrabold transform -translate-x-1/2 md:block left-1/2 bg-none text-secondary "
                         >
                             <FaChevronUp strokeWidth={24} />
                         </button>
                         <button
                             onClick={() => scrollThumbnails("down")}
-                            className="absolute bottom-0 hidden font-extrabold transform -translate-x-1/2 md:block left-1/2 bg-none text-main "
+                            className="absolute bottom-0 hidden font-extrabold transform -translate-x-1/2 md:block left-1/2 bg-none text-secondary "
                         >
                             <FaChevronDown strokeWidth={24} />
                         </button>
 
                         <div
                             ref={thumbnailRef}
-                            className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto whitespace-nowrap scrollbar-hide max-h-[300px] py-2 md:py-6 "
+                            className="relative flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto whitespace-nowrap scrollbar-hide max-h-[300px] py-2 md:py-6 z-10"
                         >
                             {product?.images?.map((image, index) => (
                                 <div
                                     key={index}
-                                    className={`h-16 w-16 bg-slate-200 rounded p-1 cursor-pointer flex-shrink-0 ${selectedImage === image ? 'border-2 border-main' : 'border-none'
+                                    className={`h-16 w-16 bg-slate-200 rounded p-1 cursor-pointer flex-shrink-0 ${selectedImage === image ? 'border-2 border-primary' : 'border-none'
                                         }`}
                                     onMouseEnter={() => handleMouseEnterProduct(image)}
                                     onClick={() => {
-                                        setSelectedImage(image);
-                                        // Also select the corresponding variant if this thumbnail is a variant image
+                                        console.log("Thumbnail clicked:", image);
+                                        let isVariantImage = false;
                                         for (const variant of product?.variants || []) {
                                             const variantValue = variant.values?.find(val => val.image === image);
                                             if (variantValue) {
                                                 handleVariantChange(variant.name, variantValue.value);
-                                                break; // Assume one variant image corresponds to one value
+                                                isVariantImage = true;
+                                                break; 
                                             }
+                                        }
+                                        if (!isVariantImage) {
+                                            setSelectedImage(image);
                                         }
                                     }}
                                 >
@@ -571,6 +570,8 @@ const SingleProduct = () => {
                                         className="object-cover w-full h-full rounded"
                                         loading="lazy"
                                         alt={`Thumbnail ${index}`}
+                                        width="64"
+                                        height="64"
                                     />
                                 </div>
                             ))}
@@ -578,13 +579,13 @@ const SingleProduct = () => {
 
                         <button
                             onClick={() => scrollThumbnails("left")}
-                            className="absolute left-0 font-semibold transform -translate-y-1/2 md:hidden top-1/2 bg-none text-main "
+                            className="absolute left-0 font-semibold transform -translate-y-1/2 md:hidden top-1/2 bg-none text-secondary "
                         >
                             <FaChevronLeft strokeWidth={24} />
                         </button>
                         <button
                             onClick={() => scrollThumbnails("right")}
-                            className="absolute right-0 font-semibold transform -translate-y-1/2 md:hidden top-1/2 bg-none text-main "
+                            className="absolute right-0 font-semibold transform -translate-y-1/2 md:hidden top-1/2 bg-none text-secondary "
                         >
                             <FaChevronRight strokeWidth={24} />
                         </button>
@@ -599,7 +600,7 @@ const SingleProduct = () => {
                     animate="visible"
                 >
                     <motion.h1 
-                        className="text-[20px] md:text-[26px]  font-space capitalize font-semibold text-gray-900 mb-[6px]"
+                        className="text-[20px] md:text-[26px]  font-space capitalize font-semibold text-secondary mb-[6px]"
                         variants={itemVariants}
                     >
                         {product?.title || "Product Title"}
@@ -609,7 +610,7 @@ const SingleProduct = () => {
                             className="mb-1 text-sm capitalize"
                             variants={itemVariants}
                         >
-                            <strong></strong> <Link to={`/category/${product?.category?.slug}`} className="text-base font-medium no-underline">{product.category.name}</Link>
+                            <strong></strong> <Link to={`/category/${product?.category?.slug}`} className="text-base text-primary font-medium no-underline">{product.category.name}</Link>
                         </motion.p>
                     )}
                     <motion.p className="pl-2 text-base text-black font-space md:pl-0"
@@ -622,7 +623,7 @@ const SingleProduct = () => {
                     />
                     <motion.button
                         onClick={toggleDescription}
-                        className="mb-1 text-sm font-semibold text-main"
+                        className="mb-1 text-sm font-semibold text-secondary"
                         variants={itemVariants}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -636,7 +637,7 @@ const SingleProduct = () => {
                         {product.salePrice && currentPrice === originalPrice ? (
                             <>
                                 <span className="text-base text-gray-500 line-through decoration-1">Rs. {product.price}</span>
-                                <span className="ml-2 text-main">Rs. {currentPrice}</span>
+                                <span className="ml-2 text-primary">Rs. {currentPrice}</span>
                             </>
                         ) : (
                             <span>Rs. {currentPrice}</span>
@@ -653,7 +654,7 @@ const SingleProduct = () => {
                                 onClick={() => handleQuantityChange("decrease")}
                                 disabled={selectedQuantity === 1}
                                 aria-label="Decrease quantity"
-                                className={`p-1 rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === 1 ? "bg-gray-300" : "bg-main opacity-70"}
+                                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === 1 ? "bg-gray-300" : "bg-secondary opacity-70"}
                                     `}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
@@ -665,7 +666,7 @@ const SingleProduct = () => {
                                 onClick={() => handleQuantityChange("increase")}
                                 aria-label="Increase quantity"
                                 disabled={selectedQuantity === product.stock}
-                                className={`p-1 rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === product.stock ? "bg-gray-300" : "bg-main opacity-70"}
+                                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === product.stock ? "bg-gray-300" : "bg-secondary opacity-70"}
                                     `}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
@@ -679,7 +680,7 @@ const SingleProduct = () => {
                     {productVariants && productVariants.length > 0 ? (
                         productVariants.map((variant, index) => (
                             <motion.div key={index} className="gap-2 mb-3 " variants={itemVariants}>
-                                <h3 className="font-semibold capitalize text-md text-main font-poppins">
+                                <h3 className="font-semibold capitalize text-md text-primary font-poppins">
                                     {variant.name}
                                 </h3>
                                 <div className="flex flex-wrap items-center gap-3">
@@ -695,16 +696,18 @@ const SingleProduct = () => {
                                                 whileTap={{ scale: 0.95 }}
                                             >
                                                 <div 
-                                                    className={`relative overflow-hidden ${selectedVariants[variant.name]?.includes(value.value) ? 'ring-2 ring-main ring-offset-1' : 'border border-gray-300'}`}
+                                                    className={`relative overflow-hidden ${selectedVariants[variant.name]?.includes(value.value) ? 'ring-2 ring-primary ring-offset-1' : 'border border-gray-300'}`}
                                                 >
                                                     <img
                                                         src={value.image || variant.image || "https://via.placeholder.com/50"}
                                                         alt={value.value}
                                                         className="object-cover w-12 h-12"
                                                         onError={(e) => e.target.src = "https://via.placeholder.com/50"} // Fallback image on error
+                                                        width="48"
+                                                        height="48"
                                                     />
                                                     {selectedVariants[variant.name]?.includes(value.value) && (
-                                                        <div className="absolute bottom-0 right-0 flex items-center justify-center w-5 h-5 bg-main">
+                                                        <div className="absolute bottom-0 right-0 flex items-center justify-center w-5 h-5 bg-secondary">
                                                             <svg 
                                                                 className="w-3 h-3 text-white" 
                                                                 fill="none" 
@@ -721,7 +724,7 @@ const SingleProduct = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                                <span className="mt-1 text-sm text-gray-700 capitalize font-poppins">{value.value}</span>
+                                                <span className="mt-1 text-sm text-primary capitalize font-poppins">{value.value}</span>
                                             </motion.div>
                                         ) : (
                                             <motion.button
@@ -729,13 +732,13 @@ const SingleProduct = () => {
                                                 onClick={() => handleVariantChange(variant.name, value.value)}
                                                 className={`px-4 py-2 capitalize border  transition duration-200 ease-in-out
                                                 ${selectedVariants[variant.name]?.includes(value.value)
-                                                    ? "bg-main text-white shadow-md border-main border-2"
-                                                    : "bg-gray-200 text-gray-800 border-gray-300"}
+                                                    ? "bg-secondary text-white shadow-md border-primary border-2"
+                                                    : "bg-secondary text-primary border-gray-300"}
                                                 `}
                                                 whileHover={{
                                                     scale: 1.05,
-                                                    backgroundColor: selectedVariants[variant.name]?.includes(value.value) ? undefined : "#d1d5db",
-                                                    color: selectedVariants[variant.name]?.includes(value.value) ? undefined : "#1f2937"
+                                                    backgroundColor: selectedVariants[variant.name]?.includes(value.value) ? undefined : "#FFB829",
+                                                    color: selectedVariants[variant.name]?.includes(value.value) ? undefined : "#000000"
                                                 }}
                                                 whileTap={{ scale: 0.95 }}
                                             >
@@ -753,19 +756,19 @@ const SingleProduct = () => {
                         <div className="flex flex-col w-full gap-4 md:flex-row md:justify-start">
                             <motion.a
                                 onClick={handleByNow}
-                                className="w-full px-6 py-2 text-sm font-bold text-center text-white no-underline bg-main opacity-70 lg:text-base md:w-auto md:flex-2 hover:opacity-90"
+                                className="w-full px-6 py-2 text-sm font-bold text-center text-white no-underline bg-primary opacity-70 lg:text-base md:w-auto md:flex-2 hover:opacity-90"
                                 whileHover={{ scale: 1.03, opacity: 0.95 }}
                                 whileTap={{ scale: 0.98 }}
-                                href="#" // Added href for accessibility, will be handled by onClick
+                                href="#" 
                             >
-                                Buy Now
+                                Cash ON Delivery
                             </motion.a>
                             <motion.a
                                 onClick={handleAddToCart}
-                                className="flex items-center justify-center w-full gap-1 px-6 py-2 text-sm font-bold text-white no-underline bg-main opacity-70 md:w-auto lg:text-base hover:bg-main hover:opacity-90"
+                                className="flex items-center justify-center w-full gap-1 px-6 py-2 text-sm font-bold text-primary no-underline bg-secondary/80 md:w-auto lg:text-base hover:bg-secondary/90"
                                 whileHover={{ scale: 1.03, opacity: 0.95 }}
                                 whileTap={{ scale: 0.98 }}
-                                href="#" // Added href for accessibility, will be handled by onClick
+                                href="#" 
                             >
                                 <TiShoppingCart className="text-xl" />
                                 Add to Cart
@@ -773,8 +776,8 @@ const SingleProduct = () => {
                         </div>
                         <motion.button
                             onClick={handleWhatsAppOrder}
-                            className="flex items-center justify-center w-full gap-2 px-8 py-2 my-3 text-base font-bold text-white bg-green-600 sm:w-auto md:max-w-screen-md hover:bg-green-800 md:text-xl"
-                            whileHover={{ scale: 1.03, backgroundColor: "#34D399" }} // subtle green change
+                            className="flex items-center justify-center w-full gap-2 px-8 py-2 my-3 text-base font-bold text-white bg-[#25CC64] sm:w-auto md:w-[23rem] hover:bg-green-800 md:text-xl"
+                            whileHover={{ scale: 1.03, backgroundColor: "#218B00" }} 
                             whileTap={{ scale: 0.98 }}
                         >
                             <FaWhatsapp className="text-2xl" /> Order via WhatsApp
@@ -784,17 +787,16 @@ const SingleProduct = () => {
             </div>
 
             {/* Cart Drawer */}
-            <CartDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
-
-            {/* Reviews Section */}
-            <ReviewForm slug={slug} product={product} />
-            <hr />
-            {/* Related Products */}
-            <RelatedProducts
-                relatedProducts={relatedProducts}
-                currentPage={currentPage}
-                totalPages={totalPages}
-            />
+            <Suspense fallback={<SingleProductSkeleton />}>
+                <LazyCartDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
+                <LazyReviewForm slug={slug} product={product} />
+                <hr />
+                <LazyRelatedProducts
+                    relatedProducts={relatedProducts}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                />
+            </Suspense>
 
             {/* Image Preview Overlay */}
             <AnimatePresence>

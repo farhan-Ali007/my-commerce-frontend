@@ -143,7 +143,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
     return (
         <>
             {categories && categories.length > 0 && (
-                <div className="hidden py-4 md:block bg-main">
+                <div className="hidden py-4 md:block bg-primary">
                     <div className="container flex flex-wrap justify-center gap-6 px-2 mx-auto">
                         {categories.map((category) => (
                             <div
@@ -160,7 +160,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                                     onMouseEnter={(e) => handleCategoryHover(category, e)}
                                 >
                                     <div
-                                        className={`text-white p-1 text-base lg:text-[18px] capitalize hover:text-gray-300 transition-colors duration-200 ${isCategoryActive(category)
+                                        className={`text-white p-1 text-base lg:text-[18px] capitalize hover:text-secondary transition-colors duration-200 ${isCategoryActive(category)
                                             ? "text-gray-900"
                                             : ""
                                             }`}
@@ -242,10 +242,10 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                                         backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
                                         transition: { duration: 0.2 }
                                     }}
-                                    className="p-3 transition-all duration-200 bg-white rounded-lg cursor-pointer hover:border-l-4 border-main"
+                                    className="p-3 transition-all duration-200 bg-white rounded-lg cursor-pointer hover:border-l-4 border-secondary"
                                     onClick={() => handleSubcategoryClick(subcategory)}
                                 >
-                                    <span className="font-semibold capitalize text-main text-[15px]">{subcategory.name}</span>
+                                    <span className="font-semibold capitalize text-primary text-[15px]">{subcategory.name}</span>
                                 </motion.div>
                             ))}
                         </motion.div>

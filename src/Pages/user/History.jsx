@@ -30,6 +30,9 @@ const History = () => {
     fetchMyOrders();
   }, []);
 
+  // Sort orders so most recent is first
+  const sortedOrders = [...orders].sort((a, b) => new Date(b.orderedAt) - new Date(a.orderedAt));
+
   if (loading) return <p className="font-medium text-xl text-center">Loading...</p>;
 
   return (
@@ -54,7 +57,7 @@ const History = () => {
               </h2>
               <Link 
                 to="/shop"
-                className="inline-block bg-main no-underline hover:bg-main-dark text-white font-semibold px-8 py-3 rounded-full transition duration-300 transform hover:scale-105"
+                className="inline-block bg-secondary no-underline hover:bg-main-dark text-primary font-semibold px-8 py-3 rounded-full transition duration-300 transform hover:scale-105"
               >
                 Start Shopping
               </Link>
@@ -67,7 +70,7 @@ const History = () => {
             Order History
           </h1>
           <div className="space-y-8">
-            {orders.map((order, index) => (
+            {sortedOrders.map((order, index) => (
               <div key={index} className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-700 mb-4">
                   Order #{index + 1}

@@ -35,12 +35,12 @@ const Banner = React.memo(() => {
             if (!response) {
                 throw new Error("No response from server");
             }
-            console.log("Setting banners with data:", response);
+            // console.log("Setting banners with data:", response);
             setBanners(response || []);
             
             // Preload the first banner image
             if (response?.length > 0) {
-                console.log("Preloading first banner image:", response[0].image);
+                // console.log("Preloading first banner image:", response[0].image);
                 const img = new Image();
                 img.src = getOptimizedImageUrl(
                     response[0].image,
@@ -194,7 +194,7 @@ const Banner = React.memo(() => {
                 <motion.div
                     key={index}
                     className={`w-2 h-2 md:w-3 md:h-3 rounded-full cursor-pointer mx-1 ${
-                        index === currentSlide ? "bg-gray-400" : "bg-main"
+                        index === currentSlide ? "bg-secondary" : "bg-primary"
                     }`}
                     onClick={() => handleDotClick(index)}
                     aria-label={`Go to slide ${index + 1}`}

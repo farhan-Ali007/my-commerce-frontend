@@ -78,3 +78,12 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
+
+/* Custom styles for react-range-slider-input */
+.range-slider__range {
+  background: #F0AD26 !important;
+}
+.range-slider__thumb {
+  background: #F0AD26 !important;
+  border: 2px solid #F0AD26 !important;
+}

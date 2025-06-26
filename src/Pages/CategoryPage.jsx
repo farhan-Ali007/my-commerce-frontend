@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { IoChevronDown, IoFilter } from "react-icons/io5";
@@ -231,13 +231,13 @@ const CategoryPage = () => {
                         onClick={toggleSortDropdown}
                         className="w-full flex items-center bg-white justify-between border border-gray-200  px-2 py-2 text-main focus:outline-none"
                     >
-                        <span className="flex items-center font-semibold gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <span className="flex items-center text-primary font-semibold gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
                             </svg>
                             SORT
                         </span>
-                        <IoChevronDown className={`transition-transform ${isSortOpen ? 'transform rotate-180' : ''}`} />
+                        <IoChevronDown className={`transition-transform text-secondary ${isSortOpen ? 'transform rotate-180' : ''}`} />
                     </button>
 
                     {isSortOpen && (
@@ -260,9 +260,9 @@ const CategoryPage = () => {
 
                 <button
                     onClick={toggleFilterDrawer}
-                    className="flex  justify-center items-center w-1/2 gap-2 border font-semibold border-gray-200 bg-white text-main px-3 mt-2 py-2 "
+                    className="flex  justify-center items-center w-1/2 gap-2 border font-semibold border-gray-200 bg-white text-primary px-3 mt-2 py-2 "
                 >
-                    <IoFilter size={24} /> Filters
+                    <IoFilter size={24} className="text-secondary" /> Filters
                 </button>
             </div>
 
@@ -287,9 +287,11 @@ const CategoryPage = () => {
             />
 
             {/* Sidebar Filters (Desktop) */}
-            <div className="hidden md:block w-full h-full md:w-[20%] mt-0 md:mt-3 px-4 py-2 md:py-4 shadow-md mb-0 md:mb-2 lg:mb-2">
+            <div className="hidden lg:block lg:w-1/4 p-4 bg-white rounded-lg shadow-md h-fit sticky top-4">
+                <h3 className="text-xl font-semibold mb-4 text-primary">Filter Products</h3>
+
                 {/* Price Range Filter */}
-                <div className="mb-2 md:mb-3 w-full text-main">
+                <div className="mb-2 md:mb-3 w-full text-secondary">
                     <h4 className="text-lg font-bold mb-1 font-space">Price Range</h4>
                     <div className="flex flex-col justify-start gap-2">
                         <RangeSlider
@@ -298,9 +300,9 @@ const CategoryPage = () => {
                             step={100}
                             value={priceRange}
                             onInput={handlePriceRangeChange}
-                            className="w-full text-main"
+                            className="w-full text-secondary"
                         />
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-sm text-black font-semibold">
                             <span>Rs {priceRange[0]}</span>
                             <span>Rs {priceRange[1]}</span>
                         </div>
@@ -309,7 +311,7 @@ const CategoryPage = () => {
                 <div className="flex md:flex-col gap-2 items-center md:items-start">
                     {/* Sort Filter */}
                     <div className="mb-2 md:mb-3 w-1/2 md:w-full">
-                        <h4 className="text-lg font-bold mb-1 font-space text-main">Sort By Price</h4>
+                        <h4 className="text-lg font-bold mb-1 font-space text-secondary">Sort By Price</h4>
                         <select
                             value={priceFilter || ""}
                             onChange={handlePriceChange}
@@ -323,7 +325,7 @@ const CategoryPage = () => {
 
                     {/* Category Filter */}
                     <div className="mb-2 md:mb-3 w-1/2 md:w-full">
-                        <h4 className="text-lg font-bold mb-2 font-space text-main">By Category</h4>
+                        <h4 className="text-lg font-bold mb-2 font-space text-secondary">By Category</h4>
                         <select
                             value={categoryFilter[0] || ""}
                             onChange={handleCategoryChange}
@@ -341,17 +343,17 @@ const CategoryPage = () => {
 
                 {/* Brand Filter */}
                 <div className="mb-2 md:mb-3 w-full">
-                    <h4 className="text-lg font-bold mb-2 font-space text-main">Filter By Brand</h4>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                    <h4 className="text-lg font-bold mb-2 font-space text-secondary">Filter By Brand</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 capitalize gap-2">
                         {brands?.map((brand) => (
-                            <label key={brand._id} className="text-sm font-semibold text-main/90">
+                            <label key={brand._id} className="flex items-center text-sm font-semibold text-primary mb-15">
                                 <input
                                     type="checkbox"
                                     name="brand"
                                     value={brand.name}
                                     checked={brandFilter === brand.name}
                                     onChange={handleBrandChange}
-                                    className="mr-2"
+                                    className="mr-2 text-secondary"
                                 />
                                 {brand.name}
                             </label>
@@ -361,7 +363,7 @@ const CategoryPage = () => {
 
                 {/* Rating Filter */}
                 <div className="mb-2">
-                    <h4 className="text-lg font-medium font-space text-main">Filter By Rating</h4>
+                    <h4 className="text-lg font-medium font-space text-primary">Filter By Rating</h4>
                     {[5, 4, 3, 2, 1].map((rating) => (
                         <label key={rating} className="flex items-center mb-1">
                             <input
@@ -411,7 +413,12 @@ const CategoryPage = () => {
                                 <button
                                     onClick={() => handlePageChange(currentPage - 1)}
                                     disabled={currentPage === 1}
-                                    className={`p-2 rounded-full ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-main hover:bg-gray-100'}`}
+                                    className={`p-2 rounded-full ${
+                                        currentPage === 1
+                                            ? 'text-gray-400 cursor-not-allowed'
+                                            : 'text-secondary hover:bg-primary'
+                                    }`}
+                                    aria-label="Previous page"
                                 >
                                     <FaChevronLeft />
                                 </button>
@@ -420,10 +427,13 @@ const CategoryPage = () => {
                                     <button
                                         key={page}
                                         onClick={() => handlePageChange(page)}
-                                        className={`w-10 h-10 rounded-full flex items-center justify-center ${currentPage === page
-                                            ? 'bg-main text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                            currentPage === page
+                                                ? 'bg-primary text-white'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                        aria-label={`Go to page ${page}`}
+                                        aria-current={currentPage === page ? 'page' : undefined}
                                     >
                                         {page}
                                     </button>
@@ -432,7 +442,12 @@ const CategoryPage = () => {
                                 <button
                                     onClick={() => handlePageChange(currentPage + 1)}
                                     disabled={currentPage === totalPages}
-                                    className={`p-2 rounded-full ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-main hover:bg-gray-100'}`}
+                                    className={`p-2 rounded-full ${
+                                        currentPage === totalPages
+                                            ? 'text-gray-400 cursor-not-allowed'
+                                            : 'text-secondary hover:bg-primary'
+                                    }`}
+                                    aria-label="Next page"
                                 >
                                     <FaChevronRight />
                                 </button>

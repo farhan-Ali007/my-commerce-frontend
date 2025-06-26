@@ -11,7 +11,7 @@ const cartSlice = createSlice({
     reducers: {
         addToCart: (state, action) => {
             const newItem = action.payload;
-            console.log("Adding to cart with item:", newItem);
+            // console.log("Adding to cart with item:", newItem);
 
             // Check if the item with the same productId AND selectedVariants already exists
             const itemIndex = state.products.findIndex(
@@ -33,8 +33,8 @@ const cartSlice = createSlice({
             }
 
             // Update cart level freeShipping and deliveryCharges based on products
-            state.freeShipping = state.products.some(item => item.freeShipping);
-            state.deliveryCharges = state.products.some(item => item.freeShipping) ? 0 : 200;
+            state.freeShipping = state.products.every(item => item.freeShipping);
+            state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 200;
 
             // Update the cart total
             state.cartTotal = state.products.reduce((total, item) => total + item.price * item.count, 0);
@@ -52,8 +52,8 @@ const cartSlice = createSlice({
                 state.products[itemIndex].count = action.payload.count;
                 
                 // Update cart level freeShipping and deliveryCharges
-                state.freeShipping = state.products.some(item => item.freeShipping);
-                state.deliveryCharges = state.products.some(item => item.freeShipping) ? 0 : 200;
+                state.freeShipping = state.products.every(item => item.freeShipping);
+                state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 200;
                 
                 localStorage.setItem('cartproducts', JSON.stringify(state.products));
                 localStorage.setItem('cartTotal', state.cartTotal.toString());
@@ -66,8 +66,8 @@ const cartSlice = createSlice({
                 state.products.splice(itemIndex, 1);
                 
                 // Update cart level freeShipping and deliveryCharges
-                state.freeShipping = state.products.some(item => item.freeShipping);
-                state.deliveryCharges = state.products.some(item => item.freeShipping) ? 0 : 200;
+                state.freeShipping = state.products.every(item => item.freeShipping);
+                state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 200;
                 
                 localStorage.setItem('cartproducts', JSON.stringify(state.products));
                 localStorage.setItem('cartTotal', state.cartTotal.toString());

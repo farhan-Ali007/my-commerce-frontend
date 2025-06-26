@@ -9,6 +9,7 @@ import AdminRoute from "./components/AdminRoute";
 import { getUserAPI } from "./functions/auth";
 import { setUser } from "./store/authSlice";
 import NotFound from "./Pages/NotFound";
+import DynamicPage from './Pages/DynamicPage';
 
 const Home = lazy(() => import("./Pages/Home"));
 const Signup = lazy(() => import("./Pages/Signup"));
@@ -30,7 +31,7 @@ const App = () => {
   const dispatch = useDispatch();
   const location = useLocation(); // Get current route
   const { user } = useSelector((state) => state.auth);
-  console.log("Current User---->", user?.username);
+  // console.log("Current User---->", user?.username);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -55,13 +56,13 @@ const App = () => {
   if (loading) {
     return (
       <div className="w-screen h-screen flex justify-center items-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-main opacity-90"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-b-primary border-t-secondary opacity-90"></div>
       </div>
     );
   }
 
   // List of pages where Navbar should be hidden
-  const hiddenNavbarRoutes = ["/signup", "/login",];
+  const hiddenNavbarRoutes = ["/signup", "/login","/cart/checkout"];
 
   return (
     <>
@@ -101,6 +102,7 @@ const App = () => {
               <Route path="/edit-product/:slug" element={<EditProduct />} />
             </Route>
 
+            <Route path="/pages/:slug" element={<DynamicPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

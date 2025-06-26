@@ -66,7 +66,7 @@ const Brands = React.memo(() => {
             >
                 <Link 
                     to={`/products/${brand?.name}`} 
-                    className="p-[2px] rounded-full bg-gradient-to-r from-blue-500 via-orange-600 to-red-500"
+                    className="p-[2px] rounded-full bg-gradient-to-r from-primary via-orange-600 to-secondary"
                 >
                     <motion.div 
                         className="w-16 md:w-20 lg:w-28 h-16 md:h-20 lg:h-28 bg-white rounded-full flex items-center justify-center"
@@ -101,9 +101,9 @@ const Brands = React.memo(() => {
                     </motion.div>
                 </Link>
                 <motion.span 
-                    className="mt-2 text-sm uppercase font-semibold text-gray-700 text-center"
+                    className="mt-2 text-sm uppercase font-semibold text-gray-700 hover:text-primary text-center"
                     animate={{
-                        color: hoveredIndex === index ? "#3B82F6" : "#374151",
+                        color: hoveredIndex === index ? "#000000" : "#374151",
                         scale: hoveredIndex === index ? 1.1 : 1,
                     }}
                     transition={{
@@ -118,7 +118,7 @@ const Brands = React.memo(() => {
 
     return (
         <div ref={ref} className="container mx-auto px-2 md:px-0 lg:px-8 py-3 md:py-4">
-            <h2 className="text-2xl md:text-4xl font-extrabold font-space text-main text-center mb-5 md:mb-7">
+            <h2 className="text-2xl md:text-4xl font-extrabold font-space text-secondary text-center mb-5 md:mb-7">
                 Top Brands
             </h2>
 

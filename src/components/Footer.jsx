@@ -50,7 +50,7 @@ const linkVariants = {
 const Footer = () => {
     return (
         <>
-            <div className="bg-main/20 py-6 px-4 md:pt-10 md:px-6 relative">
+            <div className="bg-primary text-white py-6 px-4 md:pt-10 md:px-6 relative border-t-4 border-secondary">
                 {/* Container to center content */}
                 <motion.div 
                   className="max-w-screen-xl mx-auto"
@@ -67,14 +67,14 @@ const Footer = () => {
                           variants={itemVariants}
                         >
                             <motion.img
-                                src="/logo.png"
+                                src="/f-logo.png"
                                 alt="Logo"
-                                className="bg-transparent mx-auto mb-3 h-16 object-contain"
+                                className="bg-transparent mx-auto h-16 object-contain"
                                 whileHover={{ scale: 1.05 }}
                                 transition={{ type: "spring", stiffness: 400 }}
                             />
                             <motion.p 
-                              className="text-gray-600 text-sm px-4"
+                              className="text-secondary text-sm px-4 font-semibold"
                               whileHover={{ scale: 1.02 }}
                             >
                                 Online Shopping in Pakistan at Its Finest.
@@ -87,7 +87,7 @@ const Footer = () => {
                           variants={itemVariants}
                         >
                             <motion.h3 
-                              className="text-lg font-semibold mb-3 text-center"
+                              className="text-lg font-semibold mb-3 text-center text-secondary"
                               whileHover={{ scale: 1.02 }}
                             >
                                 Quick Links
@@ -95,7 +95,7 @@ const Footer = () => {
                             <div className="flex justify-center space-x-6 min-w-max px-4">
                                 <motion.a 
                                   href="/" 
-                                  className="text-gray-600 hover:text-main text-sm font-medium no-underline whitespace-nowrap"
+                                  className="text-white hover:text-main text-sm font-medium no-underline whitespace-nowrap transition-colors"
                                   variants={linkVariants}
                                   whileHover="hover"
                                 >
@@ -103,7 +103,7 @@ const Footer = () => {
                                 </motion.a>
                                 <motion.a 
                                   href="/shop" 
-                                  className="text-gray-600 hover:text-main text-sm font-medium no-underline whitespace-nowrap"
+                                  className="text-white hover:text-main text-sm font-medium no-underline whitespace-nowrap transition-colors"
                                   variants={linkVariants}
                                   whileHover="hover"
                                 >
@@ -111,7 +111,7 @@ const Footer = () => {
                                 </motion.a>
                                 <motion.a 
                                   href="/about" 
-                                  className="text-gray-600 hover:text-main text-sm font-medium no-underline whitespace-nowrap"
+                                  className="text-white hover:text-main text-sm font-medium no-underline whitespace-nowrap transition-colors"
                                   variants={linkVariants}
                                   whileHover="hover"
                                 >
@@ -126,25 +126,25 @@ const Footer = () => {
                           variants={itemVariants}
                         >
                             <motion.h3 
-                              className="text-lg font-semibold mb-3"
+                              className="text-lg font-semibold mb-3 text-secondary"
                               whileHover={{ scale: 1.02 }}
                             >
                                 Contact Us
                             </motion.h3>
-                            <div className="text-gray-600 space-y-3 text-sm">
+                            <div className="text-white space-y-3 text-sm">
                                 <motion.div 
                                   className="flex justify-center items-center space-x-2"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <MdLocationOn className='text-main' size={18} />
-                                    <span>123 Street, City, Country</span>
+                                    <MdLocationOn className='text-secondary' size={18} />
+                                    <span>Street no.2, Iqbal garden, Canal road Rahim Yar Khan</span>
                                 </motion.div>
                                 <motion.div 
                                   className="flex justify-center items-center space-x-2"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <a href="https://wa.me/+923337494323" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 no-underline hover:text-main">
-                                        <FaWhatsapp className='text-main' size={18} />
+                                    <a href="https://wa.me/+923337494323" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 no-underline text-white hover:text-white transition-colors">
+                                        <FaWhatsapp className='text-secondary' size={18} />
                                         <span>03337494323</span>
                                     </a>
                                 </motion.div>
@@ -152,8 +152,8 @@ const Footer = () => {
                                   className="flex justify-center items-center space-x-2"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <a href="tel:+923337494323" className="flex items-center space-x-2 no-underline hover:text-main">
-                                        <MdPhone className='text-main' size={18} />
+                                    <a href="tel:+923337494323" className="flex items-center space-x-2 no-underline text-white hover:text-white transition-colors">
+                                        <MdPhone className='text-secondary' size={18} />
                                         <span>03337494323</span>
                                     </a>
                                 </motion.div>
@@ -161,8 +161,8 @@ const Footer = () => {
                                   className="flex justify-center items-center space-x-2"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <a href="mailto:info@example.com" className="flex items-center space-x-2 no-underline hover:text-main">
-                                        <MdMail className='text-main' size={18} />
+                                    <a href="mailto:info@example.com" className="flex items-center space-x-2 no-underline text-white hover:text-white transition-colors">
+                                        <MdMail className='text-secondary' size={18} />
                                         <span>info@example.com</span>
                                     </a>
                                 </motion.div>
@@ -175,7 +175,7 @@ const Footer = () => {
                           variants={itemVariants}
                         >
                             <motion.h3 
-                              className="text-lg font-semibold mb-3"
+                              className="text-lg font-semibold mb-3 text-secondary"
                               whileHover={{ scale: 1.02 }}
                             >
                                 Follow Us
@@ -189,7 +189,7 @@ const Footer = () => {
                                   whileHover="hover"
                                   whileTap="tap"
                                 >
-                                    <FaFacebook className="text-gray-600 hover:text-[#4372E6]" size={24} />
+                                    <FaFacebook className="text-white hover:text-secondary transition-colors" size={24} />
                                 </motion.a>
                                 <motion.a 
                                   href="https://instagram.com" 
@@ -200,7 +200,7 @@ const Footer = () => {
                                   whileHover="hover"
                                   whileTap="tap"
                                 >
-                                    <FaInstagram className="transition-all duration-300 fill-gray-500 group-hover:fill-[url(#instaGradient)]" size={24} />
+                                    <FaInstagram className="transition-all duration-300 text-white group-hover:text-secondary" size={24} />
                                 </motion.a>
                                 <motion.a 
                                   href="https://tiktok.com" 
@@ -210,16 +210,9 @@ const Footer = () => {
                                   whileHover="hover"
                                   whileTap="tap"
                                 >
-                                    <FaTiktok className="text-gray-600 hover:text-black" size={24} />
+                                    <FaTiktok className="text-white hover:text-secondary transition-colors" size={24} />
                                 </motion.a>
                             </div>
-                            <svg width="0" height="0">
-                                <linearGradient id="instaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop stopColor="#f58529" offset="0%" />
-                                    <stop stopColor="#dd2a7b" offset="50%" />
-                                    <stop stopColor="#8134af" offset="100%" />
-                                </linearGradient>
-                            </svg>
                         </motion.div>
                     </div>
 
@@ -228,46 +221,46 @@ const Footer = () => {
                         {/* First Div: Image and Text */}
                         <motion.div variants={itemVariants}>
                             <motion.img 
-                              src="/logo.png" 
-                              alt="Logo" 
-                              className="bg-transparent mx-auto mb-4 h-20 md:h-28 lg:h-32 object-cover"
-                              whileHover={{ scale: 1.05 }}
-                              transition={{ type: "spring", stiffness: 400 }}
+                                src="/f-logo.png" 
+                                alt="Logo" 
+                                className="bg-transparent mx-auto h-20 md:h-28 lg:h-32 object-cover"
+                                whileHover={{ scale: 1.05 }}
+                                transition={{ type: "spring", stiffness: 400 }}
                             />
                             <motion.p 
-                              className="text-gray-800 font-semibold text-base"
+                              className="text-secondary font-semibold text-base"
                               whileHover={{ scale: 1.02 }}
                             >
-                                Online Shopping in Pakistan at Its Finest.
+                                Shopping Karain Etimad K Sath
                             </motion.p>
                         </motion.div>
 
                         {/* Second Div: Quick Links */}
                         <motion.div variants={itemVariants}>
                             <motion.h3 
-                              className="text-2xl font-semibold mb-4 text-center md:text-start"
+                              className="text-2xl font-semibold mb-4 text-center md:text-start text-secondary"
                               whileHover={{ scale: 1.02 }}
                             >
                                 Quick Links
                             </motion.h3>
-                            <ul className="text-gray-600 space-y-2 text-center md:text-start list-none">
+                            <ul className="text-white space-y-2 text-center md:text-start list-none">
                                 <motion.li
                                   variants={linkVariants}
                                   whileHover="hover"
                                 >
-                                    <a href="/" className="text-gray-600 hover:text-main text-[1rem] md:text-xl font-medium no-underline">Home</a>
+                                    <a href="/" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Home</a>
                                 </motion.li>
                                 <motion.li
                                   variants={linkVariants}
                                   whileHover="hover"
                                 >
-                                    <a href="/shop" className="text-gray-600 hover:text-main text-[1rem] md:text-xl font-medium no-underline">Shop</a>
+                                    <a href="/shop" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Shop</a>
                                 </motion.li>
                                 <motion.li
                                   variants={linkVariants}
                                   whileHover="hover"
                                 >
-                                    <a href="/about" className="text-gray-600 hover:text-main text-[1rem] md:text-xl font-medium no-underline">About Us</a>
+                                    <a href="/about" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">About Us</a>
                                 </motion.li>
                             </ul>
                         </motion.div>
@@ -278,44 +271,44 @@ const Footer = () => {
                           variants={itemVariants}
                         >
                             <motion.h3 
-                              className="text-2xl text-center md:text-start font-semibold mb-4"
+                              className="text-2xl text-center md:text-start font-semibold mb-4 text-secondary"
                               whileHover={{ scale: 1.02 }}
                             >
                                 Contact Information
                             </motion.h3>
-                            <div className="text-gray-600 space-y-4">
+                            <div className="text-white space-y-4">
                                 <motion.div 
                                   className="flex justify-center items-center md:justify-start space-x-2"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <MdLocationOn className='text-main' size={22} />
-                                    <span>123 Street, City, Country</span>
+                                    <MdLocationOn className='text-secondary' size={28} />
+                                    <span className='text-sm'>Street no.2, Iqbal garden, Canal road Rahim Yar Khan</span>
                                 </motion.div>
                                 <motion.div 
                                   className="flex justify-center md:justify-start items-center space-x-2"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <a href="https://wa.me/+923337494323" target="_blank" rel="noopener noreferrer" className="flex items-center no-underline space-x-2 hover:text-main">
-                                        <FaWhatsapp className='text-main' size={22} />
-                                        <span className='text-gray-600 hover:text-main'>03337494323</span>
+                                    <a href="https://wa.me/+923071111832" target="_blank" rel="noopener noreferrer" className="flex items-center no-underline space-x-2 hover:text-main transition-colors">
+                                        <FaWhatsapp className='text-secondary' size={22} />
+                                        <span className='text-gray-300 hover:text-white'>0307-1111832</span>
                                     </a>
                                 </motion.div>
                                 <motion.div 
                                   className="flex justify-center md:justify-start items-center space-x-2"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <a href="tel:+923337494323" className="flex items-center no-underline space-x-2 hover:text-main">
-                                        <MdPhone className='text-main' size={22} />
-                                        <span className='text-gray-600 hover:text-main'>03337494323</span>
+                                    <a href="tel:+9230711832" className="flex items-center no-underline space-x-2 hover:text-main transition-colors">
+                                        <MdPhone className='text-secondary' size={22} />
+                                        <span className='text-gray-300 hover:text-white'>0307-1111832</span>
                                     </a>
                                 </motion.div>
                                 <motion.div 
                                   className="flex justify-center md:justify-start items-center space-x-2"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <a href="mailto:info@example.com" className="flex items-center space-x-2 no-underline hover:text-main">
-                                        <MdMail className='text-main' size={22} />
-                                        <span className='text-gray-600 hover:text-main'>info@example.com</span>
+                                    <a href="mailto:info@example.com" className="flex items-center space-x-2 no-underline hover:text-main transition-colors">
+                                        <MdMail className='text-secondary' size={22} />
+                                        <span className='text-gray-300 hover:text-white'>info@etimadmart.com</span>
                                     </a>
                                 </motion.div>
                             </div>
@@ -324,24 +317,24 @@ const Footer = () => {
                         {/* Social Media Links */}
                         <motion.div variants={itemVariants}>
                             <motion.h3 
-                              className="text-2xl text-center md:text-start font-semibold mb-4"
+                              className="text-2xl text-center md:text-start font-semibold mb-4 text-secondary"
                               whileHover={{ scale: 1.02 }}
                             >
                                 Follow Us Online
                             </motion.h3>
                             <div className="flex justify-center md:justify-start space-x-5 mt-4">
                                 <motion.a 
-                                  href="https://facebook.com" 
+                                  href="https://www.facebook.com/EtimadMart" 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   variants={socialIconVariants}
                                   whileHover="hover"
                                   whileTap="tap"
                                 >
-                                    <FaFacebook className="text-gray-600 hover:text-[#4372E6]" size={30} />
+                                    <FaFacebook className="text-white hover:text-secondary transition-colors" size={30} />
                                 </motion.a>
                                 <motion.a 
-                                  href="https://instagram.com" 
+                                  href="https://instagram.com/etimad_mart" 
                                   target="_blank" 
                                   rel="noopener noreferrer" 
                                   className="group"
@@ -349,17 +342,17 @@ const Footer = () => {
                                   whileHover="hover"
                                   whileTap="tap"
                                 >
-                                    <FaInstagram className="transition-all duration-300 fill-gray-500 hover:fill-[#E1306C]" size={30} />
+                                    <FaInstagram className="transition-all duration-300 text-white group-hover:text-secondary" size={30} />
                                 </motion.a>
                                 <motion.a 
-                                  href="https://tiktok.com" 
+                                  href="https://vm.tiktok.com/ZSkwPUMd3" 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   variants={socialIconVariants}
                                   whileHover="hover"
                                   whileTap="tap"
                                 >
-                                    <FaTiktok className="text-gray-600 hover:text-black" size={30} />
+                                    <FaTiktok className="text-white hover:text-secondary transition-colors" size={30} />
                                 </motion.a>
                             </div>
                         </motion.div>
@@ -368,7 +361,7 @@ const Footer = () => {
             </div>
             {/* Copyright Section */}
             <motion.div 
-              className="text-white bg-main text-center py-3 text-sm md:text-base"
+              className="text-secondary bg-primary text-center py-3 text-sm md:text-base border-t border-secondary"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
