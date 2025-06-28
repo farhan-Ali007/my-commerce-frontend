@@ -28,6 +28,7 @@ const Navbar = React.memo(() => {
         '/404',
         '*',
         '/pages/',
+        '/category/',
     ], []);
 
     const location = useLocation();
@@ -59,7 +60,8 @@ const Navbar = React.memo(() => {
         hideCategoryBarOn.includes(location.pathname) ||
         location.pathname.startsWith('/pages/') ||
         /^\/edit-product\/[^/]+$/.test(location.pathname) ||
-        /^\/product\/[^/]+$/.test(location.pathname),
+        /^\/product\/[^/]+$/.test(location.pathname) ||
+        location.pathname.startsWith('/category/'),
         [hideCategoryBarOn, location.pathname]
     );
 

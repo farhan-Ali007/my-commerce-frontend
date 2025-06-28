@@ -21,7 +21,9 @@ export const getProductSchemaData = (product, currentPrice) => {
             aggregateRating = {
                 "@type": "AggregateRating",
                 "ratingValue": product.averageRating,
-                "reviewCount": product.reviews.length
+                "reviewCount": product.reviews.length,
+                "bestRating": 5,
+                "worstRating": 1
             };
         }
 
@@ -30,28 +32,91 @@ export const getProductSchemaData = (product, currentPrice) => {
         if (product?.reviews?.length > 0) {
             reviews = product.reviews.map(r => ({
                 "@type": "Review",
-                "author": r.reviewerId?.name || r.reviewerName || "Anonymous",
+                "author": {
+                    "@type": "Person",
+                    "name": r.reviewerId?.name || r.reviewerName || "Anonymous"
+                },
                 "datePublished": r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : "",
                 "reviewBody": stripHtml(r.reviewText || ""),
-                "name": r.title || "",
+                "name": product?.title || "",
                 "reviewRating": {
                     "@type": "Rating",
-                    "ratingValue": r.rating
+                    "ratingValue": r.rating,
+                    "bestRating": 5,
+                    "worstRating": 1
                 }
             }));
         }
 
-        return {
+        // --- Additional Properties ---
+        let additionalProperty = [];
+        if (product?.weight) {
+            additionalProperty.push({
+                "@type": "PropertyValue",
+                "name": "Weight",
+                "value": `${product.weight} kg`
+            });
+        }
+        if (product?.stock !== undefined) {
+            additionalProperty.push({
+                "@type": "PropertyValue",
+                "name": "Stock",
+                "value": product.stock
+            });
+        }
+        if (product?.tags?.length > 0) {
+            additionalProperty.push({
+                "@type": "PropertyValue",
+                "name": "Tags",
+                "value": product.tags.map(tag => tag.name).join(', ')
+            });
+        }
+
+        // --- Category ---
+        let category = undefined;
+        if (product?.category?.name) {
+            category = {
+                "@type": "Thing",
+                "name": product.category.name
+            };
+        }
+
+        // --- Variants ---
+        let hasVariant = undefined;
+        if (product?.variants?.length > 0) {
+            hasVariant = product.variants.map(variant => ({
+                "@type": "Product",
+                "name": `${product.title} - ${variant.name}`,
+                "description": `${product.title} in ${variant.name}`,
+                "category": category,
+                "brand": {
+                    "@type": "Brand",
+                    "name": product?.brand?.name?.trim() || "Your Store"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "PKR",
+                    "price": price,
+                    "availability": product?.stock > 0
+                        ? "https://schema.org/InStock"
+                        : "https://schema.org/OutOfStock"
+                }
+            }));
+        }
+
+        const schemaData = {
             "@context": "https://schema.org/",
             "@type": "Product",
             "name": product?.title?.trim() || "Unnamed Product",
             "image": images.length ? images : ['/default-product-image.jpg'],
             "description": stripHtml(product?.description?.trim() || ""),
             "sku": product?._id || "",
+            "mpn": product?._id || "",
             "brand": {
                 "@type": "Brand",
-              "name": product?.brand?.name?.trim() || "Your Store"
+                "name": product?.brand?.name?.trim() || "Your Store"
             },
+            "category": category,
             "offers": {
                 "@type": "Offer",
                 "url": url,
@@ -61,11 +126,39 @@ export const getProductSchemaData = (product, currentPrice) => {
                 "itemCondition": "https://schema.org/NewCondition",
                 "availability": product?.stock > 0
                     ? "https://schema.org/InStock"
-                    : "https://schema.org/OutOfStock"
+                    : "https://schema.org/OutOfStock",
+                "seller": {
+                    "@type": "Organization",
+                    "name": "Etimad Mart"
+                }
             },
-            ...(aggregateRating ? { aggregateRating } : {}),
-            ...(reviews ? { review: reviews } : {})
+            "manufacturer": {
+                "@type": "Organization",
+                "name": product?.brand?.name?.trim() || "Your Store"
+            }
         };
+
+        // Add optional fields if they exist
+        if (aggregateRating) {
+            schemaData.aggregateRating = aggregateRating;
+        }
+        if (reviews && reviews.length > 0) {
+            schemaData.review = reviews;
+        }
+        if (additionalProperty.length > 0) {
+            schemaData.additionalProperty = additionalProperty;
+        }
+        if (hasVariant && hasVariant.length > 0) {
+            schemaData.hasVariant = hasVariant;
+        }
+        if (product?.longDescription) {
+            schemaData.longDescription = stripHtml(product.longDescription);
+        }
+        if (product?.metaDescription) {
+            schemaData.metaDescription = stripHtml(product.metaDescription);
+        }
+
+        return schemaData;
     } catch (error) {
         console.error("Error generating schema data:", error);
         return null;

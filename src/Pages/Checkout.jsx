@@ -430,12 +430,13 @@ const Checkout = () => {
                 required
               />
             </div>
-            <div>
+            <div className="flex gap-1 font-space text-primary ">
               <input
                 type="checkbox"
+                className="text-secondary"
                 checked={rememberMe}
                 onChange={e => setRememberMe(e.target.checked)}
-              /> Remember my info
+              /> Remember Me
             </div>
           </form>
         </motion.div>

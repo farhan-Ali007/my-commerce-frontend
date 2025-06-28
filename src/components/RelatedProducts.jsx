@@ -1,9 +1,8 @@
 import React from 'react';
 import ProductCard from '../components/cards/ProductCard';
-import Pagination from '../components/Pagination';
 import ProductCardSkeleton from './skeletons/ProductCardSkeleton';
 
-const RelatedProducts = ({ relatedProducts, currentPage, totalPages, onPageChange }) => {
+const RelatedProducts = ({ relatedProducts }) => {
     const products = relatedProducts || [];
     const loading = products.length === 0;
 
@@ -37,12 +36,6 @@ const RelatedProducts = ({ relatedProducts, currentPage, totalPages, onPageChang
                 </div>
             )}
 
-            {/* Pagination Component */}
-            {/* <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={onPageChange}
-            /> */}
         </div>
     );
 };

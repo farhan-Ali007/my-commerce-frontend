@@ -7,7 +7,7 @@ const NotFound = () => {
     <div className="flex flex-col items-center justify-center min-h-screen text-center bg-gray-100 px-4">
       {/* Animated 404 Text */}
       <motion.h1
-        className="text-8xl font-bold text-main animate-pulse"
+        className="text-8xl font-bold text-primary animate-pulse"
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -36,7 +36,7 @@ const NotFound = () => {
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="bg-main text-white px-6 py-2 rounded-full shadow-md"
+            className="bg-secondary text-primary px-6 py-2 rounded-full shadow-md"
           >
             Go Back Home
           </motion.button>

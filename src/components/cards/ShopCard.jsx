@@ -27,6 +27,7 @@ const ShopCard = ({ product }) => {
   const id = product._id;
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   const renderStars = (rating) => {
     const stars = [];
@@ -191,13 +192,19 @@ const ShopCard = ({ product }) => {
         <div className="relative w-full h-full">
           <motion.img
             className="absolute top-0 left-0 object-cover w-full h-full"
-            src={isHovered && images[1] ? images[1] : images[0]}
+            src={
+              imgLoaded
+                ? (isHovered && images[1] ? images[1] : images[0])
+                : '/loadingCard.png'
+            }
             alt={title}
             loading="lazy"
             width={180}
             height={180}
             decoding="async"
             whileHover={{ scale: 1.05 }}
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgLoaded(false)}
           />
         </div>
       </Link>

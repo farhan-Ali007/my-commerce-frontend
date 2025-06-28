@@ -17,6 +17,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     const off = salePrice && Math.floor(((price - salePrice) / price) * 100);
     const totalReviews = product?.reviews?.length;
     const [isHovered, setIsHovered] = useState(false);
+    const [imgLoaded, setImgLoaded] = useState(false);
 
     const imageWidth = 180;
     const imageHeight = 180;
@@ -187,7 +188,11 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 <div className="relative w-full h-full">
                     <motion.img
                         className="absolute top-0 left-0 object-cover w-full h-full"
-                        src={getOptimizedImageUrl(isHovered && images[1] ? images[1] : images[0])}
+                        src={
+                            imgLoaded
+                                ? getOptimizedImageUrl(isHovered && images[1] ? images[1] : images[0])
+                                : '/loadingCard.png'
+                        }
                         alt={title}
                         loading="lazy"
                         width={imageWidth}
@@ -195,6 +200,8 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                         decoding="async"
                         variants={imageVariants}
                         whileHover="hover"
+                        onLoad={() => setImgLoaded(true)}
+                        onError={() => setImgLoaded(false)}
                     />
                 </div>
             </Link>

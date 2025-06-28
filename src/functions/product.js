@@ -74,7 +74,10 @@ export const getProductBySlug = async (slug) => {
 export const createProductReview = async (productSlug, reviewerId, data) => {
     try {
         const response = await axios.post(`${BASE_URL}/review/create/${productSlug}/${reviewerId}`, data, {
-            withCredentials: true
+            withCredentials: true,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
         })
         return response?.data;
     } catch (error) {

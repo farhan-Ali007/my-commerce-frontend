@@ -2,9 +2,17 @@ import { createSlice } from '@reduxjs/toolkit';
 
 // Hydrate initial state from sessionStorage if available
 const sessionUser = sessionStorage.getItem('user');
+let parsedUser = null;
+if (sessionUser && sessionUser !== 'undefined') {
+    try {
+        parsedUser = JSON.parse(sessionUser);
+    } catch (e) {
+        parsedUser = null;
+    }
+}
 const initialState = {
-    user: sessionUser ? JSON.parse(sessionUser) : null,
-    isAuthenticated: !!sessionUser,
+    user: parsedUser,
+    isAuthenticated: !!parsedUser,
 };
 const authSlice = createSlice({
     name: 'auth',

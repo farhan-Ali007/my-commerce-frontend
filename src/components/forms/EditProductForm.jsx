@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IoAddCircle, IoTrash } from 'react-icons/io5';
 import ReactQuill from "react-quill";
 import 'react-quill/dist/quill.snow.css';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categories, subCategories, tags, brands }) => {
 
@@ -23,9 +25,17 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         stock: "",
         tags: [],
         variants: [{ name: "", values: [{ value: "", image: "", price: "" }] }],
+        specialOfferEnabled: false,
+        specialOfferPrice: "",
+        specialOfferStart: "",
+        specialOfferEnd: "",
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [freeShipping, setFreeShipping] = useState(false);
+    const [tempSpecialOfferStart, setTempSpecialOfferStart] = useState(null);
+    const [tempSpecialOfferEnd, setTempSpecialOfferEnd] = useState(null);
+    const [specialOfferStartSet, setSpecialOfferStartSet] = useState(false);
+    const [specialOfferEndSet, setSpecialOfferEndSet] = useState(false);
 
     useEffect(() => {
         if (defaultValues) {
@@ -48,6 +58,10 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                 brand: defaultValues.brand?.name || "",
                 category: defaultValues.category?._id || "",
                 subCategory: defaultValues.subCategory?._id || defaultValues.subCategory || "",
+                specialOfferEnabled: defaultValues.specialOfferEnabled || false,
+                specialOfferPrice: defaultValues.specialOfferPrice || "",
+                specialOfferStart: defaultValues.specialOfferStart || "",
+                specialOfferEnd: defaultValues.specialOfferEnd || "",
             });
 
             // Handle images (either URL or File object)
@@ -61,12 +75,20 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                 }
                 return null; // Handle other cases if necessary
             }));
+
+            setTempSpecialOfferStart(defaultValues.specialOfferStart ? new Date(defaultValues.specialOfferStart) : null);
+            setTempSpecialOfferEnd(defaultValues.specialOfferEnd ? new Date(defaultValues.specialOfferEnd) : null);
+            setSpecialOfferStartSet(!!defaultValues.specialOfferStart);
+            setSpecialOfferEndSet(!!defaultValues.specialOfferEnd);
         }
     }, [defaultValues]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleImageChange = (e) => {
@@ -176,7 +198,7 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
         submissionData.append("brand", formData.brand);
         submissionData.append("stock", formData.stock);
         submissionData.append("subCategory", formData.subCategory);
-        console.log("Submitting subcategory----------->", formData.subCategory);
+        // console.log("Submitting subcategory----------->", formData.subCategory);
         if (formData.slug) {
             submissionData.append("slug", formData.slug);
         }
@@ -194,6 +216,10 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
 
         // Add variants and their images
         if (JSON.stringify(formData.variants) !== JSON.stringify(defaultValues.variants)) {
+            // console.log("Variants have changed, processing update...");
+            // console.log("Current formData.variants:", formData.variants);
+            // console.log("Default values variants:", defaultValues.variants);
+            
             const variantsWithImages = formData.variants.map((variant, variantIndex) => {
                 const variantData = {
                     name: variant.name,
@@ -203,11 +229,22 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                             price: val.price, // Include price in the variant data
                         };
 
+                        // Handle variant images: preserve existing URLs, upload new files
                         if (val.image && val.image instanceof File) {
+                            // New file upload
+                            console.log(`Uploading new image for variant "${variant.name}" value "${val.value}":`, val.image.name);
                             submissionData.append(`variantImages`, val.image, `${variant.name}-${val.value}-${val.image.name}`);
-                            valueData.image = val.image.name;
-                        } else if (typeof val.image === 'string') {
+                            valueData.image = val.image.name; // This will be replaced by Cloudinary URL in backend
+                        } else if (typeof val.image === 'string' && val.image.startsWith('http')) {
+                            // Existing Cloudinary URL - preserve it
+                            console.log(`Preserving existing Cloudinary URL for variant "${variant.name}" value "${val.value}":`, val.image);
                             valueData.image = val.image;
+                        } else if (typeof val.image === 'string') {
+                            // Fallback for other string values
+                            console.log(`Using fallback string image for variant "${variant.name}" value "${val.value}":`, val.image);
+                            valueData.image = val.image;
+                        } else {
+                            console.log(`No image found for variant "${variant.name}" value "${val.value}"`);
                         }
 
                         return valueData;
@@ -216,7 +253,11 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
 
                 return variantData;
             });
+            
+            console.log("Final variants data being sent:", variantsWithImages);
             submissionData.append("variants", JSON.stringify(variantsWithImages));
+        } else {
+            console.log("No variant changes detected, skipping variant update");
         }
 
         // Add new images
@@ -232,6 +273,13 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
 
         // Add freeShipping value
         submissionData.append("freeShipping", freeShipping);
+
+        submissionData.append("specialOfferEnabled", formData.specialOfferEnabled);
+        if (formData.specialOfferEnabled) {
+            submissionData.append("specialOfferPrice", formData.specialOfferPrice);
+            if (formData.specialOfferStart) submissionData.append("specialOfferStart", formData.specialOfferStart);
+            if (formData.specialOfferEnd) submissionData.append("specialOfferEnd", formData.specialOfferEnd);
+        }
 
         // Debug: Log freeShipping and all FormData entries
         // console.log("[EditProductForm] freeShipping value:", freeShipping);
@@ -261,6 +309,10 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
             stock: "",
             tags: [],
             variants: [{ name: "", values: [{ value: "", image: "" }] }],
+            specialOfferEnabled: false,
+            specialOfferPrice: "",
+            specialOfferStart: "",
+            specialOfferEnd: "",
         });
 
         // Revoke image URLs to free memory
@@ -487,6 +539,97 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                 />
             </div>
 
+            {/* Special Offer Section */}
+            <div className="mb-6 p-4 rounded-lg bg-yellow-50 border border-yellow-200 shadow-sm">
+                <label className="flex items-center gap-2 mb-2 font-semibold text-yellow-700">
+                    <input
+                        type="checkbox"
+                        name="specialOfferEnabled"
+                        checked={formData.specialOfferEnabled}
+                        onChange={handleChange}
+                        className="accent-yellow-500 w-5 h-5"
+                    />
+                    Enable Special Offer
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                    <div>
+                        <label className="block text-yellow-800 font-medium mb-1">Special Offer Price</label>
+                        <input
+                            type="number"
+                            name="specialOfferPrice"
+                            value={formData.specialOfferPrice}
+                            onChange={handleChange}
+                            className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                            placeholder="e.g. 999"
+                            min="0"
+                            disabled={!formData.specialOfferEnabled}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-yellow-800 font-medium mb-1">Start Date & Time</label>
+                        <div className="flex items-center gap-2">
+                            <ReactDatePicker
+                                selected={tempSpecialOfferStart}
+                                onChange={date => {
+                                    setTempSpecialOfferStart(date);
+                                    setSpecialOfferStartSet(false);
+                                }}
+                                showTimeSelect
+                                timeIntervals={5}
+                                dateFormat="Pp"
+                                disabled={!formData.specialOfferEnabled}
+                                className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setFormData(prev => ({ ...prev, specialOfferStart: tempSpecialOfferStart ? tempSpecialOfferStart.toISOString() : "" }));
+                                    setSpecialOfferStartSet(!!tempSpecialOfferStart);
+                                }}
+                                disabled={!tempSpecialOfferStart || !formData.specialOfferEnabled}
+                                className="px-3 py-1 bg-yellow-500 text-white rounded"
+                            >
+                                Set
+                            </button>
+                            {specialOfferStartSet && (
+                                <span className="text-green-600 ml-1" title="Time set">✔</span>
+                            )}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-yellow-800 font-medium mb-1">End Date & Time</label>
+                        <div className="flex items-center gap-2">
+                            <ReactDatePicker
+                                selected={tempSpecialOfferEnd}
+                                onChange={date => {
+                                    setTempSpecialOfferEnd(date);
+                                    setSpecialOfferEndSet(false);
+                                }}
+                                showTimeSelect
+                                timeIntervals={5}
+                                dateFormat="Pp"
+                                disabled={!formData.specialOfferEnabled}
+                                className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setFormData(prev => ({ ...prev, specialOfferEnd: tempSpecialOfferEnd ? tempSpecialOfferEnd.toISOString() : "" }));
+                                    setSpecialOfferEndSet(!!tempSpecialOfferEnd);
+                                }}
+                                disabled={!tempSpecialOfferEnd || !formData.specialOfferEnabled}
+                                className="px-3 py-1 bg-yellow-500 text-white rounded"
+                            >
+                                Set
+                            </button>
+                            {specialOfferEndSet && (
+                                <span className="text-green-600 ml-1" title="Time set">✔</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Variants */}
             <div className="mb-6">
                 <label className="block font-semibold text-lg mb-4">Product Variants</label>
@@ -541,12 +684,24 @@ const EditProductForm = ({ buttonText, onSubmit, formTitle, defaultValues, categ
                                         className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
                                     />
                                     {value.image && (
-                                        <div className="mt-3">
+                                        <div className="mt-3 relative inline-block">
                                             <img
                                                 src={value.image instanceof File ? URL.createObjectURL(value.image) : value.image}
                                                 alt="Variant Preview"
                                                 className="w-24 h-24 object-cover rounded-md border"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const updatedVariants = [...formData.variants];
+                                                    updatedVariants[variantIndex].values[valueIndex].image = "";
+                                                    setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+                                                }}
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                                title="Remove image"
+                                            >
+                                                ×
+                                            </button>
                                         </div>
                                     )}
                                 </div>
