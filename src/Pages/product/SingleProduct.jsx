@@ -76,8 +76,7 @@ const SingleProduct = () => {
   const currentCartItems = useSelector((state) => state.cart.products);
 
   // State management
-  const [product, setProduct] = useState({});
-//   console.log("Product in single product page------>", product)
+  const [product, setProduct] = useState(null);
   const [originalPrice, setOriginalPrice] = useState(0);
   const [productVariants, setProductVariants] = useState([]);
   const [totalPages, setTotalPages] = useState(null);
@@ -463,7 +462,14 @@ const SingleProduct = () => {
   // Variant and cart handlers
   const handleVariantChange = useCallback((variantName, value) => {
     setSelectedVariants((prev) => {
-      // Only allow one value per variant
+      // If the value is already selected, deselect it
+      if (prev[variantName] && prev[variantName][0] === value) {
+        return {
+          ...prev,
+          [variantName]: [],
+        };
+      }
+      // Otherwise, select the new value (only one per variant)
       return {
         ...prev,
         [variantName]: [value],
@@ -655,16 +661,14 @@ const SingleProduct = () => {
     window.open(url, "_blank");
   }, [product, currentPrice]);
 
-  // Render
-  if (loading) return <SingleProductSkeleton />;
-  if (!product)
-    return <div className="py-20 text-center">Product not found!</div>;
-
   // Memoize schema data to prevent duplicate generation
   const schemaData = useMemo(() => {
     return getProductSchemaData(product, currentPrice);
   }, [product, currentPrice]);
 
+  // Now do early returns
+  if (loading) return <SingleProductSkeleton />;
+  if (!product) return <div className="py-20 text-center">Product not found!</div>;
   if (!schemaData) return null;
 
   return (
@@ -776,45 +780,12 @@ const SingleProduct = () => {
                             {offerCountdown}
                           </span>
                         </div>
-                        {product?.freeShipping && (
-                          <span className="flex items-center justify-center w-full  bg-green-100 border border-green-200 shadow-sm px-4 py-2 gap-2 font-semibold text-green-700 text-sm">
-                            <svg
-                              className="w-5 h-5 text-green-500"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M3 13V7a2 2 0 012-2h11a2 2 0 012 2v6m-1 4h2a2 2 0 002-2v-5a2 2 0 00-2-2h-2m-2 7a2 2 0 11-4 0 2 2 0 014 0zm-8 0a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            Free Delivery
-                          </span>
-                        )}
                       </div>
                     </div>
                   );
                 }
               }
               
-              // Show free shipping if no active special offer and product has free shipping
-              if (product?.freeShipping) {
-                return (
-                  <div className="w-full flex justify-center mt-3 mb-1">
-                    <span className="flex items-center justify-center w-full  bg-green-100 border border-green-200 shadow-sm px-4 py-2 gap-2 font-semibold text-green-700 text-sm">
-                      <svg
-                        className="w-5 h-5 text-green-500"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M3 13V7a2 2 0 012-2h11a2 2 0 012 2v6m-1 4h2a2 2 0 002-2v-5a2 2 0 00-2-2h-2m-2 7a2 2 0 11-4 0 2 2 0 014 0zm-8 0a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      Free Delivery
-                    </span>
-                  </div>
-                );
-              }
               return null;
             })()}
           </div>
@@ -873,32 +844,6 @@ const SingleProduct = () => {
                     width="64"
                     height="64"
                   />
-                  {/* Magnifying glass icon for main product images */}
-                  <div 
-                    className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center cursor-pointer group rounded"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent thumbnail selection
-                      setModalImage(image);
-                      setShowImageModal(true);
-                    }}
-                    title="Click to view full size"
-                  >
-                    <div className="bg-black bg-opacity-50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                        />
-                      </svg>
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>
@@ -961,7 +906,7 @@ const SingleProduct = () => {
                   <svg
                     key="half-star"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4 text-yellow-400"
+                    className="w-3 h-3 text-yellow-400"
                     viewBox="0 0 20 20"
                   >
                     <defs>
@@ -995,11 +940,11 @@ const SingleProduct = () => {
               }
               return stars;
             })()}
-            <span className="ml-1 text-base font-semibold text-gray-700">
+            <span className="ml-1 text-sm font-semibold text-gray-700">
               {(product?.averageRating || 0).toFixed(1)}
             </span>
-            <span className="text-base font-bold text-gray-400">|</span>
-            <span className="text-base font-bold text-gray-700">
+            <span className="text-sm font-bold text-gray-400">|</span>
+            <span className="text-sm font-bold text-gray-700">
               {product?.reviews?.length || 0} Reviews
             </span>
           </motion.div>
@@ -1035,8 +980,8 @@ const SingleProduct = () => {
           >
             {showFullDescription ? "See less" : "See more"}
           </motion.button>
-          <motion.p
-            className="mb-3 text-xl font-semibold md:text-2xl font-poppins"
+          <motion.div
+            className="mb-3 flex flex-wrap items-center gap-3 text-xl font-semibold md:text-2xl font-poppins"
             variants={itemVariants}
           >
             {product.salePrice && currentPrice === originalPrice ? (
@@ -1049,7 +994,22 @@ const SingleProduct = () => {
             ) : (
               <span>Rs. {currentPrice}</span>
             )}
-          </motion.p>
+
+            {product?.freeShipping && (
+              <span className="flex items-center gap-1 px-3 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs md:text-sm font-semibold">
+                <svg
+                  className="w-4 h-4 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M3 13V7a2 2 0 012-2h11a2 2 0 012 2v6m-1 4h2a2 2 0 002-2v-5a2 2 0 00-2-2h-2m-2 7a2 2 0 11-4 0 2 2 0 014 0zm-8 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Free Shipping
+              </span>
+            )}
+          </motion.div>
 
           {/* Quantity Selector */}
           {product?.stock && (
@@ -1161,34 +1121,6 @@ const SingleProduct = () => {
                                 </svg>
                               </div>
                             )}
-                            {/* Magnifying glass icon for full preview */}
-                            <div 
-                              className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center cursor-pointer group"
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent variant selection
-                                if (value.image) {
-                                  setModalImage(value.image);
-                                  setShowImageModal(true);
-                                }
-                              }}
-                              title="Click to view full size"
-                            >
-                              <div className="bg-black bg-opacity-50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <svg
-                                  className="w-3 h-3 text-white"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                                  />
-                                </svg>
-                              </div>
-                            </div>
                           </div>
                           <span className="mt-1 text-sm text-primary capitalize font-poppins">
                             {value.value}
@@ -1244,7 +1176,7 @@ const SingleProduct = () => {
                 whileTap={{ scale: 0.98 }}
                 href="#"
               >
-                Cash ON Delivery
+                Cash on Delivery
               </motion.a>
               <motion.a
                 onClick={handleAddToCart}
@@ -1312,44 +1244,6 @@ const SingleProduct = () => {
               alt="Variant Preview"
               className="object-contain w-full h-full"
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Full Page Image Modal */}
-      <AnimatePresence>
-        {showImageModal && (
-          <motion.div
-            className="fixed inset-0 z-[99999] bg-black bg-opacity-90 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={() => setShowImageModal(false)}
-          >
-            <motion.div
-              className="relative max-w-4xl max-h-full"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setShowImageModal(false)}
-                className="absolute -top-4 -right-4 bg-white text-black rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold hover:bg-gray-200 transition-colors z-10"
-              >
-                ×
-              </button>
-              
-              {/* Image */}
-              <img
-                src={modalImage}
-                alt="Full Preview"
-                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-              />
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

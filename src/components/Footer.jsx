@@ -276,13 +276,15 @@ const Footer = () => {
                             >
                                 Contact Information
                             </motion.h3>
-                            <div className="text-white space-y-4">
+                            <div className="text-white space-y-4 md:items-start">
                                 <motion.div 
-                                  className="flex justify-center items-center md:justify-start space-x-2"
+                                  className="flex justify-center md:justify-start"
                                   whileHover={{ x: 5 }}
                                 >
-                                    <MdLocationOn className='text-secondary' size={28} />
-                                    <span className='text-sm'>Street no.2, Iqbal garden, Canal road Rahim Yar Khan</span>
+                                    <span className="flex items-center space-x-2">
+                                        <MdLocationOn className='text-secondary' size={32} />
+                                        <span className='text-xs md:text-sm'>Street no.2, Iqbal garden, Canal road Rahim Yar Khan</span>
+                                    </span>
                                 </motion.div>
                                 <motion.div 
                                   className="flex justify-center md:justify-start items-center space-x-2"
