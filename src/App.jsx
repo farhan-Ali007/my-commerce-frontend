@@ -4,12 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import { getUserAPI } from "./functions/auth";
 import { setUser } from "./store/authSlice";
 import NotFound from "./Pages/NotFound";
 import DynamicPage from './Pages/DynamicPage';
+import MetaPixelTracker from './components/MetaPixelTracker';
+import { useFacebookPixel } from "./hooks/useFacebookPixel";
 
 const Home = lazy(() => import("./Pages/Home"));
 const Signup = lazy(() => import("./Pages/Signup"));
@@ -52,6 +53,7 @@ const App = () => {
     fetchUser();
   }, [dispatch, navigateTo]);
 
+  useFacebookPixel();
 
   if (loading) {
     return (
@@ -66,6 +68,7 @@ const App = () => {
 
   return (
     <>
+      <MetaPixelTracker />
       <div className="flex flex-col">
         {/* Conditionally render Navbar */}
         {!hiddenNavbarRoutes.includes(location.pathname) && <Navbar />}

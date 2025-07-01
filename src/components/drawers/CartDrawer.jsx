@@ -27,7 +27,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
             onClose={() => setIsDrawerOpen(false)}
             direction="right"
             size={400}
-            className="relative !z-[1200] max-w-56 md:max-w-64"
+            className="relative !z-[1200] max-w-56 md:max-w-80"
         >
             <motion.div
                 initial={{ opacity: 0, x: 50 }}
@@ -36,7 +36,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="flex flex-col h-full p-4"
             >
-                <h2 className="text-2xl font-extrabold text-main mb-4 text-center">Your Cart</h2>
+                <h2 className="text-2xl font-roboto font-extrabold text-main mb-4 text-center">Your Cart</h2>
                 <div className="flex-1 overflow-y-auto">
                     {cartItems.length > 0 ? (
                         cartItems.map((item, index) => (
@@ -44,7 +44,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
                                 <img
                                     src={item?.image || "https://via.placeholder.com/500"}
                                     alt={truncateTitle(item?.title, 30)}
-                                    className="w-20 h-20 object-cover aspect-square"
+                                    className="w-24 h-24 object-cover aspect-square"
                                 />
                                 <div className="w-full flex flex-col">
                                     <h3 className="text-sm text-main font-semibold">
@@ -66,7 +66,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
                 </div>
                 <Link
                     to="/cart"
-                    className="bg-main absolutet bottom-0 no-underline opacity-70 text-white font-bold py-2 my-1 px-4 text-center hover:opacity-90"
+                    className="bg-primary/80 absolutet bottom-0 no-underline text-secondary font-bold py-2 my-1 px-4 text-center hover:bg-primary"
                     onClick={() => setIsDrawerOpen(false)}
                 >
                     Go to Cart

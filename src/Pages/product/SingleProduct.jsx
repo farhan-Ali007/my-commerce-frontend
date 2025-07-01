@@ -672,7 +672,7 @@ const SingleProduct = () => {
   if (!schemaData) return null;
 
   return (
-    <div className="px-4 pt-1 max-w-screen md:px-5 md:pt-3">
+    <div className="px-4 pt-1 max-w-screen md:px-12 md:pt-3">
       <Helmet>
         <title>
           {product.title
@@ -865,7 +865,7 @@ const SingleProduct = () => {
 
         {/* Product Details */}
         <motion.div
-          className="w-full max-w-screen-xl py-0 ml-0 md:w-1/2 md:ml-5 md:py-4"
+          className="w-full max-w-screen-xl py-0 ml-0 md:w-1/2 md:ml-2 md:py-4"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
