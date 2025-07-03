@@ -10,7 +10,7 @@ import { setUser } from "./store/authSlice";
 import NotFound from "./Pages/NotFound";
 import DynamicPage from './Pages/DynamicPage';
 import MetaPixelTracker from './components/MetaPixelTracker';
-import { useFacebookPixel } from "./hooks/useFacebookPixel";
+import useFacebookPixel from "./hooks/useFacebookPixel";
 
 const Home = lazy(() => import("./Pages/Home"));
 const Signup = lazy(() => import("./Pages/Signup"));
@@ -53,7 +53,7 @@ const App = () => {
     fetchUser();
   }, [dispatch, navigateTo]);
 
-  useFacebookPixel();
+
 
   if (loading) {
     return (

@@ -7,6 +7,7 @@ import { truncateTitle } from "../helpers/truncateTitle";
 import { placeOrder } from "../functions/order";
 import { motion } from "framer-motion";
 import { clearCartRedux } from "../store/cartSlice";
+import useFacebookPixel from '../hooks/useFacebookPixel';
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -15,12 +16,10 @@ const Checkout = () => {
   const cartState = useSelector((state) => state.cart);
   const userId = user?._id;
   const [cartItems, setCartItems] = useState(null);
-  console.log("Cart items in checkout", cartItems);
+  // console.log("Cart items in checkout", cartItems);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    province: "",
+    fullName: "",
     city: "",
     streetAddress: "",
     apartment: "",
@@ -29,6 +28,7 @@ const Checkout = () => {
     additionalInstructions: "",
   });
   const [rememberMe, setRememberMe] = useState(false);
+  const { track } = useFacebookPixel();
 
   const calculateGuestDeliveryCharges = (products) => {
     if (!products || !Array.isArray(products) || products.length === 0)
@@ -113,16 +113,8 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (!formData.firstName) {
-      toast.error("First Name is required");
-      return;
-    }
-    if (!formData.lastName) {
-      toast.error("Last Name is required");
-      return;
-    }
-    if (!formData.province) {
-      toast.error("Province is required");
+    if (!formData.fullName) {
+      toast.error("Full Name is required");
       return;
     }
     if (!formData.city) {
@@ -172,6 +164,13 @@ const Checkout = () => {
       setLoading(true);
       const response = await placeOrder(orderData);
 
+      // Meta Pixel Purchase event
+      track('Purchase', {
+        value: orderData.totalPrice,
+        currency: 'PKR',
+        content_ids: orderData.cartSummary.map(item => item.productId)
+      });
+
       // Clear cart after successful order
       if (userId) {
         await clearCart(userId);
@@ -181,9 +180,7 @@ const Checkout = () => {
       }
       setCartItems(null);
       setFormData({
-        firstName: "",
-        lastName: "",
-        province: "",
+        fullName: "",
         city: "",
         streetAddress: "",
         apartment: "",
@@ -332,45 +329,14 @@ const Checkout = () => {
             <div>
               <input
                 type="text"
-                name="firstName"
-                autoComplete="given-name"
-                value={formData.firstName}
+                name="fullName"
+                autoComplete="name"
+                value={formData.fullName}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
-                placeholder="First Name *"
+                placeholder="Full Name *"
                 required
               />
-            </div>
-            <div>
-              <input
-                type="text"
-                name="lastName"
-                autoComplete="family-name"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                placeholder="Last Name *"
-                required
-              />
-            </div>
-            <div>
-              <select
-                name="province"
-                autoComplete="address-level1"
-                value={formData.province}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value="" disabled hidden>
-                  Select Province/State * (صوبہ/ریاست )
-                </option>
-                <option value="Punjab">Punjab</option>
-                <option value="Sindh">Sindh</option>
-                <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa</option>
-                <option value="Balochistan">Balochistan</option>
-                <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
-              </select>
             </div>
             <div>
               <input

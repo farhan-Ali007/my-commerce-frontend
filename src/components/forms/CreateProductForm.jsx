@@ -6,6 +6,13 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import toast from 'react-hot-toast';
+import Quill from 'quill';
+import QuillBetterTable from 'quill-better-table';
+import 'quill-better-table/dist/quill-better-table.css';
+
+Quill.register({
+  'modules/better-table': QuillBetterTable
+}, true);
 
 const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categories, subCategories, tags, brands }, ref) => {
     const [formData, setFormData] = useState({
@@ -271,6 +278,29 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         setFormData((prev) => ({ ...prev, longDescription: value }));
     };
 
+    const longDescModules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['table'],
+            ['clean']
+        ],
+        'better-table': {
+            operationMenu: {
+                items: {
+                    unmergeCells: {
+                        text: 'Unmerge cells',
+                    },
+                },
+            },
+        },
+        keyboard: {
+            bindings: QuillBetterTable.keyboardBindings,
+        },
+    };
+
     return (
         <form onSubmit={handleSubmit} className="max-w-[600px] md:w-[800px] my-4 mx-auto p-6 bg-white shadow-none md:shadow-md rounded-lg">
             <h2 className="text-2xl text-center font-semibold mb-4 text-main">{formTitle}</h2>
@@ -332,15 +362,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                         value={formData.longDescription}
                         onChange={handleLongDescriptionChange}
                         className="flex-1 h-[16rem] md:h-[18rem]"
-                        modules={{
-                            toolbar: [
-                                [{ 'header': [1, 2, 3, false] }],
-                                ['bold', 'italic', 'underline', 'strike'],
-                                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                                ['link'],
-                                ['clean']
-                            ],
-                        }}
+                        modules={longDescModules}
                         onPaste={handlePaste}
                     />
                 </div>

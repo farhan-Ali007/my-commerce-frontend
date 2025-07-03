@@ -176,7 +176,7 @@ const AllOrders = () => {
                     <td className="px-4 py-2 border">{order._id}</td>
                     <td className="px-4 py-2 border">
                       {order?.orderedBy?.username ||
-                        `${order?.shippingAddress?.firstName} ${order?.shippingAddress?.lastName}`}
+                        `${order?.shippingAddress?.fullName}`}
                     </td>
                     <td className="px-4 py-2 border">
                       <select

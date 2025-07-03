@@ -25,6 +25,7 @@ import { getProductBySlug, getRelatedProducts } from "../../functions/product";
 import { getProductSchemaData } from "../../helpers/getProductSchema";
 import { addToCart } from "../../store/cartSlice";
 import { addItemToCart } from "../../functions/cart";
+import useFacebookPixel from '../../hooks/useFacebookPixel';
 
 const LazyRelatedProducts = lazy(() =>
   import("../../components/RelatedProducts")
@@ -42,13 +43,11 @@ function stripHtml(html) {
     .trim();
 }
 
-function getTotalVariantPrice(product, selectedVariants) {
+const getTotalVariantPrice = (product, selectedVariants) => {
   let total = 0;
   let hasVariantPrice = false;
 
-  for (const [variantName, selectedValues] of Object.entries(
-    selectedVariants
-  )) {
+  for (const [variantName, selectedValues] of Object.entries(selectedVariants)) {
     if (selectedValues && selectedValues.length > 0) {
       const variant = product.variants?.find((v) => v.name === variantName);
       if (variant) {
@@ -65,7 +64,7 @@ function getTotalVariantPrice(product, selectedVariants) {
 
   // If at least one variant has a price, return the sum, otherwise use product base price
   return hasVariantPrice ? total : product.salePrice || product.price;
-}
+};
 
 const SingleProduct = () => {
   const dispatch = useDispatch();
@@ -74,9 +73,11 @@ const SingleProduct = () => {
   const { user } = useSelector((state) => state.auth);
   const userId = user?._id;
   const currentCartItems = useSelector((state) => state.cart.products);
+  const { track } = useFacebookPixel();
 
   // State management
   const [product, setProduct] = useState(null);
+  // console.log("product---->", product)
   const [originalPrice, setOriginalPrice] = useState(0);
   const [productVariants, setProductVariants] = useState([]);
   const [totalPages, setTotalPages] = useState(null);
@@ -100,6 +101,17 @@ const SingleProduct = () => {
   const thumbnailRef = useRef(null);
   const [offerCountdown, setOfferCountdown] = useState("");
 
+
+  useEffect(() => {
+    if (product) {
+      track('ViewContent', {
+        content_ids: [product._id],
+        content_name: product.title,
+        value: product.salePrice ? product.salePrice : product.price,
+        currency: 'PKR'
+      });
+    }
+  }, [product]);
   const currentPrice = useMemo(() => {
     if (!product) return 0;
 
@@ -490,76 +502,58 @@ const SingleProduct = () => {
   }, [selectedVariants]);
 
   const handleAddToCart = useCallback(async () => {
-    // Add validation here if certain variants are required before adding to cart
+    let cartItemsToAdd = [];
 
-    const variantsForBackend = prepareVariantsForBackend();
-
-    // Determine the image for the cart item. Use the image of the first selected variant value found across any selected variant,
-    // or the first main product image if no variant image is found.
-    let cartItemImage = product?.images?.[0];
-
-    outerLoop: for (const [variantName, selectedValues] of Object.entries(
-      selectedVariants
-    )) {
-      if (selectedValues && selectedValues.length > 0) {
-        const variant = product.variants?.find((v) => v.name === variantName);
-        if (variant) {
-          for (const selectedValue of selectedValues) {
-            const variantValue = variant.values?.find(
-              (val) => val.value === selectedValue
-            );
-            if (variantValue?.image) {
-              cartItemImage = variantValue.image;
-              break outerLoop; // Use the first variant image found and stop
-            }
+    // Handle variant products
+    for (const [variantName, selectedValues] of Object.entries(selectedVariants)) {
+      const variant = product.variants?.find((v) => v.name === variantName);
+      if (variant) {
+        for (const value of selectedValues) {
+          const variantValue = variant.values?.find((v) => v.value === value);
+          if (variantValue) {
+            const cartItem = {
+              productId: product?._id,
+              title: `${product?.title} - ${variantName}: ${value}`,
+              price: variantValue.price ?? product.salePrice ?? product.price,
+              image: variantValue.image || product?.images?.[0],
+              count: selectedQuantity, // Use selectedQuantity for both cases
+              selectedVariants: [{ name: variantName, values: [value] }],
+              freeShipping: product?.freeShipping,
+              deliveryCharges: product?.deliveryCharges,
+            };
+            cartItemsToAdd.push(cartItem);
           }
         }
       }
     }
 
-    const cartItem = {
-      productId: product?._id,
-      title: product?.title,
-      price: getTotalVariantPrice(product, selectedVariants),
-      image: cartItemImage, // Use the determined cart item image
-      count: selectedQuantity,
-      selectedVariants: variantsForBackend, // Pass the array of {name, values} objects
-      freeShipping: product?.freeShipping,
-      deliveryCharges: product?.deliveryCharges,
-    };
-
-    try {
-      // For logged-in users, call API first, then update Redux
-      if (userId) {
-        const cartPayload = {
-          products: [cartItem],
-          deliveryCharges: product?.freeShipping
-            ? 0
-            : product?.deliveryCharges || 200,
-        };
-        await addItemToCart(userId, cartPayload);
-        // Only add to Redux after successful API call
-        dispatch(addToCart(cartItem));
-        toast.success(`${product?.title} added to cart!`);
-        setIsDrawerOpen(true);
-      } else {
-        // For guest users, just add to Redux
-        dispatch(addToCart(cartItem));
-        toast.success(`${product?.title} added to cart!`);
-        setIsDrawerOpen(true);
-      }
-    } catch (error) {
-      toast.error("Failed to add the product to the cart. Please try again.");
-      console.error("Error adding item to cart:", error);
+    // If no variants or no variant selected, add the base product
+    if (cartItemsToAdd.length === 0) {
+      cartItemsToAdd.push({
+        productId: product?._id,
+        title: product?.title,
+        price: product.salePrice ?? product.price,
+        image: product?.images?.[0],
+        count: selectedQuantity, // Use selectedQuantity
+        selectedVariants: [],
+        freeShipping: product?.freeShipping,
+        deliveryCharges: product?.deliveryCharges,
+      });
     }
-  }, [
-    prepareVariantsForBackend,
-    selectedVariants,
-    product,
-    selectedQuantity,
-    dispatch,
-    userId,
-  ]);
+
+    cartItemsToAdd.forEach(cartItem => {
+      dispatch(addToCart(cartItem));
+    });
+
+    toast.success(`${cartItemsToAdd.length} item(s) added to cart!`);
+    setIsDrawerOpen(true);
+    track('AddToCart', {
+      content_ids: [product._id],
+      content_name: product.title,
+      value: product.salePrice ? product.salePrice : product.price,
+      currency: 'PKR'
+    });
+  }, [selectedVariants, product, dispatch, setIsDrawerOpen, selectedQuantity]);
 
   const handleByNow = useCallback(async () => {
     // Add validation here if certain variants are required before proceeding
@@ -611,11 +605,25 @@ const SingleProduct = () => {
         await addItemToCart(userId, cartPayload);
         // Only add to Redux after successful API call
         dispatch(addToCart(cartItem));
+        // Meta Pixel InitiateCheckout event for COD
+        track('InitiateCheckout', {
+          content_ids: [product._id],
+          content_name: product.title,
+          value: product.salePrice ? product.salePrice : product.price,
+          currency: 'PKR'
+        });
         toast.success("Proceeding to checkout...");
         navigateTo("/cart/checkout");
       } else {
         // For guest users, just add to Redux
         dispatch(addToCart(cartItem));
+        // Meta Pixel InitiateCheckout event for COD
+        track('InitiateCheckout', {
+          content_ids: [product._id],
+          content_name: product.title,
+          value: product.salePrice ? product.salePrice : product.price,
+          currency: 'PKR'
+        });
         toast.success("Proceeding to checkout...");
         navigateTo("/cart/checkout");
       }
@@ -631,6 +639,7 @@ const SingleProduct = () => {
     dispatch,
     userId,
     navigateTo,
+    track,
   ]);
 
   const handleQuantityChange = useCallback(
@@ -651,15 +660,23 @@ const SingleProduct = () => {
   const handleWhatsAppOrder = useCallback(() => {
     const phoneNumber = "923071111832";
     const productLink = window.location.href;
-    const imageLink = product?.image;
+    const imageLink = product?.images?.[0];
 
-    const message = `*🛒 New Order Request*\n\n*Product:* ${product?.title}\n*Price:* Rs ${currentPrice}\n*Image:* ${imageLink}\n*View Product:* ${productLink}\n\nThank you!`;
+    // Format selected variants
+    let variantsText = '';
+    if (productVariants && Object.keys(selectedVariants).length > 0) {
+      variantsText = Object.entries(selectedVariants)
+        .filter(([_, values]) => values && values.length > 0)
+        .map(([name, values]) => `*${name}:* ${values.join(', ')}`)
+        .join('\n');
+      if (variantsText) variantsText = `\n*Selected Variants:*\n${variantsText}`;
+    }
 
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-      message
-    )}`;
+    const message = `*🛒 New Order Request*\n\n*Product:* ${product?.title}\n*Price:* Rs ${currentPrice}\n*Image:* ${imageLink}\n*View Product:* ${productLink}${variantsText}\n\nThank you!`;
+
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
-  }, [product, currentPrice]);
+  }, [product, currentPrice, selectedVariants, productVariants]);
 
   // Memoize schema data to prevent duplicate generation
   const schemaData = useMemo(() => {
@@ -691,7 +708,7 @@ const SingleProduct = () => {
         />
         <meta
           property="og:image"
-          content={selectedImage || product?.images?.[0] || "default-image.jpg"}
+          content={product?.images?.[0] || selectedImage || "default-image.jpg"}
         />
         <meta property="og:url" content={window.location.href} />
         <meta name="twitter:card" content="summary_large_image" />
@@ -702,13 +719,13 @@ const SingleProduct = () => {
         />
         <meta
           name="twitter:image"
-          content={selectedImage || product?.images?.[0] || "default-image.jpg"}
+          content={product?.images?.[0] || selectedImage || "default-image.jpg"}
         />
         <link rel="canonical" href={`https://yourstore.com/products/${slug}`} />
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
 
-      <div className="flex flex-col gap-10 md:flex-row">
+      <div className="flex flex-col gap-0 md:flex-row">
         {/* Product Images */}
         <div className="flex flex-col w-full md:w-1/2 md:flex-row">
           {/* Main Image */}
@@ -1059,7 +1076,7 @@ const SingleProduct = () => {
                   className="gap-2 mb-3 "
                   variants={itemVariants}
                 >
-                  <h3 className="font-semibold capitalize text-md text-primary font-poppins">
+                  <h3 className="font-semibold capitalize text-md text-secondary font-space">
                     {variant.name}
                   </h3>
                   <div className="flex flex-wrap items-center gap-3">
@@ -1259,7 +1276,7 @@ const SingleProduct = () => {
               whileTap={{ scale: 0.98 }}
               href="#"
             >
-              Cash ON Delivery
+              Cash On Delivery
             </motion.a>
             <motion.a
               onClick={handleAddToCart}

@@ -8,6 +8,7 @@ import { truncateTitle } from "../../helpers/truncateTitle";
 import { addToCart } from "../../store/cartSlice";
 import { addItemToCart } from "../../functions/cart";
 import { AiOutlineLoading } from "react-icons/ai";
+import useFacebookPixel from '../../hooks/useFacebookPixel';
 
 const ShopCard = ({ product }) => {
   const dispatch = useDispatch();
@@ -28,6 +29,7 @@ const ShopCard = ({ product }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const { track } = useFacebookPixel();
 
   const renderStars = (rating) => {
     const stars = [];
@@ -120,6 +122,13 @@ const ShopCard = ({ product }) => {
       }
       setLoading(false);
       toast.success("Item added to cart.");
+      // Meta Pixel AddToCart event
+      track('AddToCart', {
+        content_ids: [product._id],
+        content_name: product.title,
+        value: product.salePrice ? product.salePrice : product.price,
+        currency: 'PKR'
+      });
     } catch (error) {
       setLoading(false);
       toast.error("Failed to add the product to the cart. Please try again.");
@@ -165,6 +174,13 @@ const ShopCard = ({ product }) => {
           await addItemToCart(userId, cartPayload);
         }
         setLoading(false);
+        // Meta Pixel InitiateCheckout event
+        track('InitiateCheckout', {
+          content_ids: [product._id],
+          content_name: product.title,
+          value: product.salePrice ? product.salePrice : product.price,
+          currency: 'PKR'
+        });
         navigateTo("/cart/checkout");
         toast.success("Proceeding to checkout!");
       }, 0);
@@ -172,7 +188,7 @@ const ShopCard = ({ product }) => {
       toast.error("Failed to proceed to checkout. Please try again.");
       console.error("Error during Buy Now:", error);
     }
-  }, [product, dispatch, userId, navigateTo]);
+  }, [product, dispatch, userId, navigateTo, track]);
 
   return (
     <motion.div

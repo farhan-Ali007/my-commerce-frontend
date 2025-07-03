@@ -7,6 +7,7 @@ import { addToCart } from '../../store/cartSlice';
 import { toast } from 'react-hot-toast'
 import { addItemToCart, getMyCart } from '../../functions/cart'
 import { motion, AnimatePresence } from "framer-motion";
+import useFacebookPixel from '../../hooks/useFacebookPixel';
 
 const ProductCard = ({ product, backendCartItems = [] }) => {
     const dispatch = useDispatch();
@@ -18,6 +19,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     const totalReviews = product?.reviews?.length;
     const [isHovered, setIsHovered] = useState(false);
     const [imgLoaded, setImgLoaded] = useState(false);
+    const { track } = useFacebookPixel();
 
     const imageWidth = 180;
     const imageHeight = 180;
@@ -39,11 +41,18 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
         try {
             dispatch(addToCart(cartItem));
             toast.success("Product added to cart!");
+            // Meta Pixel AddToCart event
+            track('AddToCart', {
+                content_ids: [product._id],
+                content_name: product.title,
+                value: product.salePrice ? product.salePrice : product.price,
+                currency: 'PKR'
+            });
         } catch (error) {
             toast.error("Failed to add the product to the cart. Please try again.");
             console.error("Error adding item to cart:", error);
         }
-    }, [product, userId, navigateTo, dispatch]);
+    }, [product, userId, navigateTo, dispatch, track]);
 
     const handleByNow = useCallback(async () => {
         const variantsForBackend = [];
@@ -78,13 +87,20 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 products: updatedCartItems
             };
             await addItemToCart(userId, cartPayload);
+            // Meta Pixel InitiateCheckout event
+            track('InitiateCheckout', {
+                content_ids: [product._id],
+                content_name: product.title,
+                value: product.salePrice ? product.salePrice : product.price,
+                currency: 'PKR'
+            });
             navigateTo("/cart/checkout");
             toast.success("Proceeding to checkout!");
         } catch (error) {
             toast.error("Failed to proceed to checkout. Please try again.");
             console.error("Error during Buy Now:", error);
         }
-    }, [product, dispatch, userId, navigateTo, backendCartItems]);
+    }, [product, dispatch, userId, navigateTo, backendCartItems, track]);
 
     const cardVariants = {
         hidden: { opacity: 0, y: 20 },

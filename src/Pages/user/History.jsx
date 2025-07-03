@@ -157,7 +157,7 @@ const History = () => {
                       <tr>
                         <td className="border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-700">Ordered By</td>
                         <td className="border-b border-gray-200 px-4 py-2 text-sm text-gray-800">
-                          {order?.orderedBy?.username || `${order?.shippingAddress?.firstName} ${order?.shippingAddress?.lastName}`}
+                          {order?.orderedBy?.username || order?.shippingAddress?.fullName}
                         </td>
 
                       </tr>
