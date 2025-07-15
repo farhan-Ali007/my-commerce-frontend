@@ -8,6 +8,7 @@ import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { FcViewDetails } from "react-icons/fc";
 import { IoIosPerson } from "react-icons/io";
 import { GrStatusGoodSmall } from "react-icons/gr";
+import SimpleBar from 'simplebar-react';
 
 const NewOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -79,8 +80,17 @@ const NewOrders = () => {
             ) : filteredOrders.length === 0 ? (
                 <p>No orders available.</p>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full border-collapse border-black table-auto border-1">
+                <SimpleBar
+                    forceVisible="x"
+                    autoHide={false}
+                    style={{
+                        maxWidth: '100%',
+                        height: '320px', // or your preferred height
+                        overflowY: 'auto',
+                        overflowX: 'auto',
+                    }}
+                >
+                    <table className="min-w-[2000px] border-collapse border-black table-auto border-1">
                         <thead>
                             <tr>
                                 <th className="px-6 py-2 border">
@@ -122,6 +132,9 @@ const NewOrders = () => {
                                         <span>Recipient ph.No</span>
                                     </div>
                                 </th>
+                                <th className="px-6 py-2 border w-72">
+                                    <span>Address</span>
+                                </th>
                                 <th className="px-6 py-2 border">
                                     <div className="flex items-center justify-center gap-2">
                                         <MdAlternateEmail size={24} className="text-gray-600" />
@@ -139,7 +152,7 @@ const NewOrders = () => {
                         <tbody>
                             {filteredOrders.map((order, index) => (
                                 <tr key={order._id}>
-                                    <td className="px-4 py-2 border">{orders.length - index}</td>
+                                    <td className="px-4 py-2 border">{order._id}</td>
                                     <td className="px-4 py-2 border">
                                         {order?.orderedBy?.username ||
                                             `${order?.shippingAddress?.fullName}`}
@@ -157,12 +170,12 @@ const NewOrders = () => {
                                             ))}
                                         </select>
                                     </td>
-                                    <td className="px-4 py-2 border min-w-[600px] max-w-[900px]">
+                                    <td className="px-4 py-2 border min-w-[500px] max-w-[900px]">
                                         <ul className="grid grid-cols-2 gap-2 list-none p-0 m-0">
                                             {order.cartSummary?.map((product) => (
                                                 <li
                                                     key={product._id}
-                                                    className="bg-gray-50 rounded-lg p-2 mb-2"
+                                                    className="bg-gray-200 border border-primary rounded-lg p-2 mb-2"
                                                 >
                                                     {/* Product Basic Info */}
                                                     <div className="mb-2">
@@ -171,15 +184,15 @@ const NewOrders = () => {
                                                         </strong>
                                                     </div>
                                                     <div className="flex items-center gap-4 mb-2 text-sm">
-                                                        <span className="text-gray-700">
+                                                        <span className="text-primary ">
                                                             Price:{" "}
                                                             <span className="font-semibold">
                                                                 Rs.{product.salePrice || product.price}
                                                             </span>
                                                         </span>
-                                                        <span className="text-gray-700">
+                                                        <span className="text-primary">
                                                             Quantity:{" "}
-                                                            <span className="font-semibold">
+                                                            <span className="font-semibold ">
                                                                 {product?.count}
                                                             </span>
                                                         </span>
@@ -225,6 +238,9 @@ const NewOrders = () => {
                                     <td className="px-4 py-2 border">
                                         {order?.shippingAddress?.mobile}
                                     </td>
+                                    <td className="px-4 py-2 border min-w-72 max-w-80">
+                                        {order?.shippingAddress?.streetAddress || "—"}
+                                    </td>
                                     <td className="px-4 py-2 border">
                                         {order?.shippingAddress?.email}
                                     </td>
@@ -237,7 +253,7 @@ const NewOrders = () => {
                             ))}
                         </tbody>
                     </table>
-                </div>
+                </SimpleBar>
             )}
         </div>
     );

@@ -70,8 +70,8 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
             </div>
             <div className='flex ml-3 absolute bottom-3 w-full text-green-800 font-bold text-base items-center gap-1'>
                 <FaMobileAlt className='text-orange-700 text-xl' size={26} />
-                <a href='tel:03337494323' className='text-green-800 no-underline font-bold text-base'>
-                    0333-7494323
+                <a href='tel:03071111832' className='text-green-800 no-underline font-bold text-base'>
+                    0307-1111832
                 </a>
             </div>
 

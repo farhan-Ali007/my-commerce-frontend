@@ -32,7 +32,7 @@ const DynamicPage = () => {
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
       <Helmet>
-        <title>{page.title} | Your Site</title>
+        <title>{page.title} | Etimad Mart</title>
         <meta name="description" content={page.metaDescription || ''} />
       </Helmet>
       <h1 className="text-3xl font-bold mb-4">{page.title}</h1>

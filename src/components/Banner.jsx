@@ -6,12 +6,8 @@ import { getBanners } from "../functions/banner";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Banner = React.memo(() => {
-    const [banners, setBanners] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [error, setError] = useState(null);
     const sliderRef = useRef(null);
-    const mounted = useRef(false);
 
     const bannerDimensions = useMemo(() => ({
         desktop: { width: 1920, height: 550 },
@@ -19,50 +15,86 @@ const Banner = React.memo(() => {
         mobile: { width: 800, height: 250 }
     }), []);
 
+
     const aspectRatio = useMemo(() => 
         bannerDimensions.desktop.width / bannerDimensions.desktop.height,
         [bannerDimensions]
     );
 
-    const fetchBanners = useCallback(async () => {
-        if (!mounted.current) return;
-        
-        try {
-            setLoading(true);
-            setError(null);
-            const response = await getBanners();
-            console.log("Banner response:", response);
-            if (!response) {
-                throw new Error("No response from server");
-            }
-            // console.log("Setting banners with data:", response);
-            setBanners(response || []);
-            
-            // Preload the first banner image
-            if (response?.length > 0) {
-                // console.log("Preloading first banner image:", response[0].image);
-                const img = new Image();
-                img.src = getOptimizedImageUrl(
-                    response[0].image,
-                    bannerDimensions.desktop.width,
-                    bannerDimensions.desktop.height
-                );
-            }
-        } catch (error) {
-            console.error("Error in fetching banners ", error);
-            setError("Failed to load banners. Please try again later.");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    // Replace dynamic banners with static custom banners, but keep slider and dots
+    const staticBanners = [
+        {
+            _id: 'custom1',
+            image: '/customBanner1.webp',
+            link: '#',
+            alt: 'Custom Banner 1',
+        },
+        {
+            _id: 'custom2',
+            image: '/customBanner2.webp',
+            link: '#',
+            alt: 'Custom Banner 2',
+        },
+    ];
 
-    useEffect(() => {
-        mounted.current = true;
-        fetchBanners();
-        return () => {
-            mounted.current = false;
-        };
-    }, [fetchBanners]);
+    // Remove dynamic fetching and use static banners
+    // const [banners, setBanners] = useState([]);
+    // const [loading, setLoading] = useState(true);
+    // const [error, setError] = useState(null);
+    // const sliderRef = useRef(null);
+    // const mounted = useRef(false);
+
+    // const bannerDimensions = useMemo(() => ({
+    //     desktop: { width: 1920, height: 550 },
+    //     tablet: { width: 1200, height: 400 },
+    //     mobile: { width: 800, height: 250 }
+    // }), []);
+
+
+    // const aspectRatio = useMemo(() => 
+    //     bannerDimensions.desktop.width / bannerDimensions.desktop.height,
+    //     [bannerDimensions]
+    // );
+
+    // const fetchBanners = useCallback(async () => {
+    //     if (!mounted.current) return;
+        
+    //     try {
+    //         setLoading(true);
+    //         setError(null);
+    //         const response = await getBanners();
+    //         console.log("Banner response:", response);
+    //         if (!response) {
+    //             throw new Error("No response from server");
+    //         }
+    //         // console.log("Setting banners with data:", response);
+    //         setBanners(response || []);
+            
+    //         // Preload the first banner image
+    //         if (response?.length > 0) {
+    //             // console.log("Preloading first banner image:", response[0].image);
+    //             const img = new Image();
+    //             img.src = getOptimizedImageUrl(
+    //                 response[0].image,
+    //                 bannerDimensions.desktop.width,
+    //                 bannerDimensions.desktop.height
+    //             );
+    //         }
+    //     } catch (error) {
+    //         console.error("Error in fetching banners ", error);
+    //         setError("Failed to load banners. Please try again later.");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, []);
+
+    // useEffect(() => {
+    //     mounted.current = true;
+    //     fetchBanners();
+    //     return () => {
+    //         mounted.current = false;
+    //     };
+    // }, [fetchBanners]);
 
     const settings = useMemo(() => ({
         dots: false,
@@ -156,7 +188,7 @@ const Banner = React.memo(() => {
                             bannerDimensions.desktop.height
                         )}
                         alt={`Banner ${index + 1}`}
-                        loading={index > 0 ? "lazy" : "eager"}
+                        loading={index > 0 ? "eager" : "lazy"}
                         className="absolute inset-0 object-cover object-center w-full h-full"
                         width={bannerDimensions.desktop.width}
                         height={bannerDimensions.desktop.height}
@@ -190,7 +222,7 @@ const Banner = React.memo(() => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
         >
-            {banners.map((_, index) => (
+            {staticBanners.map((_, index) => (
                 <motion.div
                     key={index}
                     className={`w-2 h-2 md:w-3 md:h-3 rounded-full cursor-pointer mx-1 ${
@@ -208,46 +240,41 @@ const Banner = React.memo(() => {
                 />
             ))}
         </motion.div>
-    ), [banners, currentSlide, dotVariants, handleDotClick]);
+    ), [staticBanners, currentSlide, dotVariants, handleDotClick]);
 
-    if (error) {
-        return (
-            <div className="w-full py-8 text-center text-red-500">
-                {error}
-            </div>
-        );
-    }
+    // if (error) {
+    //     return (
+    //         <div className="w-full py-8 text-center text-red-500">
+    //             {error}
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="relative w-full mx-auto">
-            {loading ? (
-                <div 
-                    className="w-full bg-gray-200 animate-pulse" 
-                    style={{ height: `${bannerDimensions.desktop.height}px` }}
-                />
-            ) : banners.length > 0 ? (
-                <div className="relative w-full">
-                    <Slider ref={sliderRef} {...settings}>
-                        {banners.map((banner, index) => (
-                            <div key={banner._id} className="w-full">
-                                <a
-                                    href={banner.link}
-                                    className="block w-full h-full"
-                                    target="_self"
-                                    rel="noopener noreferrer"
-                                >
-                                    {renderBannerImage(banner, index)}
-                                </a>
-                            </div>
-                        ))}
-                    </Slider>
-                    {banners.length > 1 && renderDots()}
-                </div>
-            ) : (
-                <div className="w-full py-8 text-center text-gray-500">
-                    No banners available
-                </div>
-            )}
+            <div className="relative w-full">
+                <Slider ref={sliderRef} {...settings}>
+                    {staticBanners.map((banner, index) => (
+                        <div key={banner._id} className="w-full">
+                            <a
+                                href={banner.link}
+                                className="block w-full h-full"
+                                target="_self"
+                                rel="noopener noreferrer"
+                            >
+                                <img
+                                    src={banner.image}
+                                    alt={banner.alt}
+                                    className="object-cover object-center w-full h-full"
+                                    style={{ maxHeight: '550px', width: '100%' }}
+                                    loading={index > 0 ? 'lazy' : 'eager'}
+                                />
+                            </a>
+                        </div>
+                    ))}
+                </Slider>
+                {staticBanners.length > 1 && renderDots()}
+            </div>
         </div>
     );
 });

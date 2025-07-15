@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { addBanner, getBanners, updateBanner, deleteBanner } from '../../functions/banner';
-import { IoAddCircle, IoPencil, IoTrash } from 'react-icons/io5';
-import { CiEdit } from "react-icons/ci";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { CiEdit } from "react-icons/ci";
+import { IoTrash } from 'react-icons/io5';
+import { addBanner, deleteBanner, getAdminBanners, updateBanner } from '../../functions/banner';
 
 const AdminBanner = () => {
     const [banners, setBanners] = useState([]);
@@ -21,7 +21,7 @@ const AdminBanner = () => {
     const fetchBanners = async () => {
         try {
             setLoading(true);
-            const data = await getBanners();
+            const data = await getAdminBanners();
             if (data) setBanners(data);
         } catch (error) {
             console.log("Error in fetching banners", error);

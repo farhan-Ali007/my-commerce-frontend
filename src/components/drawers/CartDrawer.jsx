@@ -33,7 +33,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
       onClose={() => setIsDrawerOpen(false)}
       direction="right"
       size={400}
-      className="relative !z-[1200] max-w-60 md:max-w-80"
+      className="relative !z-[1200] max-w-72 md:max-w-80"
     >
       <motion.div
         initial={{ opacity: 0, x: 50 }}

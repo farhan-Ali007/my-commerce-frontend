@@ -50,7 +50,7 @@ const linkVariants = {
 const Footer = () => {
     return (
         <>
-            <div className="bg-primary text-white py-6 px-4 md:pt-10 md:px-6 relative border-t-4 border-secondary">
+            <div className="bg-primary text-white py-6 px-4 md:pt-10 md:px-6 relative border-t-2 border-secondary">
                 {/* Container to center content */}
                 <motion.div 
                   className="max-w-screen-xl mx-auto"
@@ -66,13 +66,15 @@ const Footer = () => {
                           className="text-center"
                           variants={itemVariants}
                         >
-                            <motion.img
-                                src="/f-logo.png"
-                                alt="Logo"
-                                className="bg-transparent mx-auto h-16 object-contain"
-                                whileHover={{ scale: 1.05 }}
-                                transition={{ type: "spring", stiffness: 400 }}
-                            />
+                            <a href="/">
+                                <motion.img
+                                    src="/f-logo.png"
+                                    alt="Logo"
+                                    className="bg-transparent mx-auto h-16 object-contain"
+                                    whileHover={{ scale: 1.05 }}
+                                    transition={{ type: "spring", stiffness: 400 }}
+                                />
+                            </a>
                             <motion.p 
                               className="text-secondary text-sm px-4 font-semibold"
                               whileHover={{ scale: 1.02 }}
@@ -99,7 +101,7 @@ const Footer = () => {
                                   variants={linkVariants}
                                   whileHover="hover"
                                 >
-                                    Home
+                                    About Us
                                 </motion.a>
                                 <motion.a 
                                   href="/shop" 
@@ -115,7 +117,39 @@ const Footer = () => {
                                   variants={linkVariants}
                                   whileHover="hover"
                                 >
-                                    About Us
+                                    Contact Us
+                                </motion.a>
+                                <motion.a 
+                                  href="/about" 
+                                  className="text-white hover:text-main text-sm font-medium no-underline whitespace-nowrap transition-colors"
+                                  variants={linkVariants}
+                                  whileHover="hover"
+                                >
+                                    Terms and Conditions
+                                </motion.a>
+                                <motion.a 
+                                  href="/about" 
+                                  className="text-white hover:text-main text-sm font-medium no-underline whitespace-nowrap transition-colors"
+                                  variants={linkVariants}
+                                  whileHover="hover"
+                                >
+                                    Privacy Policy
+                                </motion.a>
+                                <motion.a 
+                                  href="/about" 
+                                  className="text-white hover:text-main text-sm font-medium no-underline whitespace-nowrap transition-colors"
+                                  variants={linkVariants}
+                                  whileHover="hover"
+                                >
+                                    Shipping Policy
+                                </motion.a>
+                                <motion.a 
+                                  href="/about" 
+                                  className="text-white hover:text-main text-sm font-medium no-underline whitespace-nowrap transition-colors"
+                                  variants={linkVariants}
+                                  whileHover="hover"
+                                >
+                                    Return Policy
                                 </motion.a>
                             </div>
                         </motion.div>
@@ -220,13 +254,15 @@ const Footer = () => {
                     <div className="hidden md:grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
                         {/* First Div: Image and Text */}
                         <motion.div variants={itemVariants}>
-                            <motion.img 
-                                src="/f-logo.png" 
-                                alt="Logo" 
-                                className="bg-transparent mx-auto h-20 md:h-28 lg:h-32 object-cover"
-                                whileHover={{ scale: 1.05 }}
-                                transition={{ type: "spring", stiffness: 400 }}
-                            />
+                            <a href="/">
+                                <motion.img 
+                                    src="/f-logo.png" 
+                                    alt="Logo" 
+                                    className="bg-transparent mx-auto h-20 md:h-28 lg:h-32 object-cover"
+                                    whileHover={{ scale: 1.05 }}
+                                    transition={{ type: "spring", stiffness: 400 }}
+                                />
+                            </a>
                             <motion.p 
                               className="text-secondary font-semibold text-base"
                               whileHover={{ scale: 1.02 }}
@@ -244,23 +280,26 @@ const Footer = () => {
                                 Quick Links
                             </motion.h3>
                             <ul className="text-white space-y-2 text-center md:text-start list-none">
-                                <motion.li
-                                  variants={linkVariants}
-                                  whileHover="hover"
-                                >
-                                    <a href="/" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Home</a>
+                                <motion.li variants={linkVariants} whileHover="hover">
+                                    <a href="/about" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">About Us</a>
                                 </motion.li>
-                                <motion.li
-                                  variants={linkVariants}
-                                  whileHover="hover"
-                                >
+                                <motion.li variants={linkVariants} whileHover="hover">
                                     <a href="/shop" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Shop</a>
                                 </motion.li>
-                                <motion.li
-                                  variants={linkVariants}
-                                  whileHover="hover"
-                                >
-                                    <a href="/about" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">About Us</a>
+                                <motion.li variants={linkVariants} whileHover="hover">
+                                    <a href="/contact-us" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Contact Us</a>
+                                </motion.li>
+                                <motion.li variants={linkVariants} whileHover="hover">
+                                    <a href="/terms-and-conditions" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Terms and Conditions</a>
+                                </motion.li>
+                                <motion.li variants={linkVariants} whileHover="hover">
+                                    <a href="/privacy-policy" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Privacy Policy</a>
+                                </motion.li>
+                                <motion.li variants={linkVariants} whileHover="hover">
+                                    <a href="/shipping-ploicy" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Shipping Policy</a>
+                                </motion.li>
+                                <motion.li variants={linkVariants} whileHover="hover">
+                                    <a href="/return-policy" className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors">Return Policy</a>
                                 </motion.li>
                             </ul>
                         </motion.div>

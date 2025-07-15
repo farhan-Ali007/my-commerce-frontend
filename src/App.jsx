@@ -1,16 +1,15 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
-import Footer from "./components/Footer";
-import Navbar from "./components/Navbar";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import DynamicPage from './Pages/DynamicPage';
+import NotFound from "./Pages/NotFound";
 import AdminRoute from "./components/AdminRoute";
+import Footer from "./components/Footer";
+import MetaPixelTracker from './components/MetaPixelTracker';
+import Navbar from "./components/Navbar";
 import { getUserAPI } from "./functions/auth";
 import { setUser } from "./store/authSlice";
-import NotFound from "./Pages/NotFound";
-import DynamicPage from './Pages/DynamicPage';
-import MetaPixelTracker from './components/MetaPixelTracker';
-import useFacebookPixel from "./hooks/useFacebookPixel";
 
 const Home = lazy(() => import("./Pages/Home"));
 const Signup = lazy(() => import("./Pages/Signup"));
@@ -105,7 +104,7 @@ const App = () => {
               <Route path="/edit-product/:slug" element={<EditProduct />} />
             </Route>
 
-            <Route path="/pages/:slug" element={<DynamicPage />} />
+            <Route path="/:slug" element={<DynamicPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

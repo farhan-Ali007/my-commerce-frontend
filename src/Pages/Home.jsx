@@ -7,20 +7,21 @@ import NewArrivals from '../components/NewArrivals';
 import Brands from '../components/Brands';
 import { FaWhatsapp } from 'react-icons/fa'; // Importing WhatsApp icon from react-icons
 import FeaturedProducts from '../components/FeaturedProducts';
+import ShowcaseCategories from '../components/ShowcaseCategories';
 
 const Home = () => {
   return (
     <div>
       <Banner />
+      <Categories />
+      <Brands />
       <Marquee speed={50} pauseOnHover direction="left" gradient gradientColor="#FFB727" gradientWidth={50}  className="text-2xl md:text-3xl font-roboto font-semibold md:font-extrabold my-2 md:my-8 text-primary">
         🔥 Sale 50% Off! 🔥 &nbsp; | &nbsp;  Limited Time Offer!  &nbsp; | &nbsp; New Arrivals Available Now! 🎉
       </Marquee>
-      <Categories />
-      <Brands />
       <FeaturedProducts />
       <NewArrivals />
       <BestSellers />
-
+      <ShowcaseCategories />
       {/* WhatsApp Floating Icon */}
       <a
         href="https://wa.me/+923071111832"

@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { FcViewDetails } from "react-icons/fc";
 import { IoIosPerson } from "react-icons/io";
 import { GrStatusGoodSmall } from "react-icons/gr";
+import SimpleBar from "simplebar-react";
 
 const AllOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -90,9 +91,7 @@ const AllOrders = () => {
   return (
     <div className="container p-6 mx-auto text-center">
       <h1 className="mb-6 text-3xl font-bold text-main">
-        All Orders [
-        {`${orders.length}`}
-        ]
+        All Orders [{`${orders.length}`}]
       </h1>
       {/* Search Bar */}
       <div className="mb-4">
@@ -110,8 +109,17 @@ const AllOrders = () => {
       ) : filteredOrders.length === 0 ? (
         <p>No orders available.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse border-black table-auto border-1">
+        <SimpleBar
+          forceVisible="x"
+          autoHide={false}
+          style={{
+            maxWidth: "100%",
+            height: "320px", // or any height you want
+            overflowY: "auto", // vertical scroll inside the box
+            overflowX: "auto", // horizontal scroll
+          }}
+        >
+          <table className="min-w-[2000px] border-collapse border-black table-auto border-1">
             <thead>
               <tr>
                 <th className="px-6 py-2 border">Order ID</th>
@@ -151,6 +159,9 @@ const AllOrders = () => {
                     <span>Recipient ph.No</span>
                   </div>
                 </th>
+                <th className="px-6 py-2 border w-72">
+                  <span>Address</span>
+                </th>
                 <th className="px-6 py-2 border">
                   <div className="flex items-center justify-center gap-2">
                     <MdAlternateEmail size={24} className="text-gray-600" />
@@ -171,7 +182,9 @@ const AllOrders = () => {
                 return (
                   <tr
                     key={order._id}
-                    ref={isLast && hasMore && !searchQuery ? lastOrderRef : null}
+                    ref={
+                      isLast && hasMore && !searchQuery ? lastOrderRef : null
+                    }
                   >
                     <td className="px-4 py-2 border">{order._id}</td>
                     <td className="px-4 py-2 border">
@@ -194,12 +207,12 @@ const AllOrders = () => {
                       </select>
                     </td>
 
-                    <td className="px-4 py-2 border">
+                    <td className="px-4 py-2 border min-w-[400px] max-w-[900px]">
                       <ul style={{ listStyleType: "none" }}>
                         {order.cartSummary?.map((product) => (
                           <li
                             key={product._id}
-                            className="p-3 mb-6 rounded-lg bg-gray-50"
+                            className="p-3 mb-6 rounded-lg bg-gray-200"
                           >
                             {/* Product Basic Info */}
                             <div className="mb-2">
@@ -208,13 +221,13 @@ const AllOrders = () => {
                               </strong>
                             </div>
                             <div className="flex items-center gap-4 mb-2 text-sm">
-                              <span className="text-gray-700">
+                              <span className="text-primary">
                                 Price:{" "}
                                 <span className="font-semibold">
                                   Rs.{product.salePrice || product.price}
                                 </span>
                               </span>
-                              <span className="text-gray-700">
+                              <span className="text-primary">
                                 Quantity:{" "}
                                 <span className="font-semibold">
                                   {product?.count}
@@ -263,6 +276,9 @@ const AllOrders = () => {
                     <td className="px-4 py-2 border">
                       {order?.shippingAddress?.mobile}
                     </td>
+                    <td className="px-4 py-2 border min-w-72 max-w-80">
+                      {order?.shippingAddress?.streetAddress || "—"}
+                    </td>
                     <td className="px-4 py-2 border">
                       {order?.shippingAddress?.email}
                     </td>
@@ -277,12 +293,16 @@ const AllOrders = () => {
             </tbody>
           </table>
           {isFetchingMore && (
-            <div className="py-4 text-center text-gray-500">Loading more orders...</div>
+            <div className="py-4 text-center text-gray-500">
+              Loading more orders...
+            </div>
           )}
           {!hasMore && (
-            <div className="py-4 text-center text-gray-400 text-sm">No more orders to load.</div>
+            <div className="py-4 text-center text-gray-400 text-sm">
+              No more orders to load.
+            </div>
           )}
-        </div>
+        </SimpleBar>
       )}
     </div>
   );

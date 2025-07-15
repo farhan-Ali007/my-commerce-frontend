@@ -22,6 +22,14 @@ export const getBanners = async () => {
         console.log("Error in getting all banners", error)
     }
 }
+export const getAdminBanners = async () => {
+    try {
+        const response = await axios.get(`${BASE_URL}/banner/admin/all`)
+        return response?.data;
+    } catch (error) {
+        console.log("Error in getting all banners", error)
+    }
+}
 
 export const updateBanner = async (data, id) => {
     console.log("Id before sending to backend------>", id);

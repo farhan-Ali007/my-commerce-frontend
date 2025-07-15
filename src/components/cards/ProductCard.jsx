@@ -267,7 +267,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 )}
             </AnimatePresence>
 
-            <div className="justify-start mx-2 mb-4 font-roboto">
+            <div className="justify-start mx-2 mt-2 md:mt-0 mb-4 font-roboto">
                 <Link to={`/product/${slug}`} className='text-black no-underline'>
                     <h2
                         onMouseEnter={() => setIsHovered(true)}

@@ -18,6 +18,7 @@ import {
   FaWhatsapp,
 } from "react-icons/fa6";
 import { TiShoppingCart } from "react-icons/ti";
+import { replaceBulletsWithCheck } from "../../helpers/replaceBulletwithCheck";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import SingleProductSkeleton from "../../components/skeletons/SingleProductSkeleton";
@@ -25,7 +26,8 @@ import { getProductBySlug, getRelatedProducts } from "../../functions/product";
 import { getProductSchemaData } from "../../helpers/getProductSchema";
 import { addToCart } from "../../store/cartSlice";
 import { addItemToCart } from "../../functions/cart";
-import useFacebookPixel from '../../hooks/useFacebookPixel';
+import useFacebookPixel from "../../hooks/useFacebookPixel";
+import { AiOutlineClose } from "react-icons/ai";
 
 const LazyRelatedProducts = lazy(() =>
   import("../../components/RelatedProducts")
@@ -47,7 +49,9 @@ const getTotalVariantPrice = (product, selectedVariants) => {
   let total = 0;
   let hasVariantPrice = false;
 
-  for (const [variantName, selectedValues] of Object.entries(selectedVariants)) {
+  for (const [variantName, selectedValues] of Object.entries(
+    selectedVariants
+  )) {
     if (selectedValues && selectedValues.length > 0) {
       const variant = product.variants?.find((v) => v.name === variantName);
       if (variant) {
@@ -86,29 +90,35 @@ const SingleProduct = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState({});
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  // const [showFullDescription, setShowFullDescription] = useState(false);
   const [loading, setLoading] = useState(false);
   const [zoomStyle, setZoomStyle] = useState({});
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [loadedImages, setLoadedImages] = useState(new Set());
   const [error, setError] = useState(null);
   const [hoveredVariantImage, setHoveredVariantImage] = useState(null);
-  const [hoverPreviewPosition, setHoverPreviewPosition] = useState({ x: 0, y: 0 });
+  const [hoverPreviewPosition, setHoverPreviewPosition] = useState({
+    x: 0,
+    y: 0,
+  });
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImage, setModalImage] = useState(null);
   const [hoverTimeout, setHoverTimeout] = useState(null);
   const imageRef = useRef(null);
   const thumbnailRef = useRef(null);
   const [offerCountdown, setOfferCountdown] = useState("");
-
+  const [variantDrawerOpen, setVariantDrawerOpen] = useState(false);
+  const [activeVariant, setActiveVariant] = useState(null);
+  const [selectedVariantValue, setSelectedVariantValue] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     if (product) {
-      track('ViewContent', {
+      track("ViewContent", {
         content_ids: [product._id],
         content_name: product.title,
         value: product.salePrice ? product.salePrice : product.price,
-        currency: 'PKR'
+        currency: "PKR",
       });
     }
   }, [product]);
@@ -236,18 +246,21 @@ const SingleProduct = () => {
     setZoomStyle({}); // Hide the zoom lens
   }, []);
 
-  const handleVariantImageMouseEnter = useCallback((imageURL, e) => {
-    // Clear any existing timeout
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout);
-    }
-    
-    setHoveredVariantImage(imageURL);
-    setHoverPreviewPosition({
-      x: e.clientX + 20, // Offset 20px to the right of the cursor
-      y: e.clientY + 20, // Offset 20px below the cursor
-    });
-  }, [hoverTimeout]);
+  const handleVariantImageMouseEnter = useCallback(
+    (imageURL, e) => {
+      // Clear any existing timeout
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+      }
+
+      setHoveredVariantImage(imageURL);
+      setHoverPreviewPosition({
+        x: e.clientX + 20, // Offset 20px to the right of the cursor
+        y: e.clientY + 20, // Offset 20px below the cursor
+      });
+    },
+    [hoverTimeout]
+  );
 
   const handleVariantImageMouseLeave = useCallback(() => {
     // Add a delay before hiding the preview
@@ -255,7 +268,7 @@ const SingleProduct = () => {
       setHoveredVariantImage(null);
       setHoverPreviewPosition({ x: 0, y: 0 }); // Reset position
     }, 300); // 300ms delay
-    
+
     setHoverTimeout(timeout);
   }, []);
 
@@ -273,7 +286,7 @@ const SingleProduct = () => {
       setHoveredVariantImage(null);
       setHoverPreviewPosition({ x: 0, y: 0 });
     }, 200); // 200ms delay
-    
+
     setHoverTimeout(timeout);
   }, []);
 
@@ -287,19 +300,19 @@ const SingleProduct = () => {
   // Add keyboard support for closing modal
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && showImageModal) {
+      if (event.key === "Escape" && showImageModal) {
         setShowImageModal(false);
       }
     };
 
     if (showImageModal) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      document.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden"; // Prevent background scrolling
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset'; // Restore scrolling
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset"; // Restore scrolling
     };
   }, [showImageModal]);
 
@@ -505,7 +518,9 @@ const SingleProduct = () => {
     let cartItemsToAdd = [];
 
     // Handle variant products
-    for (const [variantName, selectedValues] of Object.entries(selectedVariants)) {
+    for (const [variantName, selectedValues] of Object.entries(
+      selectedVariants
+    )) {
       const variant = product.variants?.find((v) => v.name === variantName);
       if (variant) {
         for (const value of selectedValues) {
@@ -541,17 +556,17 @@ const SingleProduct = () => {
       });
     }
 
-    cartItemsToAdd.forEach(cartItem => {
+    cartItemsToAdd.forEach((cartItem) => {
       dispatch(addToCart(cartItem));
     });
 
     toast.success(`${cartItemsToAdd.length} item(s) added to cart!`);
     setIsDrawerOpen(true);
-    track('AddToCart', {
+    track("AddToCart", {
       content_ids: [product._id],
       content_name: product.title,
       value: product.salePrice ? product.salePrice : product.price,
-      currency: 'PKR'
+      currency: "PKR",
     });
   }, [selectedVariants, product, dispatch, setIsDrawerOpen, selectedQuantity]);
 
@@ -606,11 +621,11 @@ const SingleProduct = () => {
         // Only add to Redux after successful API call
         dispatch(addToCart(cartItem));
         // Meta Pixel InitiateCheckout event for COD
-        track('InitiateCheckout', {
+        track("InitiateCheckout", {
           content_ids: [product._id],
           content_name: product.title,
           value: product.salePrice ? product.salePrice : product.price,
-          currency: 'PKR'
+          currency: "PKR",
         });
         toast.success("Proceeding to checkout...");
         navigateTo("/cart/checkout");
@@ -618,11 +633,11 @@ const SingleProduct = () => {
         // For guest users, just add to Redux
         dispatch(addToCart(cartItem));
         // Meta Pixel InitiateCheckout event for COD
-        track('InitiateCheckout', {
+        track("InitiateCheckout", {
           content_ids: [product._id],
           content_name: product.title,
           value: product.salePrice ? product.salePrice : product.price,
-          currency: 'PKR'
+          currency: "PKR",
         });
         toast.success("Proceeding to checkout...");
         navigateTo("/cart/checkout");
@@ -653,9 +668,9 @@ const SingleProduct = () => {
     [product?.stock]
   );
 
-  const toggleDescription = useCallback(() => {
-    setShowFullDescription(!showFullDescription);
-  }, [showFullDescription]);
+  // const toggleDescription = useCallback(() => {
+  //   setShowFullDescription(!showFullDescription);
+  // }, [showFullDescription]);
 
   const handleWhatsAppOrder = useCallback(() => {
     const phoneNumber = "923071111832";
@@ -663,18 +678,21 @@ const SingleProduct = () => {
     const imageLink = product?.images?.[0];
 
     // Format selected variants
-    let variantsText = '';
+    let variantsText = "";
     if (productVariants && Object.keys(selectedVariants).length > 0) {
       variantsText = Object.entries(selectedVariants)
         .filter(([_, values]) => values && values.length > 0)
-        .map(([name, values]) => `*${name}:* ${values.join(', ')}`)
-        .join('\n');
-      if (variantsText) variantsText = `\n*Selected Variants:*\n${variantsText}`;
+        .map(([name, values]) => `*${name}:* ${values.join(", ")}`)
+        .join("\n");
+      if (variantsText)
+        variantsText = `\n*Selected Variants:*\n${variantsText}`;
     }
 
     const message = `*🛒 New Order Request*\n\n*Product:* ${product?.title}\n*Price:* Rs ${currentPrice}\n*Image:* ${imageLink}\n*View Product:* ${productLink}${variantsText}\n\nThank you!`;
 
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message
+    )}`;
     window.open(url, "_blank");
   }, [product, currentPrice, selectedVariants, productVariants]);
 
@@ -685,7 +703,8 @@ const SingleProduct = () => {
 
   // Now do early returns
   if (loading) return <SingleProductSkeleton />;
-  if (!product) return <div className="py-20 text-center">Product not found!</div>;
+  if (!product)
+    return <div className="py-20 text-center">Product not found!</div>;
   if (!schemaData) return null;
 
   return (
@@ -777,23 +796,32 @@ const SingleProduct = () => {
             {(() => {
               const now = new Date();
               // Only check for special offer if it's enabled and has valid dates
-              if (product?.specialOfferEnabled && product?.specialOfferStart && product?.specialOfferEnd) {
+              if (
+                product?.specialOfferEnabled &&
+                product?.specialOfferStart &&
+                product?.specialOfferEnd
+              ) {
                 const start = new Date(product.specialOfferStart);
                 const end = new Date(product.specialOfferEnd);
-                
+
                 // Check if dates are valid
-                if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && now >= start && now <= end) {
+                if (
+                  !isNaN(start.getTime()) &&
+                  !isNaN(end.getTime()) &&
+                  now >= start &&
+                  now <= end
+                ) {
                   return (
                     <div className="w-full flex justify-center mt-3 mb-1">
                       <div className="flex flex-col w-full max-w-[400px] gap-2">
-                        <div className="flex items-center justify-center w-full bg-yellow-50 border border-yellow-300 shadow-sm px-4 py-2 gap-3">
-                          <span className="px-3 py-1 bg-yellow-400 text-white font-bold rounded-full text-sm">
+                        <div className="flex items-center justify-center w-full bg-red-600 border border-yellow-300 shadow-sm px-4 py-2 gap-3">
+                          <span className="px-3 py-1 bg-primary text-white font-bold rounded-full text-sm">
                             Special Offer
                           </span>
-                          <span className="text-lg font-bold text-yellow-700">
+                          <span className="text-lg font-bold text-white">
                             Rs. {product.specialOfferPrice}
                           </span>
-                          <span className="text-base font-semibold text-yellow-600">
+                          <span className="text-base font-semibold text-white">
                             {offerCountdown}
                           </span>
                         </div>
@@ -802,9 +830,82 @@ const SingleProduct = () => {
                   );
                 }
               }
-              
+
               return null;
             })()}
+
+            {/* Star Rating and Review Count */}
+            <motion.div
+              className="flex items-center gap-2 bg-yellow-50 px-3 py-1 rounded-full w-fit mt-2 mx-auto"
+              variants={itemVariants}
+            >
+              {/* Inline renderStars function */}
+              {(() => {
+                const rating = product?.averageRating || 0;
+                const maxStars = 5;
+                const fullStars = Math.floor(rating);
+                const fractionalPart = rating % 1;
+                const stars = [];
+                for (let i = 1; i <= fullStars; i++) {
+                  stars.push(
+                    <svg
+                      key={`full-${i}`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4 text-yellow-400"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
+                    </svg>
+                  );
+                }
+                if (fractionalPart >= 0.5) {
+                  stars.push(
+                    <svg
+                      key="half-star"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-3 h-3 text-yellow-400"
+                      viewBox="0 0 20 20"
+                    >
+                      <defs>
+                        <linearGradient id="half-gradient">
+                          <stop offset="50%" stopColor="#facc15" />
+                          <stop offset="50%" stopColor="#e5e7eb" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z"
+                        fill="url(#half-gradient)"
+                      />
+                    </svg>
+                  );
+                }
+                const remainingStars =
+                  maxStars - fullStars - (fractionalPart >= 0.5 ? 1 : 0);
+                for (let i = 1; i <= remainingStars; i++) {
+                  stars.push(
+                    <svg
+                      key={`empty-${i}`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5 text-gray-300"
+                      fill="none"
+                      viewBox="0 0 20 20"
+                      stroke="currentColor"
+                    >
+                      <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
+                    </svg>
+                  );
+                }
+                return stars;
+              })()}
+              <span className="ml-1 text-base font-semibold text-gray-700">
+                {(product?.averageRating || 0).toFixed(1)}
+              </span>
+              <span className="text-base font-bold text-gray-400">|</span>
+              <span className="text-base font-bold text-gray-700">
+                {product?.reviews?.length || 0} Reviews
+              </span>
+            </motion.div>
           </div>
 
           {/* Thumbnail List */}
@@ -893,112 +994,122 @@ const SingleProduct = () => {
           >
             {product?.title || "Product Title"}
           </motion.h1>
-          {/* Star Rating and Review Count */}
+
+          {/* Mobile Price Block */}
           <motion.div
-            className="flex items-center gap-2  bg-yellow-50 px-3 py-1 rounded-full w-fit"
+            className="mb-3 mt-2 flex flex-wrap items-center gap-3 text-xl font-semibold md:text-2xl font-poppins md:hidden"
             variants={itemVariants}
           >
-            {/* Inline renderStars function */}
-            {(() => {
-              const rating = product?.averageRating || 0;
-              const maxStars = 5;
-              const fullStars = Math.floor(rating);
-              const fractionalPart = rating % 1;
-              const stars = [];
-              for (let i = 1; i <= fullStars; i++) {
-                stars.push(
-                  <svg
-                    key={`full-${i}`}
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4 text-yellow-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
-                  </svg>
-                );
-              }
-              if (fractionalPart >= 0.5) {
-                stars.push(
-                  <svg
-                    key="half-star"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-3 h-3 text-yellow-400"
-                    viewBox="0 0 20 20"
-                  >
-                    <defs>
-                      <linearGradient id="half-gradient">
-                        <stop offset="50%" stopColor="#facc15" />
-                        <stop offset="50%" stopColor="#e5e7eb" />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z"
-                      fill="url(#half-gradient)"
-                    />
-                  </svg>
-                );
-              }
-              const remainingStars =
-                maxStars - fullStars - (fractionalPart >= 0.5 ? 1 : 0);
-              for (let i = 1; i <= remainingStars; i++) {
-                stars.push(
-                  <svg
-                    key={`empty-${i}`}
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4 text-gray-300"
-                    fill="none"
-                    viewBox="0 0 20 20"
-                    stroke="currentColor"
-                  >
-                    <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
-                  </svg>
-                );
-              }
-              return stars;
-            })()}
-            <span className="ml-1 text-sm font-semibold text-gray-700">
-              {(product?.averageRating || 0).toFixed(1)}
-            </span>
-            <span className="text-sm font-bold text-gray-400">|</span>
-            <span className="text-sm font-bold text-gray-700">
-              {product?.reviews?.length || 0} Reviews
-            </span>
+            {product.salePrice && currentPrice === originalPrice ? (
+              <>
+                <span className="text-base text-gray-500 line-through decoration-1">
+                  Rs. {product.price}
+                </span>
+                <span className="ml-2 text-primary">Rs. {currentPrice}</span>
+              </>
+            ) : (
+              <span>Rs. {currentPrice}</span>
+            )}
+
+            {product?.freeShipping && (
+              <span className="flex items-center gap-1 px-3 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs md:text-sm font-semibold">
+                <svg
+                  className="w-4 h-4 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M3 13V7a2 2 0 012-2h11a2 2 0 012 2v6m-1 4h2a2 2 0 002-2v-5a2 2 0 00-2-2h-2m-2 7a2 2 0 11-4 0 2 2 0 014 0zm-8 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Free Shipping
+              </span>
+            )}
           </motion.div>
-          {product?.category?.name && (
-            <motion.p
-              className="mb-1 text-sm capitalize"
+
+          {/* Mobile Variant Images Row (after price, before description) */}
+          {productVariants && productVariants.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto py-2 mb-1 md:hidden">
+              {productVariants.map((variant, vIdx) =>
+                variant.values.map((val, idx) => (
+                  idx === 0 && (
+                    <div
+                      key={val.value}
+                      className="relative flex flex-col items-center cursor-pointer"
+                      onClick={() => {
+                        setActiveVariant(variant);
+                        setVariantDrawerOpen(true);
+                      }}
+                    >
+                      <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center bg-white">
+                        <img
+                          src={val.image || 'https://via.placeholder.com/50'}
+                          className="w-full h-full object-cover"
+                          alt={val.value}
+                        />
+                      </div>
+                      <span className="mt-2 inline-block bg-primary text-white text-xs px-2 py-0.5 rounded-full">
+                        {variant.name}
+                      </span>
+                      {/* <span className="mt-1 text-xs font-semibold">
+                        Rs. {val.price ?? product.price}
+                      </span> */}
+                    </div>
+                  )
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Mobile Quantity Selector (after variants, before description) */}
+          {product?.stock && (
+            <motion.div
+              className="flex items-center gap-4 mb-3 md:hidden"
               variants={itemVariants}
             >
-              <strong></strong>{" "}
-              <Link
-                to={`/category/${product?.category?.slug}`}
-                className="text-sm text-blue-600 font-medium no-underline hover:underline"
+              <motion.button
+                onClick={() => handleQuantityChange("decrease")}
+                disabled={selectedQuantity === 1}
+                aria-label="Decrease quantity"
+                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${
+                  selectedQuantity === 1
+                    ? "bg-gray-300"
+                    : "bg-secondary opacity-70"
+                }`}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
-                {product.category.name}
-              </Link>
-            </motion.p>
+                -
+              </motion.button>
+              <span className="text-xl">{selectedQuantity}</span>
+              <motion.button
+                onClick={() => handleQuantityChange("increase")}
+                aria-label="Increase quantity"
+                disabled={selectedQuantity === product.stock}
+                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${
+                  selectedQuantity === product.stock
+                    ? "bg-gray-300"
+                    : "bg-secondary opacity-70"
+                }`}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                +
+              </motion.button>
+            </motion.div>
           )}
+
           <motion.p
-            className="pl-2 text-base text-black font-space md:pl-0"
+            className="pl-2 text-[14px] product-description text-black font-space md:pl-0"
             dangerouslySetInnerHTML={{
-              __html: showFullDescription
-                ? product?.description
-                : product?.description?.slice(0, 100) + "...",
+              __html: replaceBulletsWithCheck(product?.description),
             }}
             variants={itemVariants}
           />
-          <motion.button
-            onClick={toggleDescription}
-            className="mb-1 text-sm font-semibold text-secondary"
-            variants={itemVariants}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {showFullDescription ? "See less" : "See more"}
-          </motion.button>
+
+          {/* Desktop Price Block */}
           <motion.div
-            className="mb-3 flex flex-wrap items-center gap-3 text-xl font-semibold md:text-2xl font-poppins"
+            className="mb-3 mt-3 flex flex-wrap items-center gap-3 text-xl font-semibold md:text-2xl font-poppins hidden md:flex"
             variants={itemVariants}
           >
             {product.salePrice && currentPrice === originalPrice ? (
@@ -1031,7 +1142,7 @@ const SingleProduct = () => {
           {/* Quantity Selector */}
           {product?.stock && (
             <motion.div
-              className="flex items-center gap-4 mb-3"
+              className="flex items-center gap-4 mb-3 hidden md:flex"
               variants={itemVariants}
             >
               <motion.button
@@ -1042,8 +1153,7 @@ const SingleProduct = () => {
                   selectedQuantity === 1
                     ? "bg-gray-300"
                     : "bg-secondary opacity-70"
-                }
-                                    `}
+                }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -1058,8 +1168,7 @@ const SingleProduct = () => {
                   selectedQuantity === product.stock
                     ? "bg-gray-300"
                     : "bg-secondary opacity-70"
-                }
-                                    `}
+                }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -1076,10 +1185,10 @@ const SingleProduct = () => {
                   className="gap-2 mb-3 "
                   variants={itemVariants}
                 >
-                  <h3 className="font-semibold capitalize text-md text-secondary font-space">
+                  <h3 className="font-semibold hidden md:block capitalize text-md text-secondary font-space">
                     {variant.name}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="hidden md:flex  flex-wrap items-center gap-3">
                     {variant.values.map((value, idx) =>
                       value.image ? (
                         <motion.div
@@ -1188,7 +1297,7 @@ const SingleProduct = () => {
             <div className="hidden md:flex flex-col w-full gap-4 md:flex-row md:justify-start">
               <motion.a
                 onClick={handleByNow}
-                className="w-full px-6 py-2 text-sm font-bold text-center text-white no-underline bg-primary opacity-70 lg:text-base md:w-auto md:flex-2 hover:opacity-90"
+                className="w-full px-6 py-2 text-sm font-bold text-center text-white no-underline bg-primary/80 lg:text-base md:w-auto md:flex-2 hover:bg-primary"
                 whileHover={{ scale: 1.03, opacity: 0.95 }}
                 whileTap={{ scale: 0.98 }}
                 href="#"
@@ -1197,7 +1306,7 @@ const SingleProduct = () => {
               </motion.a>
               <motion.a
                 onClick={handleAddToCart}
-                className="flex items-center justify-center w-full gap-1 px-6 py-2 text-sm font-bold text-primary no-underline bg-secondary/80 md:w-auto lg:text-base hover:bg-secondary/90"
+                className="flex items-center justify-center w-full gap-1 px-6 py-2 text-sm font-bold text-primary no-underline bg-secondary/80 md:w-auto lg:text-base hover:bg-secondary"
                 whileHover={{ scale: 1.03, opacity: 0.95 }}
                 whileTap={{ scale: 0.98 }}
                 href="#"
@@ -1214,6 +1323,20 @@ const SingleProduct = () => {
             >
               <FaWhatsapp className="text-2xl" /> Order via WhatsApp
             </motion.button>
+            {product?.category?.name && (
+              <motion.p
+                className="mb-1  capitalize"
+                variants={itemVariants}
+              >
+                <strong></strong>{" "}
+                <Link
+                  to={`/category/${product?.category?.slug}`}
+                  className="text-[20px] text-blue-600 font-semibold no-underline hover:underline"
+                >
+                  {product.category.name}
+                </Link>
+              </motion.p>
+            )}
           </motion.div>
         </motion.div>
       </div>
@@ -1302,6 +1425,114 @@ const SingleProduct = () => {
 
       {/* Add bottom padding to prevent content from being hidden behind sticky buttons on mobile */}
       <div className="h-32 md:hidden"></div>
+
+      {/* Drawer/Modal for variant selection */}
+      <AnimatePresence>
+        {variantDrawerOpen && activeVariant && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div
+              className="w-full max-w-md bg-white rounded-t-2xl p-4"
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold text-secondary font-space text-lg">{activeVariant.name}</span>
+                <button
+                  onClick={() => setVariantDrawerOpen(false)}
+                  className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+                  aria-label="Close variant drawer"
+                >
+                  <AiOutlineClose className="w-5 h-5 text-primary font-extrabold" />
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-3 justify-start">
+                {activeVariant.values.map((val, idx) => {
+                  const isSelected = selectedVariants[activeVariant.name]?.includes(val.value);
+                  return (
+                    <div
+                      key={val.value}
+                      className="flex flex-col items-center cursor-pointer relative w-20"
+                    >
+                      <div
+                        className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center bg-white relative"
+                        onClick={() => {
+                          if (isSelected) {
+                            // Deselect only, do not preview
+                            handleVariantChange(activeVariant.name, val.value);
+                          } else {
+                            // Preview and select
+                            setPreviewImage(val.image || 'https://via.placeholder.com/300');
+                            handleVariantChange(activeVariant.name, val.value);
+                          }
+                        }}
+                      >
+                        <img
+                          src={val.image || 'https://via.placeholder.com/50'}
+                          className="w-full h-full object-cover"
+                          alt={val.value}
+                        />
+                        {/* Checkmark for selected */}
+                        {isSelected && (
+                          <span className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-1 text-xs">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      <span className="mt-1 text-xs text-center font-medium max-w-full truncate">{val.value}</span>
+                      <span className="text-xs font-semibold text-center">
+                        Rs. {val.price ?? product.price}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Preview Modal */}
+      <AnimatePresence>
+        {previewImage && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPreviewImage(null)}
+          >
+            <motion.div
+              className="relative bg-white rounded-lg shadow-lg p-2 flex flex-col items-center"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="absolute top-2 right-2 p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+                aria-label="Close preview"
+              >
+                <AiOutlineClose className="w-6 h-6 text-gray-700" />
+              </button>
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="max-w-[90vw] max-h-[60vh] rounded-lg object-contain"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

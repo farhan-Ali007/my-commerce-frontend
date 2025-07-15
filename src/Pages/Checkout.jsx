@@ -132,11 +132,6 @@ const Checkout = () => {
       return;
     }
 
-    if (!formData.email) {
-      toast.error("Email is required");
-      return;
-    }
-
     // Prepare products data consistently
     const productsForOrder = cartItems.products.map((item) => ({
       productId: item.productId,
@@ -392,7 +387,7 @@ const Checkout = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
-                placeholder="Email * (ای میل)"
+                placeholder="Email(optional) * (ای میل"
                 required
               />
             </div>

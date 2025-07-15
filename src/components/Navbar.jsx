@@ -275,12 +275,12 @@ const Navbar = React.memo(() => {
                 initial="hidden"
                 animate="visible"
             >
-                <div className="pr-3 mb-2 md:mb-0">
-                    <Marquee className='text-sm font-bold' speed={50} gradient={false}>Welcome to our store! Enjoy the best deals.</Marquee>
+                <div className="pr-3 hidden md:flex mb-2 md:mb-0">
+                    <Marquee className=' text-sm font-bold' speed={50} gradient={false}>Welcome to our store! Enjoy the best deals.</Marquee>
                 </div>
                 <div className="flex justify-center gap-4 text-sm md:text-base">
-                    <Link to="/about" className="text-gray-200 no-underline hover:text-white hover:underline">About Us</Link>
-                    <Link to="/contact" className="text-gray-200 no-underline hover:text-white hover:underline">Become a Seller</Link>
+                    {/* <Link to="/about" className="text-gray-200 no-underline hover:text-white hover:underline">About Us</Link>
+                    <Link to="/contact" className="text-gray-200 no-underline hover:text-white hover:underline">Become a Seller</Link> */}
                     <Link to="/order-history" className="text-gray-200 no-underline hover:text-white hover:underline">Track Your orders</Link>
                     <Link onClick={user && handleLogout} to={!user && "/login"} className="text-gray-200 underline font-poppins md:text-primary hover:text-white">{user ? "Logout" : "Sign In"}</Link>
                 </div>

@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import {HelmetProvider} from 'react-helmet-async'
 import store from "./store/index.js";
 import { Provider } from "react-redux";
+import 'simplebar-react/dist/simplebar.min.css';
 import App from "./App.jsx";
 import "./index.css";
 
