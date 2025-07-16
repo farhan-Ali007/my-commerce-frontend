@@ -191,7 +191,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
     return (
         <motion.div
-            className="max-w-sm bg-white h-[320px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="max-w-sm bg-white h-[330px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
@@ -267,7 +267,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 )}
             </AnimatePresence>
 
-            <div className="justify-start mx-2 mt-2 md:mt-0 mb-4 font-roboto">
+            <div className="justify-start mx-2  md:mt-0 mb-4 font-roboto">
                 <Link to={`/product/${slug}`} className='text-black no-underline'>
                     <h2
                         onMouseEnter={() => setIsHovered(true)}

@@ -7,6 +7,7 @@ import {
   FaCrown,
   FaFileAlt,
 } from "react-icons/fa";
+import { MdCampaign } from "react-icons/md";
 import { BiSolidCategory } from "react-icons/bi";
 import { RiMenuUnfoldFill } from "react-icons/ri";
 import { GiVerticalBanner } from "react-icons/gi";
@@ -20,6 +21,7 @@ import AdminCategories from "./AdminCategories";
 import AdminTags from "./AdminTags";
 import AdminSubs from "./AdminSubs";
 import MenuCategories from "./MenuCategories";
+import AdminTopbarText from "./TopBar";
 import AdminBanner from "./AdminBanner";
 import AdminBrands from "./AdminBrands";
 import AdminDynamicPages from "./AdminDynamicPages";
@@ -120,6 +122,12 @@ const AdminDashboard = () => {
         return (
           <div>
             <AdminDynamicPages />
+          </div>
+        );
+      case "topbarText":
+        return (
+          <div>
+            <AdminTopbarText />
           </div>
         );
       default:
@@ -308,6 +316,20 @@ const AdminDashboard = () => {
           >
             <FaFileAlt className="text-lg" />
             Pages
+          </button>
+          <button
+            className={`flex items-center gap-3 py-2 px-4 text-left ${
+              selectedPage === "topbarText"
+                ? "bg-gray-700 rounded-full"
+                : "hover:bg-gray-700 rounded-full"
+            }`}
+            onClick={() => {
+              setSelectedPage("topbarText");
+              setIsSidebarOpen(false);
+            }}
+          >
+            <MdCampaign className="text-lg" />
+            Topbar Text
           </button>
         </nav>
       </div>
