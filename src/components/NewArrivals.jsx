@@ -211,9 +211,9 @@ const NewArrivals = React.memo(() => {
                 viewport={{ once: true, amount: 0.5 }}
             >
                 <div className="flex-grow h-[0.5px] mr-4 bg-primary"></div>
-                <h1 className="text-2xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
+                <h2 className="text-2xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
                     New Arrivals
-                </h1>
+                </h2>
                 <div className="flex-grow h-[0.5px] ml-4 bg-primary"></div>
             </motion.div>
 

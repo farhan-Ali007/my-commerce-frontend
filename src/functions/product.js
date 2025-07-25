@@ -24,8 +24,8 @@ export const getMyProducts = async (page = 1, limit = 8) => {
     }
 }
 
-export const getAllProducts = async (page = 1, limit = 8) => {
-    console.log("Page in get all products", page)
+export const getAllProducts = async (page = 1, limit = 16) => {
+    // console.log("Page in get all products", page)
     try {
         const response = await axios.get(`${BASE_URL}/product/getAll?page=${page}&limit=${limit}`,
             { withCredentials: true })
@@ -160,6 +160,31 @@ export const getNewArrivals = async (page = 1, limit = 8) => {
         console.log("Error in getting new arrivals", error)
     }
 }
+
+export const uploadDescriptionImage = async (file) => {
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await axios.post(`${BASE_URL}/product/upload-description-image`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            withCredentials: true
+        });
+        return response?.data?.url;
+    } catch (error) {
+        console.log('Error uploading description image', error);
+        throw error;
+    }
+};
+
+export const getProductRedirects = async (slug) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/product/redirects?to=${slug}`);
+        return response?.data?.redirects || [];
+    } catch (error) {
+        console.log('Error fetching product redirects', error);
+        return [];
+    }
+};
 
 
 

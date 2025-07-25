@@ -13,11 +13,9 @@ const cartSlice = createSlice({
             const newItem = action.payload;
             // console.log("Adding to cart with item:", newItem);
 
-            // Check if the item with the same productId AND selectedVariants already exists
+            // Check if the item with the same cartItemId already exists
             const itemIndex = state.products.findIndex(
-                item =>
-                    item.productId === newItem.productId &&
-                    JSON.stringify(item.selectedVariants) === JSON.stringify(newItem.selectedVariants)
+                item => item.cartItemId === newItem.cartItemId
             );
 
             if (itemIndex >= 0) {
@@ -45,7 +43,7 @@ const cartSlice = createSlice({
         },
 
         updateQuantity: (state, action) => {
-            const itemIndex = state.products.findIndex(item => item.productId === action.payload.id);
+            const itemIndex = state.products.findIndex(item => item.cartItemId === action.payload.id);
             if (itemIndex >= 0) {
                 const item = state.products[itemIndex];
                 state.cartTotal += (action.payload.count - item.count) * item.price;
@@ -60,7 +58,7 @@ const cartSlice = createSlice({
             }
         },
         removeFromCart: (state, action) => {
-            const itemIndex = state.products.findIndex(item => item.productId === action.payload.id);
+            const itemIndex = state.products.findIndex(item => item.cartItemId === action.payload.id);
             if (itemIndex >= 0) {
                 state.cartTotal -= state.products[itemIndex].price * state.products[itemIndex].count;
                 state.products.splice(itemIndex, 1);

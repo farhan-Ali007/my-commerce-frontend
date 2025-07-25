@@ -17,9 +17,9 @@ const RelatedProducts = ({ relatedProducts }) => {
 
     return (
         <div className="max-w-screen-xl mx-auto px-0 md:px-4 lg:px-4 mt-4">
-            <h1 className="text-secondary font-space text-3xl md:text-4xl font-extrabold text-center mb-8">
+            <h3 className="text-secondary font-space text-3xl md:text-4xl font-extrabold text-center mb-8">
                 Related Products
-            </h1>
+            </h3>
 
             {/* Product Cards */}
             {loading ? (

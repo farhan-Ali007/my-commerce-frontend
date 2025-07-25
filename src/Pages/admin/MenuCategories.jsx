@@ -17,7 +17,7 @@ const MenuCategories = () => {
             try {
                 setLoading(true);
                 const response = await getAllCategories();
-                console.log("All categories ---->" , response.categories)
+                // console.log("All categories ---->" , response.categories)
                 setCategories(response.categories);
                 
                 // Initialize selected categories with those having menu: true

@@ -230,7 +230,7 @@ const ReviewForm = ({ slug, product }) => {
                     {review.reviewerId.username}
                   </h3>
                   <div className="mt-2">
-                    <p className="text-gray-800">"{review.reviewText}"</p>
+                    <p className="text-gray-800">{review.reviewText}</p>
                   </div>
                   {/* Rating display */}
                   <div className="flex items-center mt-2">

@@ -122,9 +122,9 @@ const BestSellers = React.memo(() => {
     if (error) {
         return (
             <div className="max-w-screen-xl px-2 mx-auto my-4 md:px-4 lg:px-4">
-                <h1 className="px-5 mb-8 text-2xl font-extrabold text-center text-main font-space md:text-4xl">
+                <h2 className="px-5 mb-8 text-2xl font-extrabold text-center text-main font-space md:text-4xl">
                     Best Sellers
-                </h1>
+                </h2>
                 <div className="py-8 text-center text-red-500">
                     {error}
                 </div>
@@ -143,9 +143,9 @@ const BestSellers = React.memo(() => {
                 viewport={{ once: true, amount: 0.5 }}
             >
                 <div className="flex-grow h-[0.5px] mr-4 bg-primary"></div>
-                <h1 className="text-3xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
+                <h2 className="text-3xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
                     Best Sellers
-                </h1>
+                </h2>
                 <div className="flex-grow h-[0.5px] ml-4 bg-primary"></div>
             </motion.div>
 

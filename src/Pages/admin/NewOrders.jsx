@@ -14,6 +14,7 @@ const NewOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [previewImage, setPreviewImage] = useState(null);
 
     const fetchAllOrders = async () => {
         try {
@@ -32,6 +33,7 @@ const NewOrders = () => {
 
     useEffect(() => {
         fetchAllOrders();
+        window.scrollTo({ top: 0, behavior: "smooth" }); 
     }, []);
 
     const handleSearchChange = (e) => {
@@ -170,66 +172,42 @@ const NewOrders = () => {
                                             ))}
                                         </select>
                                     </td>
-                                    <td className="px-4 py-2 border min-w-[500px] max-w-[900px]">
-                                        <ul className="grid grid-cols-2 gap-2 list-none p-0 m-0">
-                                            {order.cartSummary?.map((product) => (
-                                                <li
-                                                    key={product._id}
-                                                    className="bg-gray-200 border border-primary rounded-lg p-2 mb-2"
-                                                >
-                                                    {/* Product Basic Info */}
-                                                    <div className="mb-2">
-                                                        <strong className="text-xs font-bold text-main">
-                                                            {product?.title}
-                                                        </strong>
-                                                    </div>
-                                                    <div className="flex items-center gap-4 mb-2 text-sm">
-                                                        <span className="text-primary ">
-                                                            Price:{" "}
-                                                            <span className="font-semibold">
-                                                                Rs.{product.salePrice || product.price}
-                                                            </span>
-                                                        </span>
-                                                        <span className="text-primary">
-                                                            Quantity:{" "}
-                                                            <span className="font-semibold ">
-                                                                {product?.count}
-                                                            </span>
-                                                        </span>
-                                                    </div>
-                                                    {/* Variants Section */}
-                                                    {product.selectedVariants &&
-                                                        product.selectedVariants.length > 0 && (
-                                                            <div className="pt-3 mt-3 border-t border-gray-200">
-                                                                <div className="flex flex-col gap-2">
-                                                                    {product.selectedVariants.map((variant) => (
-                                                                        <div
-                                                                            key={variant.name}
-                                                                            className="flex items-start gap-2"
-                                                                        >
-                                                                            <span className="font-semibold text-gray-900 capitalize min-w-[80px]">
-                                                                                {variant.name}:
-                                                                            </span>
-                                                                            <div className="flex flex-wrap gap-1.5">
-                                                                                {variant.values.map(
-                                                                                    (value, valueIndex) => (
-                                                                                        <span
-                                                                                            key={`${variant.name}-${valueIndex}`}
-                                                                                            className="px-2.5 py-1 text-xs font-medium capitalize bg-main/10 text-main rounded-full border border-main/20"
-                                                                                        >
-                                                                                            {value}
-                                                                                        </span>
-                                                                                    )
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                </li>
-                                            ))}
-                                        </ul>
+                                    <td className="px-4 py-2 border min-w-[400px] max-w-[900px]">
+                                        <table className="w-full border-collapse">
+                                            <thead>
+                                                <tr className="bg-gray-50">
+                                                    <th>Image</th>
+                                                    <th>Product</th>
+                                                    <th>Price</th>
+                                                    <th>Qty</th>
+                                                    <th>Variants</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {order.cartSummary?.map((product, idx) => (
+                                                    <tr key={idx}>
+                                                        <td>
+                                                            <img
+                                                                src={product.image}
+                                                                alt={product.title}
+                                                                className="w-12 h-12 object-cover rounded border cursor-pointer hover:shadow-lg transition"
+                                                                onClick={() => setPreviewImage(product.image)}
+                                                            />
+                                                        </td>
+                                                        <td>{product.title}</td>
+                                                        <td>Rs.{product.price}</td>
+                                                        <td>{product.count}</td>
+                                                        <td>
+                                                            {product.selectedVariants?.length > 0
+                                                                ? product.selectedVariants.map((variant, vIdx) => (
+                                                                    <span key={vIdx}>{variant.name}: {variant.values.join(", ")}</span>
+                                                                ))
+                                                                : "-"}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </td>
                                     <td className="px-4 py-2 border">
                                         Rs.{order?.deliveryCharges}
@@ -254,6 +232,32 @@ const NewOrders = () => {
                         </tbody>
                     </table>
                 </SimpleBar>
+            )}
+            {previewImage && (
+                <div
+                    className="fixed inset-0 top-20 z-50 flex items-center justify-center bg-black bg-opacity-70"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <div
+                        className="relative flex items-center justify-center bg-white rounded-lg shadow-lg p-2"
+                        onClick={e => e.stopPropagation()} // Prevent closing when clicking inside modal
+                        style={{ minWidth: '300px', minHeight: '300px' }}
+                    >
+                        <button
+                            onClick={() => setPreviewImage(null)}
+                            className="absolute top-2 right-2 p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+                            aria-label="Close preview"
+                        >
+                            <span className="text-xl font-bold text-gray-700">&times;</span>
+                        </button>
+                        <img
+                            src={previewImage}
+                            alt="Preview"
+                            className="max-w-[70vw] max-h-[70vh] rounded-lg object-contain mx-auto"
+                            style={{ display: 'block', margin: '0 auto' }}
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );

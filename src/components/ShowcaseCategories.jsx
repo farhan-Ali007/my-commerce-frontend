@@ -1,19 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { filterByCategory } from '../functions/search';
-import ProductCard from './cards/ProductCard';
-import ProductCardSkeleton from './skeletons/ProductCardSkeleton';
+import React, { useRef, useEffect, useState } from "react";
+import { filterByCategory } from "../functions/search";
+import ProductCard from "./cards/ProductCard";
+import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
+import { Link } from "react-router-dom";
 
-const ShowcaseCategories = () => {
+const ShowcaseCategories = ({
+  categorySlug,
+  categoryName,
+  categoryImage ,
+  limit = 8,
+}) => {
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const categoryName = 'Trimmers and Shavers';
+
+  const scrollRef = useRef();
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoadingProducts(true);
       setProducts([]);
       try {
-        const res = await filterByCategory({ categories: 'trimmers-and-shavers', page: 1, limit: 8 });
+        const res = await filterByCategory({
+          categories: categorySlug,
+          page: 1,
+          limit,
+        });
         setProducts(res?.products || []);
       } catch (err) {
         setProducts([]);
@@ -22,43 +33,61 @@ const ShowcaseCategories = () => {
       }
     };
     fetchProducts();
+  }, [categorySlug, limit]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e) => {
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
   return (
-    <section className="max-w-screen-xl mx-auto px-2 md:px-8 py-8 md:py-14">
-      <div className="flex flex-col md:flex-row gap-8 items-center min-h-[400px]">
+    <section className="max-w-screen-xl mx-auto px-2 md:px-8 py-4 md:py-0">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch min-h-[300px] md:min-h-[400px]">
         {/* Left: Category Name and Static Image */}
-        <div className="md:w-1/4 w-full flex flex-col items-center justify-center mb-4 md:mb-0 h-full">
-          <h2 className="text-xl md:text-2xl font-bold text-secondary font-space mb-0 md:mb-4 text-center md:text-left">
-            {categoryName}
-          </h2>
+        <div className="w-full md:w-1/4 flex flex-row md:flex-col items-center md:items-center justify-between md:justify-center mb-2 md:mb-0 h-full gap-4 md:gap-0">
+          <Link className="no-underline flex-1 md:flex-none" to={`/category/${categorySlug}`}> 
+            <h2 className="text-xl md:text-2xl font-bold text-secondary font-space mb-0 md:mb-4 text-center md:text-left block">
+              {categoryName}
+            </h2>
+          </Link>
           <img
-            src="/category.jpg"
-            alt="Categories"
-            className="shadow-none hidden md:block hover:shadow-md w-full max-w-[180px] md:max-w-[300px] object-cover h-60 md:h-[400px] bg-gray-100 self-center"
+            src={categoryImage}
+            alt={categoryName}
+            className="block w-20 h-20 md:w-full md:max-w-[300px] md:h-[380px] object-cover bg-gray-100 self-center rounded shadow-none hover:shadow-md"
             loading="lazy"
           />
         </div>
-        {/* Right: Horizontally Scrollable Products (4 visible on desktop) */}
-        <div className="md:w-3/4 w-full flex flex-col h-full justify-center self-center md:mt-24 md:mb-8">
-          <div className="relative overflow-x-auto scrollbar-hide">
-            <div className="flex gap-4 items-center" style={{ minWidth: '100%' }}>
-              {loadingProducts
-                ? Array.from({ length: 4 }).map((_, idx) => (
-                    <div key={idx} className="min-w-[50%] max-w-[50%] md:min-w-[25%] md:max-w-[25%] flex-1">
-                      <ProductCardSkeleton />
-                    </div>
-                  ))
-                : products.length > 0
-                ? products.map((product) => (
-                    <div key={product._id} className="min-w-[50%] max-w-[50%] md:min-w-[25%] md:max-w-[25%] flex-1">
-                      <ProductCard product={product} />
-                    </div>
-                  ))
-                : (
-                  <div className="text-gray-500 text-center py-8">No products found in this category.</div>
-                )
-              }
+        {/* Right: Horizontally Scrollable Products */}
+        <div className="w-full md:w-3/4 flex flex-col h-full justify-center self-center md:mt-24 md:mb-8">
+          <div
+            ref={scrollRef}
+            className="overflow-x-auto scrollbar-hide w-screen  px-4 md:w-full md:mx-0 md:px-0"
+          >
+            <div className="flex flex-row gap-3">
+              {loadingProducts ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="w-1/2 md:w-60 flex-shrink-0">
+                    <ProductCardSkeleton />
+                  </div>
+                ))
+              ) : products.length > 0 ? (
+                products.map((product) => (
+                  <div key={product._id} className="w-1/2 md:w-60 flex-shrink-0">
+                    <ProductCard product={product} />
+                  </div>
+                ))
+              ) : (
+                <div className="text-gray-500 text-center py-8 w-full">
+                  No products found in this category.
+                </div>
+              )}
             </div>
           </div>
         </div>

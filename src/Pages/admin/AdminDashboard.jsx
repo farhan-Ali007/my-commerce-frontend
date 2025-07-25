@@ -26,6 +26,8 @@ import AdminBanner from "./AdminBanner";
 import AdminBrands from "./AdminBrands";
 import AdminDynamicPages from "./AdminDynamicPages";
 import { getRecentOrders } from "../../functions/order";
+import AdminFooter from "./AdminFooter";
+import { MdOutlineSpaceBar } from "react-icons/md";
 
 const AdminDashboard = () => {
   const [selectedPage, setSelectedPage] = useState("allProducts");
@@ -128,6 +130,12 @@ const AdminDashboard = () => {
         return (
           <div>
             <AdminTopbarText />
+          </div>
+        );
+      case "footer":
+        return (
+          <div>
+            <AdminFooter />
           </div>
         );
       default:
@@ -330,6 +338,20 @@ const AdminDashboard = () => {
           >
             <MdCampaign className="text-lg" />
             Topbar Text
+          </button>
+          <button
+            className={`flex items-center gap-3 py-2 px-4 text-left ${
+              selectedPage === "footer"
+                ? "bg-gray-700 rounded-full"
+                : "hover:bg-gray-700 rounded-full"
+            }`}
+            onClick={() => {
+              setSelectedPage("footer");
+              setIsSidebarOpen(false);
+            }}
+          >
+            <MdOutlineSpaceBar className="text-lg" />
+            Footer
           </button>
         </nav>
       </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { CiEdit } from 'react-icons/ci';
-import { getAllUsers, updateUserRole } from '../../functions/auth';
+import { CiEdit, CiTrash } from 'react-icons/ci';
+import { getAllUsers, updateUserRole, deleteUser } from '../../functions/auth';
 import { toast } from 'react-hot-toast'
 
 const AllUsers = () => {
@@ -24,7 +24,6 @@ const AllUsers = () => {
         fetchAllUsers()
     }, [])
 
-
     const handleRoleChange = async (userId, newRole) => {
         try {
             // Optimistically update the UI
@@ -44,6 +43,25 @@ const AllUsers = () => {
                 user._id === userId ? { ...user, role: user.role } : user
             );
             setUsers(revertedUsers);
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        if (window.confirm("Are you sure you want to delete this user?")) {
+            try {
+                setLoading(true);
+                const response = await deleteUser(userId);
+                if (response?.success) {
+                    setUsers(users.filter(user => user._id !== userId));
+                    toast.success(response?.message || "User deleted successfully");
+                } else {
+                    toast.error(response?.message || "Failed to delete user");
+                }
+            } catch (error) {
+                toast.error("Error deleting user");
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -75,6 +93,7 @@ const AllUsers = () => {
                                 <th className="px-4 py-2 border text-sm sm:text-base">Username</th>
                                 <th className="px-4 py-2 border text-sm sm:text-base">Email</th>
                                 <th className="px-4 py-2 border text-sm sm:text-base">Role</th>
+                                <th className="px-4 py-2 border text-sm sm:text-base">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -107,6 +126,15 @@ const AllUsers = () => {
                                                 />
                                             </div>
                                         )}
+                                    </td>
+                                    <td className="px-4 py-2 border text-sm sm:text-base">
+                                        <button
+                                            onClick={() => handleDeleteUser(user._id)}
+                                            className="text-red-600 hover:text-red-800 transition"
+                                            title="Delete"
+                                        >
+                                            <CiTrash size={22} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

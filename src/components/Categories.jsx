@@ -51,23 +51,13 @@ const Categories = React.memo(() => {
     // Memoize the category list rendering
     const renderCategories = useMemo(() => {
         if (loading) {
-            return Array.from({ length: 8 }).map((_, index) => (
-                <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
-                        transition: {
-                            duration: 0.3,
-                            delay: index * 0.1
-                        }
-                    }}
-                    className="will-change-transform"
-                >
-                    <CategorySkeleton />
-                </motion.div>
-            ));
+            return (
+                <div className="grid grid-cols-4 md:grid-cols-7 lg:grid-cols-7 gap-4 md:gap-2">
+                    {Array.from({ length: 8 }).map((_, idx) => (
+                        <CategorySkeleton key={idx} />
+                    ))}
+                </div>
+            );
         }
 
         if (error) {

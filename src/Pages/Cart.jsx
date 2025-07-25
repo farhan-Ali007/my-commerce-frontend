@@ -60,20 +60,20 @@ const Cart = () => {
     });
   };
 
-  const handleQuantityChange = (id, type) => {
-    const product = cartItems.find((item) => item.productId === id);
+  const handleQuantityChange = (cartItemId, type) => {
+    const product = cartItems.find((item) => item.cartItemId === cartItemId);
     if (!product) return;
 
     const newQuantity =
       type === "increment" ? product.count + 1 : product.count - 1;
 
     if (newQuantity > 0) {
-      dispatch(updateQuantity({ id, count: newQuantity }));
+      dispatch(updateQuantity({ id: cartItemId, count: newQuantity }));
     }
   };
 
-  const handleRemoveItem = async (id) => {
-    dispatch(removeFromCart({ id }));
+  const handleRemoveItem = async (cartItemId) => {
+    dispatch(removeFromCart({ id: cartItemId }));
     toast.success("Product removed from cart.");
   };
 
@@ -208,7 +208,7 @@ const Cart = () => {
             </h2>
             {cartData.map((product) => (
               <div
-                key={product.productId}
+                key={product.cartItemId}
                 className="w-full bg-white h-auto my-2 border border-slate-300 rounded grid grid-cols-[96px,1fr] sm:grid-cols-[128px,1fr] p-2 sm:p-4"
               >
                 {/* Product Image */}
@@ -225,7 +225,7 @@ const Cart = () => {
                 <div className="relative px-2 py-2">
                   {/* Remove Button */}
                   <div
-                    onClick={() => handleRemoveItem(product.productId)}
+                    onClick={() => handleRemoveItem(product.cartItemId)}
                     className="absolute top-0 right-0 mx-1 mt-2 text-white rounded cursor-pointer bg-secondary/70 hover:bg-secondary/90 sm:mx-2"
                   >
                     <button className="flex items-center justify-center text-sm bg-white sm:text-lg">
@@ -254,7 +254,7 @@ const Cart = () => {
                   <div className="flex items-center gap-2 mt-2 sm:gap-3">
                     <button
                       onClick={() =>
-                        handleQuantityChange(product.productId, "decrement")
+                        handleQuantityChange(product.cartItemId, "decrement")
                       }
                       className="flex items-center justify-center w-6 h-6 text-secondary border border-secondary rounded hover:bg-primary hover:text-white md:w-7 md:h-7"
                       disabled={product?.count <= 1}
@@ -266,7 +266,7 @@ const Cart = () => {
                     </span>
                     <button
                       onClick={() =>
-                        handleQuantityChange(product.productId, "increment")
+                        handleQuantityChange(product.cartItemId, "increment")
                       }
                       className="flex items-center justify-center w-6 h-6 text-secondary border border-secondary rounded hover:bg-primary hover:text-white md:w-7 md:h-7"
                       disabled={product.count >= 200}

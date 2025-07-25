@@ -77,4 +77,14 @@ const updateUserRole = async (id, newRole) => {
     }
 }
 
-export { signupAPI, loginAPI, logoutAPI, getUserAPI, getAllUsers, updateUserRole };
+const deleteUser = async (id) => {
+    try {
+        const response = await axios.delete(`${BASE_URL}/user/${id}`, { withCredentials: true });
+        return response?.data;
+    } catch (error) {
+        console.log("Error in deleting user", error);
+        return error?.response?.data;
+    }
+};
+
+export { signupAPI, loginAPI, logoutAPI, getUserAPI, getAllUsers, updateUserRole, deleteUser };

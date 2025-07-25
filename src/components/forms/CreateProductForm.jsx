@@ -1,11 +1,12 @@
-import React, { useState, forwardRef, useImperativeHandle } from "react";
-import { IoAddCircle, IoTrash } from 'react-icons/io5';
-import { IoIosAdd } from 'react-icons/io'
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
+import toast from 'react-hot-toast';
 import { FaCloudUploadAlt } from 'react-icons/fa';
+import { IoIosAdd } from 'react-icons/io';
+import { IoAddCircle, IoTrash } from 'react-icons/io5';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import toast from 'react-hot-toast';
+import { uploadDescriptionImage } from '../../functions/product';
 
 const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categories, subCategories, tags, brands }, ref) => {
     const [formData, setFormData] = useState({
@@ -27,6 +28,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [freeShipping, setFreeShipping] = useState(false);
+    const quillRef = useRef();
 
     const resetForm = () => {
         setFormData({
@@ -271,6 +273,46 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         setFormData((prev) => ({ ...prev, longDescription: value }));
     };
 
+    // Custom image handler for Quill (long description)
+    const imageHandler = () => {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = async () => {
+            const file = input.files[0];
+            if (file) {
+                try {
+                    const url = await uploadDescriptionImage(file);
+                    const editor = quillRef.current.getEditor();
+                    const range = editor.getSelection();
+                    editor.insertEmbed(range.index, 'image', url);
+                } catch (err) {
+                    toast.error('Image upload failed');
+                }
+            }
+        };
+    };
+
+    // Memoize modules so it doesn't get recreated on every render
+    const modules = useMemo(() => ({
+        toolbar: {
+            container: [
+                [{ 'font': [] }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['link', 'image'],
+                ['clean']
+            ],
+            handlers: {
+                image: imageHandler,
+            }
+        }
+    }), []);
+
     return (
         <form onSubmit={handleSubmit} className="max-w-[600px] md:w-[800px] my-4 mx-auto p-6 bg-white shadow-none md:shadow-md rounded-lg">
             <h2 className="text-2xl text-center font-semibold mb-4 text-main">{formTitle}</h2>
@@ -327,20 +369,16 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             {/* Long Description */}
             <div className="mb-4">
                 <label className="block font-medium mb-2 text-main">Long Description</label>
-                <div className="h-80">
+                <div className="mb-2 text-yellow-700 text-xs font-semibold">
+                    <span>⚠️</span> Images are uploaded immediately. Please only upload images you intend to keep in the description.
+                </div>
+                <div className="h-80 mb-20"> {/* Add mb-4 for margin below */}
                     <ReactQuill
+                        ref={quillRef}
                         value={formData.longDescription}
                         onChange={handleLongDescriptionChange}
-                        className="flex-1 h-[16rem] md:h-[18rem]"
-                        modules={{
-                            toolbar: [
-                                [{ 'header': [1, 2, 3, false] }],
-                                ['bold', 'italic', 'underline', 'strike'],
-                                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                                ['link'],
-                                ['clean']
-                            ],
-                        }}
+                        className="h-full"
+                        modules={modules}
                         onPaste={handlePaste}
                     />
                 </div>

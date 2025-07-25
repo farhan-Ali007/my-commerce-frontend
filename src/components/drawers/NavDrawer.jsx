@@ -22,12 +22,12 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
             onClose={toggleDrawer}
             size={350}
             direction="left"
-            className="!z-[1200] drawer h-screen overflow-y-auto relative bg-white rounded-lg shadow-md"
+            className="!z-[1200] drawer h-screen overflow-y-auto relative bg-white  shadow-md"
         >
             <div className="p-4">
                 <div className='flex justify-between items-center'>
                     <div>
-                        <h2 className="text-xl font-bold mb-4 text-primary">Categories</h2>
+                        <span className="text-xl font-bold mb-4 text-primary">Categories</span>
                     </div>
                     <div>
                         <IoIosClose className='font-extrabold mb-2 text-secondary' size={40} onClick={closeDrawer} />

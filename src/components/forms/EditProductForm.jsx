@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { IoAddCircle, IoTrash } from "react-icons/io5";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { uploadDescriptionImage } from '../../functions/product';
+import { getProductRedirects } from '../../functions/product';
 
 const EditProductForm = ({
   buttonText,
@@ -45,6 +47,10 @@ const EditProductForm = ({
   const [tempSpecialOfferEnd, setTempSpecialOfferEnd] = useState(null);
   const [specialOfferStartSet, setSpecialOfferStartSet] = useState(false);
   const [specialOfferEndSet, setSpecialOfferEndSet] = useState(false);
+  const quillRef = useRef();
+  const [showRedirectsModal, setShowRedirectsModal] = useState(false);
+  const [redirects, setRedirects] = useState([]);
+  const [redirectsLoading, setRedirectsLoading] = useState(false);
 
   useEffect(() => {
     if (defaultValues) {
@@ -103,6 +109,24 @@ const EditProductForm = ({
       setSpecialOfferEndSet(!!defaultValues.specialOfferEnd);
     }
   }, [defaultValues]);
+
+  // Fetch redirects when modal is opened
+  useEffect(() => {
+    if (showRedirectsModal) {
+      let toParam = '';
+      if (defaultValues?.category && defaultValues.category.slug) {
+        toParam = `/category/${defaultValues.category.slug}`;
+      } else if (defaultValues?.slug) {
+        toParam = `/product/${defaultValues.slug}`;
+      }
+      if (toParam) {
+        setRedirectsLoading(true);
+        getProductRedirects(toParam)
+          .then((data) => setRedirects(data))
+          .finally(() => setRedirectsLoading(false));
+      }
+    }
+  }, [showRedirectsModal, defaultValues?.slug, defaultValues?.category]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -405,6 +429,47 @@ const EditProductForm = ({
     setFormData((prev) => ({ ...prev, longDescription: value }));
   };
 
+  // Custom image handler for Quill (long description)
+  const imageHandler = () => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (file) {
+        try {
+          const url = await uploadDescriptionImage(file);
+          const editor = quillRef.current.getEditor();
+          const range = editor.getSelection();
+          editor.insertEmbed(range.index, 'image', url);
+        } catch (err) {
+          // You can use toast.error if you import toast
+          alert('Image upload failed');
+        }
+      }
+    };
+  };
+
+  // Memoize modules so it doesn't get recreated on every render
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'font': [] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler,
+      }
+    }
+  }), []);
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -425,6 +490,70 @@ const EditProductForm = ({
           className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
         />
       </div>
+
+      {/* See Old Redirects Button */}
+      <div className="mb-4">
+        <button
+          type="button"
+          className="bg-secondary text-primary px-4 py-2 rounded shadow hover:bg-secondary/80 font-semibold"
+          onClick={() => setShowRedirectsModal(true)}
+        >
+          See Old Redirects
+        </button>
+      </div>
+
+      {/* Redirects Modal */}
+      {showRedirectsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative max-h-[80vh] overflow-y-auto">
+            <button
+              className="absolute top-2 right-2 text-xl text-gray-500 hover:text-red-500"
+              onClick={() => setShowRedirectsModal(false)}
+            >
+              &times;
+            </button>
+            <h3 className="font-bold text-lg mb-4 text-main">Old Redirects</h3>
+            <div className="overflow-x-auto">
+              {redirectsLoading ? (
+                <div className="text-center py-8">Loading...</div>
+              ) : !defaultValues?.category || !defaultValues.category.slug ? (
+                <div className="text-center py-8 text-gray-500">No category found for this product. Redirects cannot be displayed.</div>
+              ) : redirects.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">No redirects found for this product.</div>
+              ) : (
+                redirects.map((r, idx) => (
+                  <div key={idx} className="mb-4 pb-4 border-b border-gray-200">
+                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                      <span className="font-semibold text-gray-700">From:</span>
+                      <a
+                        href={`/product/${r.from}`}
+                        className="text-blue-700 break-all underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {`/product/${r.from}`}
+                      </a>
+                    </div>
+                    <div className="flex flex-col md:flex-row md:items-center gap-2 mt-1">
+                      <span className="font-semibold text-gray-700">To:</span>
+                      <a
+                        href={r.to}
+                        className="text-green-700 break-all underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {r.to}
+                      </a>
+                      <span className="ml-4 font-semibold text-gray-700">Redirect Count:</span>
+                      <span className="font-bold">{r.count}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Slug */}
       <div className="mb-4">
@@ -467,23 +596,17 @@ const EditProductForm = ({
 
       {/* Long Description */}
       <div className="mb-4">
-        <label className="block font-medium mb-2 text-main">
-          Long Description
-        </label>
-        <div className="h-80">
+        <label className="block font-medium mb-2 text-main">Long Description</label>
+        <div className="mb-2 text-yellow-700 text-xs font-semibold">
+          <span>⚠️</span> Images are uploaded immediately. Please only upload images you intend to keep in the description.
+        </div>
+        <div className="h-80 mb-20">
           <ReactQuill
+            ref={quillRef}
             value={formData.longDescription}
             onChange={handleLongDescriptionChange}
-            className="flex-1 h-[16rem] md:h-[18rem]"
-            modules={{
-              toolbar: [
-                [{ header: [1, 2, 3, false] }],
-                ["bold", "italic", "underline", "strike"],
-                [{ list: "ordered" }, { list: "bullet" }],
-                ["link"],
-                ["clean"],
-              ],
-            }}
+            className="h-full"
+            modules={modules}
             onPaste={handlePaste}
           />
         </div>

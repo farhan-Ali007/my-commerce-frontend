@@ -71,6 +71,15 @@ const getTotalVariantPrice = (product, selectedVariants) => {
 };
 
 const SingleProduct = () => {
+  // All hooks here!
+  const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsLargeScreen(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const dispatch = useDispatch();
   const { slug } = useParams();
   const navigateTo = useNavigate();
@@ -125,36 +134,27 @@ const SingleProduct = () => {
   const currentPrice = useMemo(() => {
     if (!product) return 0;
 
-    let calculatedPrice = product.salePrice || product.price;
+    let variantPriceSum = 0;
+    let hasVariantPrice = false;
 
-    // Calculate price based on selected variants with prices
-    // Check each selected value within each variant type array
-    for (const [variantName, selectedValues] of Object.entries(
-      selectedVariants
-    )) {
+    for (const [variantName, selectedValues] of Object.entries(selectedVariants)) {
       if (selectedValues && selectedValues.length > 0) {
         const variant = product.variants?.find((v) => v.name === variantName);
         if (variant) {
-          // For simplicity, if multiple values are selected,
-          // we'll use the price of the *first* selected value that has a price defined.
-          // A more complex logic might sum or average prices if needed.
           for (const value of selectedValues) {
             const variantValue = variant.values?.find((v) => v.value === value);
-            // Check for explicit price (could be 0 or a number)
-            if (
-              variantValue?.price !== undefined &&
-              variantValue?.price !== null
-            ) {
-              // Assuming the price of the *first* selected value with a price overrides the base price
-              calculatedPrice = variantValue.price;
-              break; // Stop after finding the first selected value with a price
+            if (variantValue && typeof variantValue.price === "number") {
+              variantPriceSum += variantValue.price;
+              hasVariantPrice = true;
             }
           }
         }
       }
     }
 
-    return calculatedPrice;
+    // If any variant is selected and has a price, use the sum of variant prices
+    // Otherwise, use the base price
+    return hasVariantPrice ? variantPriceSum : (product.salePrice || product.price);
   }, [selectedVariants, product]);
 
   // Animation variants
@@ -487,20 +487,21 @@ const SingleProduct = () => {
   // Variant and cart handlers
   const handleVariantChange = useCallback((variantName, value) => {
     setSelectedVariants((prev) => {
-      // If the value is already selected, deselect it
-      if (prev[variantName] && prev[variantName][0] === value) {
+      const currentValues = prev[variantName] || [];
+      if (currentValues.includes(value)) {
+        // Deselect value
         return {
           ...prev,
-          [variantName]: [],
+          [variantName]: currentValues.filter((v) => v !== value),
+        };
+      } else {
+        // Select value (add to array)
+        return {
+          ...prev,
+          [variantName]: [...currentValues, value],
         };
       }
-      // Otherwise, select the new value (only one per variant)
-      return {
-        ...prev,
-        [variantName]: [value],
-      };
     });
-    // Image and price updates are now handled in useEffect and useMemo respectively
   }, []);
 
   const prepareVariantsForBackend = useCallback(() => {
@@ -514,42 +515,71 @@ const SingleProduct = () => {
       }));
   }, [selectedVariants]);
 
+  const generateCombinations = useCallback((variants) => {
+    if (variants.length === 0) {
+      return [[]];
+    }
+    const firstVariant = variants[0];
+    const restVariants = variants.slice(1);
+    const combinations = [];
+    const firstVariantValues = firstVariant.values;
+
+    for (const value of firstVariantValues) {
+      const restCombinations = generateCombinations(restVariants);
+      for (const restCombination of restCombinations) {
+        combinations.push([{ name: firstVariant.name, values: [value] }, ...restCombination]);
+      }
+    }
+    return combinations;
+  }, []);
+
   const handleAddToCart = useCallback(async () => {
     let cartItemsToAdd = [];
 
-    // Handle variant products
-    for (const [variantName, selectedValues] of Object.entries(
-      selectedVariants
-    )) {
-      const variant = product.variants?.find((v) => v.name === variantName);
-      if (variant) {
-        for (const value of selectedValues) {
-          const variantValue = variant.values?.find((v) => v.value === value);
-          if (variantValue) {
-            const cartItem = {
-              productId: product?._id,
-              title: `${product?.title} - ${variantName}: ${value}`,
-              price: variantValue.price ?? product.salePrice ?? product.price,
-              image: variantValue.image || product?.images?.[0],
-              count: selectedQuantity, // Use selectedQuantity for both cases
-              selectedVariants: [{ name: variantName, values: [value] }],
-              freeShipping: product?.freeShipping,
-              deliveryCharges: product?.deliveryCharges,
-            };
-            cartItemsToAdd.push(cartItem);
+    Object.entries(selectedVariants).forEach(([variantName, values]) => {
+      const variant = productVariants.find(v => v.name === variantName);
+      values.forEach((value) => {
+        let price = product.salePrice ?? product.price;
+        let image = product?.images?.[0];
+        let variantValue;
+        if (variant) {
+          variantValue = variant.values.find(v => v.value === value);
+          if (variantValue && typeof variantValue.price === "number") {
+            price = variantValue.price;
+          }
+          if (variantValue && variantValue.image) {
+            image = variantValue.image;
           }
         }
-      }
-    }
+        // Generate unique cartItemId
+        const cartItemId = [
+          product?._id,
+          `${variantName}:${value}`
+        ].join("|");
+        const cartItem = {
+          cartItemId,
+          productId: product?._id,
+          title: product?.title,
+          price,
+          image,
+          count: selectedQuantity,
+          selectedVariants: [{ name: variantName, values: [value] }],
+          freeShipping: product?.freeShipping,
+          deliveryCharges: product?.deliveryCharges,
+        };
+        cartItemsToAdd.push(cartItem);
+      });
+    });
 
-    // If no variants or no variant selected, add the base product
     if (cartItemsToAdd.length === 0) {
+      // If no variants selected, add the base product
       cartItemsToAdd.push({
+        cartItemId: product?._id,
         productId: product?._id,
         title: product?.title,
         price: product.salePrice ?? product.price,
         image: product?.images?.[0],
-        count: selectedQuantity, // Use selectedQuantity
+        count: selectedQuantity,
         selectedVariants: [],
         freeShipping: product?.freeShipping,
         deliveryCharges: product?.deliveryCharges,
@@ -568,59 +598,68 @@ const SingleProduct = () => {
       value: product.salePrice ? product.salePrice : product.price,
       currency: "PKR",
     });
-  }, [selectedVariants, product, dispatch, setIsDrawerOpen, selectedQuantity]);
+  }, [selectedVariants, product, dispatch, setIsDrawerOpen, selectedQuantity, currentPrice, track]);
 
   const handleByNow = useCallback(async () => {
-    // Add validation here if certain variants are required before proceeding
-
-    const variantsForBackend = prepareVariantsForBackend();
-
-    // Determine the image for the cart item.
-    let cartItemImage = product?.images?.[0];
-
-    outerLoop: for (const [variantName, selectedValues] of Object.entries(
-      selectedVariants
-    )) {
-      if (selectedValues && selectedValues.length > 0) {
-        const variant = product.variants?.find((v) => v.name === variantName);
+    // Prepare cart items for each selected variant value
+    let cartItemsToAdd = [];
+    Object.entries(selectedVariants).forEach(([variantName, values]) => {
+      const variant = productVariants.find(v => v.name === variantName);
+      values.forEach((value) => {
+        let price = product.salePrice ?? product.price;
+        let image = product?.images?.[0];
+        let variantValue;
         if (variant) {
-          for (const selectedValue of selectedValues) {
-            const variantValue = variant.values?.find(
-              (val) => val.value === selectedValue
-            );
-            if (variantValue?.image) {
-              cartItemImage = variantValue.image;
-              break outerLoop; // Use the first variant image found and stop
-            }
+          variantValue = variant.values.find(v => v.value === value);
+          if (variantValue && typeof variantValue.price === "number") {
+            price = variantValue.price;
+          }
+          if (variantValue && variantValue.image) {
+            image = variantValue.image;
           }
         }
-      }
+        // Generate unique cartItemId
+        const cartItemId = [
+          product?._id,
+          `${variantName}:${value}`
+        ].join("|");
+        const cartItem = {
+          cartItemId,
+          productId: product?._id,
+          title: product?.title,
+          price,
+          image,
+          count: selectedQuantity,
+          selectedVariants: [{ name: variantName, values: [value] }],
+          freeShipping: product?.freeShipping,
+          deliveryCharges: product?.deliveryCharges,
+        };
+        cartItemsToAdd.push(cartItem);
+      });
+    });
+    if (cartItemsToAdd.length === 0) {
+      // If no variants selected, add the base product
+      cartItemsToAdd.push({
+        cartItemId: product?._id,
+        productId: product?._id,
+        title: product?.title,
+        price: product.salePrice ?? product.price,
+        image: product?.images?.[0],
+        count: selectedQuantity,
+        selectedVariants: [],
+        freeShipping: product?.freeShipping,
+        deliveryCharges: product?.deliveryCharges,
+      });
     }
-
-    const cartItem = {
-      productId: product?._id,
-      title: product?.title,
-      price: getTotalVariantPrice(product, selectedVariants),
-      image: cartItemImage,
-      count: selectedQuantity,
-      selectedVariants: variantsForBackend,
-      freeShipping: product?.freeShipping,
-      deliveryCharges: product?.deliveryCharges,
-    };
-
     try {
-      // For logged-in users, call API first, then update Redux
       if (userId) {
+        // For logged-in users, send all items in one API call
         const cartPayload = {
-          products: [cartItem],
-          deliveryCharges: product?.freeShipping
-            ? 0
-            : product?.deliveryCharges || 200,
+          products: cartItemsToAdd,
+          deliveryCharges: product?.freeShipping ? 0 : product?.deliveryCharges || 200,
         };
         await addItemToCart(userId, cartPayload);
-        // Only add to Redux after successful API call
-        dispatch(addToCart(cartItem));
-        // Meta Pixel InitiateCheckout event for COD
+        cartItemsToAdd.forEach(cartItem => dispatch(addToCart(cartItem)));
         track("InitiateCheckout", {
           content_ids: [product._id],
           content_name: product.title,
@@ -630,9 +669,8 @@ const SingleProduct = () => {
         toast.success("Proceeding to checkout...");
         navigateTo("/cart/checkout");
       } else {
-        // For guest users, just add to Redux
-        dispatch(addToCart(cartItem));
-        // Meta Pixel InitiateCheckout event for COD
+        // For guest users, just add all to Redux
+        cartItemsToAdd.forEach(cartItem => dispatch(addToCart(cartItem)));
         track("InitiateCheckout", {
           content_ids: [product._id],
           content_name: product.title,
@@ -646,16 +684,7 @@ const SingleProduct = () => {
       toast.error("Failed to proceed to checkout. Please try again.");
       console.error("Error during Buy Now:", error);
     }
-  }, [
-    prepareVariantsForBackend,
-    selectedVariants,
-    product,
-    selectedQuantity,
-    dispatch,
-    userId,
-    navigateTo,
-    track,
-  ]);
+  }, [selectedVariants, product, selectedQuantity, dispatch, userId, navigateTo, track, productVariants]);
 
   const handleQuantityChange = useCallback(
     (operation) => {
@@ -730,17 +759,12 @@ const SingleProduct = () => {
           content={product?.images?.[0] || selectedImage || "default-image.jpg"}
         />
         <meta property="og:url" content={window.location.href} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={product?.title || "Product"} />
-        <meta
-          name="twitter:description"
-          content={product?.description?.substring(0, 160) || ""}
-        />
+       
         <meta
           name="twitter:image"
           content={product?.images?.[0] || selectedImage || "default-image.jpg"}
         />
-        <link rel="canonical" href={`https://yourstore.com/products/${slug}`} />
+        <link rel="canonical" href={`https://www.etimadmart.com/products/${slug}`} />
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
 
@@ -751,8 +775,8 @@ const SingleProduct = () => {
           <div className="relative flex-1 order-1 mt-4 md:order-2 md:mt-3 ">
             <div
               className="overflow-hidden aspect-square h-[350px] md:h-[400px] md:w-[400px] w-[350px] border border-red-100 mx-auto relative"
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
+              onMouseMove={isLargeScreen ? handleMouseMove : undefined}
+              onMouseLeave={isLargeScreen ? handleMouseLeave : undefined}
             >
               <img
                 ref={imageRef}
@@ -768,7 +792,7 @@ const SingleProduct = () => {
               {!loadedImages.has(selectedImage) && (
                 <div className="absolute inset-0 bg-gray-200 animate-pulse" />
               )}
-              {zoomStyle.backgroundX !== undefined && (
+              {isLargeScreen && zoomStyle.backgroundX !== undefined && (
                 <div
                   style={{
                     position: "fixed",

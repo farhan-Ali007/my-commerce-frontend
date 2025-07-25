@@ -42,6 +42,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // '/product': {
+      //   target: 'http://localhost:3600',
+      //   changeOrigin: true,
+      //   secure: false,
+      // },
     },
   },
 })

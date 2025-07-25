@@ -18,7 +18,7 @@ export const searchProduct = async (data) => {
     }
 }
 
-export const filterByPrice = async ({ price, page = 1, limit = 8 }) => {
+export const filterByPrice = async ({ price, page = 1, limit = 16 }) => {
     console.log("Page and limit in filterByPrice api function--------->", page, limit);
     try {
         // Ensure the key is 'sort' as expected by the backend
@@ -33,7 +33,7 @@ export const filterByPrice = async ({ price, page = 1, limit = 8 }) => {
     }
 };
 
-export const filterByCategory = async ({ categories, subcategory, page = 1, limit = 8 }) => {
+export const filterByCategory = async ({ categories, subcategory, page = 1, limit = 16 }) => {
     try {
         const response = await axios.get(`${BASE_URL}/search/filter/category?page=${page}&limit=${limit}`, {
             params: { categoryName: categories, subcategory }, // Using destructured values directly
@@ -46,7 +46,7 @@ export const filterByCategory = async ({ categories, subcategory, page = 1, limi
     }
 };
 
-export const filterBySubcategory = async (subcategoryName, page = 1, limit = 8) => {
+export const filterBySubcategory = async (subcategoryName, page = 1, limit = 16) => {
     try {
         const response = await axios.get(`${BASE_URL}/search/filter/subcategory?page=${page}&limit=${limit}`, {
             params: { subcategoryName },
@@ -58,7 +58,7 @@ export const filterBySubcategory = async (subcategoryName, page = 1, limit = 8) 
     }
 };
 
-export const filterByRating = async (data, page = 1, limit = 8) => {
+export const filterByRating = async (data, page = 1, limit = 16) => {
     // console.log("Data in filterByRating-------->", data)
     try {
         const response = await axios.get(`${BASE_URL}/search/filter/rating?page=${page}&limit=${limit}`, {
@@ -71,7 +71,7 @@ export const filterByRating = async (data, page = 1, limit = 8) => {
     }
 }
 
-export const getMinMaxPrice = async (page = 1, limit = 8) => {
+export const getMinMaxPrice = async (page = 1, limit = 16) => {
     try {
         const response = await axios.get(`${BASE_URL}/search/filter/min-max-price?page=${page}&limit=${limit}`);
         return response?.data;
@@ -80,7 +80,7 @@ export const getMinMaxPrice = async (page = 1, limit = 8) => {
     }
 }
 
-export const filterByPriceRange = async (data, page = 1, limit = 8) => {
+export const filterByPriceRange = async (data, page = 1, limit = 16) => {
     try {
         const response = await axios.get(`${BASE_URL}/search/filter/price-range?page=${page}&limit=${limit}`, {
             params: { minPrice: data.min, maxPrice: data.max }, // Ensure correct keys
@@ -92,7 +92,7 @@ export const filterByPriceRange = async (data, page = 1, limit = 8) => {
     }
 };
 
-export const filterProductsByBrand = async (brand, page = 1, limit = 8) => {
+export const filterProductsByBrand = async (brand, page = 1, limit = 16) => {
     try {
         const response = await axios.get(`${BASE_URL}/search/filter/${brand}?page=${page}&limit=${limit}`);
         return response?.data;

@@ -19,6 +19,8 @@ const AllOrders = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observer = useRef();
   const LIMIT = 10;
+  const [previewProduct, setPreviewProduct] = useState(null);
+  const [previewOrder, setPreviewOrder] = useState(null);
 
   const fetchAllOrders = async (pageNum = 1) => {
     try {
@@ -44,7 +46,21 @@ const AllOrders = () => {
   useEffect(() => {
     setPage(1);
     fetchAllOrders(1);
+    window.scrollTo({ top: 0, behavior: "smooth" }); 
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setPreviewProduct(null);
+        setPreviewOrder(null);
+      }
+    };
+    if (previewProduct) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewProduct]);
 
   // Infinite scroll observer
   const lastOrderRef = useCallback(
@@ -208,66 +224,59 @@ const AllOrders = () => {
                     </td>
 
                     <td className="px-4 py-2 border min-w-[400px] max-w-[900px]">
-                      <ul style={{ listStyleType: "none" }}>
-                        {order.cartSummary?.map((product) => (
-                          <li
-                            key={product._id}
-                            className="p-3 mb-6 rounded-lg bg-gray-200"
-                          >
-                            {/* Product Basic Info */}
-                            <div className="mb-2">
-                              <strong className="text-xs font-bold text-main">
-                                {product?.title}
-                              </strong>
-                            </div>
-                            <div className="flex items-center gap-4 mb-2 text-sm">
-                              <span className="text-primary">
-                                Price:{" "}
-                                <span className="font-semibold">
-                                  Rs.{product.salePrice || product.price}
-                                </span>
-                              </span>
-                              <span className="text-primary">
-                                Quantity:{" "}
-                                <span className="font-semibold">
-                                  {product?.count}
-                                </span>
-                              </span>
-                            </div>
-
-                            {/* Variants Section */}
-                            {product.selectedVariants &&
-                              product.selectedVariants.length > 0 && (
-                                <div className="pt-3 mt-3 border-t border-gray-200">
-                                  <div className="flex flex-col gap-2">
-                                    {product.selectedVariants.map((variant) => (
-                                      <div
-                                        key={variant.name}
-                                        className="flex items-start gap-2"
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-50">
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">Image</th>
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">Product</th>
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">Price</th>
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">Qty</th>
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">Variants</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {order.cartSummary?.map((product, idx) => (
+                            <tr key={idx} className="border-b last:border-b-0">
+                              <td className="px-2 py-1">
+                                <img
+                                  src={product.image}
+                                  alt={product.title}
+                                  className="w-12 h-12 object-cover rounded border cursor-pointer hover:shadow-lg transition"
+                                  onClick={() => {
+                                    setPreviewProduct(product);
+                                    setPreviewOrder(order);
+                                  }}
+                                />
+                              </td>
+                              <td className="px-2 py-1 text-sm font-medium text-main">
+                                {product.title}
+                              </td>
+                              <td className="px-2 py-1 text-sm">
+                                Rs.{product.price}
+                              </td>
+                              <td className="px-2 py-1 text-sm">
+                                {product.count}
+                              </td>
+                              <td className="px-2 py-1 text-xs">
+                                {product.selectedVariants && product.selectedVariants.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {product.selectedVariants.map((variant, vIdx) => (
+                                      <span
+                                        key={vIdx}
+                                        className="bg-main/10 text-main rounded-full px-2 py-0.5 border border-main/20 capitalize"
                                       >
-                                        <span className="font-semibold text-gray-900 capitalize min-w-[80px]">
-                                          {variant.name}:
-                                        </span>
-                                        <div className="flex flex-wrap gap-1.5">
-                                          {variant.values.map(
-                                            (value, valueIndex) => (
-                                              <span
-                                                key={`${variant.name}-${valueIndex}`}
-                                                className="px-2.5 py-1 text-xs font-medium capitalize bg-main/10 text-main rounded-full border border-main/20"
-                                              >
-                                                {value}
-                                              </span>
-                                            )
-                                          )}
-                                        </div>
-                                      </div>
+                                        {variant.name}: {variant.values.join(", ")}
+                                      </span>
                                     ))}
                                   </div>
-                                </div>
-                              )}
-                          </li>
-                        ))}
-                      </ul>
+                                ) : (
+                                  "-"
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </td>
                     <td className="px-4 py-2 border">
                       Rs.{order?.deliveryCharges}
@@ -303,6 +312,60 @@ const AllOrders = () => {
             </div>
           )}
         </SimpleBar>
+      )}
+      {previewProduct && previewOrder && (
+        <div
+          className="fixed inset-0 top-20 z-50 flex items-center justify-center bg-black bg-opacity-70"
+          onClick={() => {
+            setPreviewProduct(null);
+            setPreviewOrder(null);
+          }}
+        >
+          <div
+            className="relative flex flex-col md:flex-row items-center justify-center bg-white rounded-lg shadow-lg p-4 max-w-lg w-full"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => {
+                setPreviewProduct(null);
+                setPreviewOrder(null);
+              }}
+              className="absolute top-2 right-2 p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+              aria-label="Close preview"
+            >
+              <span className="text-xl font-bold text-gray-700">&times;</span>
+            </button>
+            <img
+              src={previewProduct.image}
+              alt="Preview"
+              className="max-w-[200px] max-h-[200px] rounded-lg object-contain mb-4 md:mb-0 md:mr-6"
+            />
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg font-bold text-main">{previewProduct.title}</h2>
+              <p className="text-gray-700">Price: <span className="font-semibold">Rs.{previewProduct.price}</span></p>
+              <p className="text-gray-700">Quantity: <span className="font-semibold">{previewProduct.count}</span></p>
+              {previewProduct.selectedVariants && previewProduct.selectedVariants.length > 0 && (
+                <div>
+                  <p className="text-gray-700 font-semibold">Variants:</p>
+                  <ul className="list-disc list-inside text-sm text-gray-600">
+                    {previewProduct.selectedVariants.map((variant, idx) => (
+                      <li key={idx}>
+                        <span className="font-medium">{variant.name}:</span> {variant.values.join(', ')}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <hr className="my-2" />
+              <p className="text-gray-700">
+                <span className="font-semibold">Mobile:</span> {previewOrder?.shippingAddress?.mobile}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">Address:</span> {previewOrder?.shippingAddress?.streetAddress}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

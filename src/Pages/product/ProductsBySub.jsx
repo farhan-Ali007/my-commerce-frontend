@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import ProductCard from '../../components/cards/ProductCard';
 import ProductCardSkeleton from '../../components/skeletons/ProductCardSkeleton';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async';
 
 const ProductsBySub = () => {
     const [products, setProducts] = useState([]);
@@ -63,6 +64,11 @@ const ProductsBySub = () => {
     };
 
     return (
+        <>
+        <Helmet>
+            <title>{subcategorySlug.replace(/-/g, ' ')} | Etimad Mart</title>
+            <link rel="canonical" href={`https://www.etimadmart.com/subcategory/${subcategorySlug}`} />
+        </Helmet>
         <div className="w-full min-h-screen px-4 md:px-8">
             {/* Title */}
             <h1 className="text-2xl md:text-3xl font-extrabold text-center text-secondary mt-6 mb-3 capitalize">
@@ -139,6 +145,7 @@ const ProductsBySub = () => {
                 </>
             )}
         </div>
+        </>
     );
 };
 

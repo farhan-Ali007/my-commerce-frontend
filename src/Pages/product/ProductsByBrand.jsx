@@ -4,6 +4,7 @@ import ProductCard from '../../components/cards/ProductCard';
 import ProductCardSkeleton from '../../components/skeletons/ProductCardSkeleton';
 import { getProductsByBrand } from '../../functions/product';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async';
 
 const ProductsByBrand = () => {
     const [products, setProducts] = useState([]);
@@ -62,6 +63,11 @@ const ProductsByBrand = () => {
     };
 
     return (
+        <>
+        <Helmet>
+            <title>{brand.replace(/-/g, ' ')} | Etimad Mart</title>
+            <link rel="canonical" href={`https://www.etimadmart.com/brand/${brand}`} />
+        </Helmet>
         <div className="w-full min-h-screen px-4 md:px-8">
             <h1 className="text-2xl md:text-3xl text-secondary font-extrabold text-center  my-3 md:my-6 capitalize">
                 {brand.replace(/-/g, ' ')}
@@ -134,6 +140,7 @@ const ProductsByBrand = () => {
                 </>
             )}
         </div>
+        </>
     );
 };
 

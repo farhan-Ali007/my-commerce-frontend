@@ -1,66 +1,103 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { IoAddCircle, IoPencil, IoTrash } from "react-icons/io5";
+import { CiEdit, CiTrash } from 'react-icons/ci';
 import toast from "react-hot-toast";
 import { deleteProduct, getAllProducts } from "../../functions/product";
 import { truncateTitle } from "../../helpers/truncateTitle";
+import { searchProduct } from '../../functions/search';
+
+const PAGE_SIZE = 16; // Set your page size here
 
 const AllProducts = () => {
+  // State for paginated products
   const [products, setProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isPageLoading, setIsPageLoading] = useState(false);
-  const [deletingProductId, setDeletingProductId] = useState(null);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [deletingProductId, setDeletingProductId] = useState(null);
 
+  // State for search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Fetch paginated products
   const fetchMyProducts = async (page) => {
     try {
       setIsPageLoading(true);
       const response = await getAllProducts(page);
       if (response?.products?.length > 0) {
         setProducts((prevProducts) => [...prevProducts, ...response.products]);
-        setHasMore(response.products.length === 8); // Assuming 8 is the limit per page
+        setHasMore(response.products.length === PAGE_SIZE);
+        if (response.totalProducts !== undefined) {
+          setTotalProducts(response.totalProducts);
+        }
       } else {
         setHasMore(false);
       }
     } catch (error) {
-      console.log("Error in fetching my products.", error);
       toast.error("Failed to load products");
     } finally {
       setIsPageLoading(false);
     }
   };
 
+  // Debounce search input
   useEffect(() => {
-    fetchMyProducts(currentPage);
-  }, [currentPage]);
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
+  // Fetch products on page change (only if not searching)
   useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >=
-          document.documentElement.offsetHeight - 100 &&
-        hasMore &&
-        !isPageLoading
-      ) {
-        setCurrentPage((prevPage) => prevPage + 1);
+    if (!isSearching) {
+      fetchMyProducts(currentPage);
+    }
+    // eslint-disable-next-line
+    window.scrollTo(0, 0);
+  }, [currentPage, isSearching]);
+
+  // Search effect
+  useEffect(() => {
+    const doSearch = async () => {
+      if (debouncedSearch.trim() === "") {
+        setIsSearching(false);
+        setSearchResults([]);
+        setSearchTotal(0);
+        setCurrentPage(1);
+        return;
+      }
+      setIsSearching(true);
+      setIsPageLoading(true);
+      try {
+        const response = await searchProduct({ query: debouncedSearch });
+        setSearchResults(response?.products || []);
+        setSearchTotal(response?.totalProducts || 0);
+      } catch (error) {
+        setSearchResults([]);
+        setSearchTotal(0);
+      } finally {
+        setIsPageLoading(false);
       }
     };
+    doSearch();
+    // eslint-disable-next-line
+  }, [debouncedSearch]);
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasMore, isPageLoading]);
-
+  // Delete handler
   const handleDelete = async (id) => {
     try {
       setDeletingProductId(id);
       const response = await deleteProduct(id);
       toast.success(response?.message);
-      setProducts((prevProducts) =>
-        prevProducts.filter((product) => product._id !== id)
-      );
+      setProducts((prevProducts) => prevProducts.filter((product) => product._id !== id));
+      setSearchResults((prevResults) => prevResults.filter((product) => product._id !== id));
     } catch (error) {
-      console.log("Error in deleting product", error);
       toast.error("Failed to delete product.");
     } finally {
       setDeletingProductId(null);
@@ -68,26 +105,42 @@ const AllProducts = () => {
   };
 
   const handleDeleteClick = async (id) => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to delete this product?"
-    );
+    const isConfirmed = window.confirm("Are you sure you want to delete this product?");
     if (isConfirmed) {
       await handleDelete(id);
     }
   };
 
-  const filteredProducts = products?.filter(
-    (product) =>
-      product?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product?.category?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Determine which products and total to show
+  const productsToShow = isSearching ? searchResults : products;
+  const totalToShow = isSearching ? searchTotal : totalProducts;
+
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const fetchProducts = async (pageNum) => {
+    setLoading(true);
+    console.log('Fetching products for page:', pageNum);
+    const response = await getAllProducts(pageNum);
+    setProducts(prev => {
+      const existingIds = new Set(prev.map(p => p._id));
+      const newProducts = response.products.filter(p => !existingIds.has(p._id));
+      return [...prev, ...newProducts];
+    });
+    setHasMore(response.products.length > 0);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProducts(page);
+  }, [page]);
 
   return (
     <div className="max-w-screen-lg mx-auto bg-gray-100 px-1 md:px-4 py-6">
       {/* Page header and search input */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <h1 className="text-2xl font-semibold text-main">
-          All Products [{`${filteredProducts?.length}`}]
+        <h1 className="text-2xl font-semibold text-primary">
+          All Products [{totalToShow}]
         </h1>
         <input
           type="text"
@@ -98,91 +151,124 @@ const AllProducts = () => {
         />
         <Link
           to="/add-product"
-          className="bg-main opacity-70 no-underline text-white px-4 py-2 md:py-2 lg:py-[0.6rem] rounded-full shadow-md flex items-center gap-2 hover:opacity-90 transition-opacity"
+          className="bg-secondary/90 no-underline text-primary px-4 py-2 md:py-2 lg:py-[0.6rem] rounded-full shadow-md flex items-center gap-2 hover:bg-secondary transition-opacity"
         >
-          <IoAddCircle className="text-xl" /> Add Product
+          + Add Product
         </Link>
       </div>
 
-      {/* Main content */}
-      {isPageLoading && products.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-64 bg-white rounded-lg shadow-md">
-          <div className="animate-spin h-16 w-16 border-4 border-main border-opacity-90 border-t-transparent rounded-full mb-4"></div>
-          <p className="text-xl font-semibold text-main opacity-80">
-            Loading products...
-          </p>
-        </div>
-      ) : filteredProducts?.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts?.map((product) => (
-            <div
-              key={product?._id}
-              className="bg-white p-2 rounded-lg shadow-md flex flex-col justify-between items-center transition-transform hover:scale-105"
-            >
-              {/* Product image and details */}
-              <Link to="">
-                <img
-                  src={product?.images[0]}
-                  alt={product?.title}
-                  loading="lazy"
-                  className="w-full h-full md:h-40 object-cover rounded-md mb-4"
-                />
-              </Link>
-              <h2 className="text-lg font-semibold text-center">
-                {truncateTitle(product?.title, 40)}
-              </h2>
-              <p className="text-gray-500 text-sm text-center">
-                {product?.category?.name}
-              </p>
-              <p className="text-lg font-bold line-through decoration-red-700 decoration-[0.5px] text-center mt-2">
-                Rs.{product?.price}
-              </p>
-              {product.salePrice && (
-                <p className="font-bold text-base text-gray-400 text-center ">
-                  Rs.{product?.salePrice}
-                </p>
-              )}
-
-              {/* Action buttons */}
-              <div className="flex gap-4 mt-4 w-full justify-between">
-                <Link
-                  to={`/edit-product/${product.slug}`}
-                  className="bg-green-500 no-underline text-white px-4 py-2 rounded-md shadow-md flex items-center gap-2 hover:bg-green-600 transition-colors w-full justify-center"
-                >
-                  <IoPencil /> Edit
-                </Link>
-                <button
-                  className="bg-red-500 text-white px-4 py-2 rounded-md shadow-md flex items-center gap-2 hover:bg-red-600 transition-colors w-full justify-center"
-                  onClick={() => handleDeleteClick(product?._id)}
-                  disabled={deletingProductId === product._id}
-                >
-                  {deletingProductId === product._id ? (
-                    <>
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-opacity-90 border-t-transparent rounded-full"></div>
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <IoTrash /> Delete
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-center py-10">No products available</p>
-      )}
-      {!hasMore && products.length > 0 && (
+      {/* Table Layout */}
+      <div className="overflow-x-auto rounded-lg shadow bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-primary">
+            <tr>
+              <th className="py-3 px-4 text-left text-xs font-bold text-secondary uppercase tracking-wider">No.</th>
+              <th className="py-3 px-4 text-left text-xs font-bold text-secondary uppercase tracking-wider">Image</th>
+              <th className="py-3 px-4 text-left text-xs font-bold text-secondary uppercase tracking-wider">Title</th>
+              <th className="py-3 px-4 text-left text-xs font-bold text-secondary uppercase tracking-wider">Category</th>
+              <th className="py-3 px-4 text-left text-xs font-bold text-secondary uppercase tracking-wider">Price</th>
+              <th className="py-3 px-4 text-left text-xs font-bold text-secondary uppercase tracking-wider">Stock</th>
+              <th className="py-3 px-4 text-left text-xs font-bold text-secondary uppercase tracking-wider">Edit</th>
+              <th className="py-3 px-4 text-left text-xs font-bold text-secondary uppercase tracking-wider">Delete</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-100">
+            {isPageLoading && productsToShow.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="py-8 text-center text-main font-semibold">
+                  Loading products...
+                </td>
+              </tr>
+            ) : productsToShow.length > 0 ? (
+              productsToShow.map((product, idx) => (
+                <tr key={product?._id} className="hover:bg-gray-50 transition">
+                  <td className="py-2 px-2 font-bold text-secondary text-center">
+                    {isSearching
+                      ? idx + 1
+                      : (currentPage - 1) * PAGE_SIZE + idx + 1}
+                  </td>
+                  <td className="py-2 px-2">
+                    <img
+                      src={product?.images[0]}
+                      alt={product?.title}
+                      className="w-16 h-16 object-cover rounded shadow"
+                    />
+                  </td>
+                  <td className="py-2 px-4">
+                    <Link
+                      to={`/edit-product/${product.slug}`}
+                      className="text-blue-700 no-underline text-[14px] hover:underline font-semibold"
+                    >
+                      {truncateTitle(product?.title, 40)}
+                    </Link>
+                  </td>
+                  <td className="py-2 px-4 text-[14px]">{product?.category?.name}</td>
+                  <td className="py-2 px-4">
+                    <span className="line-through text-gray-400">Rs.{product?.price}</span>
+                    {product.salePrice && (
+                      <span className="ml-2 text-green-600 font-bold">Rs.{product.salePrice}</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-4">{product.stock ?? "--"}</td>
+                  <td className="py-2 px-4">
+                    <Link
+                      to={`/edit-product/${product.slug}`}
+                      className="text-green-600 hover:text-green-800 text-xl"
+                      title="Edit"
+                    >
+                      <CiEdit />
+                    </Link>
+                  </td>
+                  <td className="py-2 px-4">
+                    <button
+                      className="text-red-600 hover:text-red-800 text-xl"
+                      onClick={() => handleDeleteClick(product?._id)}
+                      disabled={deletingProductId === product._id}
+                      title="Delete"
+                    >
+                      {deletingProductId === product._id ? (
+                        <span className="animate-spin h-5 w-5 border-2 border-red-600 border-opacity-90 border-t-transparent rounded-full inline-block"></span>
+                      ) : (
+                        <CiTrash />
+                      )}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={8} className="py-10 text-center text-gray-500">
+                  No products available
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {!hasMore && products.length > 0 && !isSearching && (
         <p className="text-center py-4 text-gray-500">
           No more products to load.
         </p>
       )}
-      {isPageLoading && products.length > 0 && (
+      {isPageLoading && products.length > 0 && !isSearching && (
         <div className="flex justify-center items-center py-4">
           <div className="animate-spin h-6 w-6 border-4 border-main border-opacity-90 border-t-transparent rounded-full"></div>
           <p className="ml-4 text-main opacity-70">Loading more products...</p>
+        </div>
+      )}
+      {hasMore && !loading && (
+        <div className="flex justify-center my-4">
+          <button
+            onClick={() => setPage(prev => prev + 1)}
+            className="px-6 py-2 bg-primary text-white rounded shadow hover:bg-secondary transition"
+          >
+            Load More
+          </button>
+        </div>
+      )}
+      {loading && (
+        <div className="flex justify-center my-4">
+          <span>Loading...</span>
         </div>
       )}
     </div>

@@ -51,3 +51,18 @@ export const menuCategories = async () => {
         console.log("Error in fetching menu categories", error)
     }
 }
+
+export const editCategory = async (id, data) => {
+    try {
+        const response = await axios.put(`${BASE_URL}/category/edit/${id}`, data, {
+            withCredentials: true,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+        return response?.data;
+    } catch (error) {
+        console.log("Error in editing category", error);
+        // Optionally: throw error or return error.response?.data
+    }
+}

@@ -139,7 +139,9 @@ const History = () => {
                                     </div>
                                   </td>
                                   <td className="border-b border-gray-200 px-4 py-2 text-center text-sm text-gray-800">{product.count}</td>
-                                  <td className="border-b border-gray-200 px-4 py-2 text-right text-sm font-semibold text-gray-800">Rs.{product?.price?.toLocaleString()}</td>
+                                  <td className="border-b border-gray-200 px-4 py-2 text-right text-sm font-semibold text-gray-800">
+                                    Rs.{(product?.price * product?.count).toLocaleString()}
+                                  </td>
                                 </tr>
                               ))}
                             </tbody>

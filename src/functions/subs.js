@@ -9,12 +9,26 @@ export const createSub = async (data) => {
             headers: {
                 "Content-Type": "multipart/form-data"
             }
-        })
+        });
         return response?.data;
     } catch (error) {
-        console.log("Error in creating category")
+        console.log("Error in creating subcategory");
     }
-}
+};
+
+export const editSub = async (id, data) => {
+    try {
+        const response = await axios.put(`${BASE_URL}/sub/edit/${id}`, data, {
+            withCredentials: true,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+        return response?.data;
+    } catch (error) {
+        console.log("Error in editing subcategory");
+    }
+};
 
 export const getAllSubs = async () => {
     try {
