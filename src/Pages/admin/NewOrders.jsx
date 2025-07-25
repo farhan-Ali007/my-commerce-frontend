@@ -15,6 +15,8 @@ const NewOrders = () => {
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [previewImage, setPreviewImage] = useState(null);
+    const [previewProduct, setPreviewProduct] = useState(null);
+    const [previewOrder, setPreviewOrder] = useState(null);
 
     const fetchAllOrders = async () => {
         try {
@@ -35,6 +37,19 @@ const NewOrders = () => {
         fetchAllOrders();
         window.scrollTo({ top: 0, behavior: "smooth" }); 
     }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") {
+                setPreviewProduct(null);
+                setPreviewOrder(null);
+            }
+        };
+        if (previewProduct) {
+            window.addEventListener("keydown", handleKeyDown);
+        }
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [previewProduct]);
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
@@ -172,7 +187,7 @@ const NewOrders = () => {
                                             ))}
                                         </select>
                                     </td>
-                                    <td className="px-4 py-2 border min-w-[400px] max-w-[900px]">
+                                    <td className="px-4 py-2 border min-w-[500px] max-w-[900px]">
                                         <table className="w-full border-collapse">
                                             <thead>
                                                 <tr className="bg-gray-50">
@@ -191,7 +206,10 @@ const NewOrders = () => {
                                                                 src={product.image}
                                                                 alt={product.title}
                                                                 className="w-12 h-12 object-cover rounded border cursor-pointer hover:shadow-lg transition"
-                                                                onClick={() => setPreviewImage(product.image)}
+                                                                onClick={() => {
+                                                                    setPreviewProduct(product);
+                                                                    setPreviewOrder(order);
+                                                                }}
                                                             />
                                                         </td>
                                                         <td>{product.title}</td>
@@ -233,29 +251,57 @@ const NewOrders = () => {
                     </table>
                 </SimpleBar>
             )}
-            {previewImage && (
+            {previewProduct && previewOrder && (
                 <div
                     className="fixed inset-0 top-20 z-50 flex items-center justify-center bg-black bg-opacity-70"
-                    onClick={() => setPreviewImage(null)}
+                    onClick={() => {
+                        setPreviewProduct(null);
+                        setPreviewOrder(null);
+                    }}
                 >
                     <div
-                        className="relative flex items-center justify-center bg-white rounded-lg shadow-lg p-2"
-                        onClick={e => e.stopPropagation()} // Prevent closing when clicking inside modal
-                        style={{ minWidth: '300px', minHeight: '300px' }}
+                        className="relative flex flex-col md:flex-row items-center justify-center bg-white rounded-lg shadow-lg p-4 max-w-lg w-full"
+                        onClick={e => e.stopPropagation()}
                     >
                         <button
-                            onClick={() => setPreviewImage(null)}
+                            onClick={() => {
+                                setPreviewProduct(null);
+                                setPreviewOrder(null);
+                            }}
                             className="absolute top-2 right-2 p-2 rounded-full bg-gray-100 hover:bg-gray-200"
                             aria-label="Close preview"
                         >
                             <span className="text-xl font-bold text-gray-700">&times;</span>
                         </button>
                         <img
-                            src={previewImage}
+                            src={previewProduct.image}
                             alt="Preview"
-                            className="max-w-[70vw] max-h-[70vh] rounded-lg object-contain mx-auto"
-                            style={{ display: 'block', margin: '0 auto' }}
+                            className="max-w-[200px] max-h-[200px] rounded-lg object-contain mb-4 md:mb-0 md:mr-6"
                         />
+                        <div className="flex flex-col gap-2">
+                            <h2 className="text-lg font-bold text-main">{previewProduct.title}</h2>
+                            <p className="text-gray-700">Price: <span className="font-semibold">Rs.{previewProduct.price}</span></p>
+                            <p className="text-gray-700">Quantity: <span className="font-semibold">{previewProduct.count}</span></p>
+                            {previewProduct.selectedVariants && previewProduct.selectedVariants.length > 0 && (
+                                <div>
+                                    <p className="text-gray-700 font-semibold">Variants:</p>
+                                    <ul className="list-disc list-inside text-sm text-gray-600">
+                                        {previewProduct.selectedVariants.map((variant, idx) => (
+                                            <li key={idx}>
+                                                <span className="font-medium">{variant.name}:</span> {variant.values.join(', ')}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            <hr className="my-2" />
+                            <p className="text-gray-700">
+                                <span className="font-semibold">Mobile:</span> {previewOrder?.shippingAddress?.mobile}
+                            </p>
+                            <p className="text-gray-700">
+                                <span className="font-semibold">Address:</span> {previewOrder?.shippingAddress?.streetAddress}
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}

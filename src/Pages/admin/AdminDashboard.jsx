@@ -275,20 +275,6 @@ const AdminDashboard = () => {
           </button>
           <button
             className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "allOrders"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("allOrders");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <FaShoppingCart className="text-lg" />
-            All Orders
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
               selectedPage === "newOrders"
                 ? "bg-gray-700 rounded-full"
                 : "hover:bg-gray-700 rounded-full"
@@ -310,6 +296,20 @@ const AdminDashboard = () => {
               </span>
             </span>
             New Orders
+          </button>
+          <button
+            className={`flex items-center gap-3 py-2 px-4 text-left ${
+              selectedPage === "allOrders"
+                ? "bg-gray-700 rounded-full"
+                : "hover:bg-gray-700 rounded-full"
+            }`}
+            onClick={() => {
+              setSelectedPage("allOrders");
+              setIsSidebarOpen(false);
+            }}
+          >
+            <FaShoppingCart className="text-lg" />
+            All Orders
           </button>
           <button
             className={`flex items-center gap-3 py-2 px-4 text-left ${

@@ -17,8 +17,9 @@ const AllOrders = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [totalOrders, setTotalOrders] = useState(0);
   const observer = useRef();
-  const LIMIT = 10;
+  const LIMIT = 8;
   const [previewProduct, setPreviewProduct] = useState(null);
   const [previewOrder, setPreviewOrder] = useState(null);
 
@@ -27,6 +28,7 @@ const AllOrders = () => {
       if (pageNum === 1) setLoading(true);
       else setIsFetchingMore(true);
       const response = await getAllOrders(pageNum, LIMIT);
+      setTotalOrders(response?.total);
       if (pageNum === 1) {
         setOrders(response?.orders || []);
       } else {
@@ -107,7 +109,7 @@ const AllOrders = () => {
   return (
     <div className="container p-6 mx-auto text-center">
       <h1 className="mb-6 text-3xl font-bold text-main">
-        All Orders [{`${orders.length}`}]
+        All Orders [{totalOrders}]
       </h1>
       {/* Search Bar */}
       <div className="mb-4">
@@ -223,7 +225,7 @@ const AllOrders = () => {
                       </select>
                     </td>
 
-                    <td className="px-4 py-2 border min-w-[400px] max-w-[900px]">
+                    <td className="px-4 py-2 border min-w-[500px] max-w-[900px]">
                       <table className="w-full border-collapse">
                         <thead>
                           <tr className="bg-gray-50">
