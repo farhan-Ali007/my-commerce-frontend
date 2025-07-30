@@ -66,7 +66,8 @@ const ProductsByBrand = () => {
         <>
         <Helmet>
             <title>{brand.replace(/-/g, ' ')} | Etimad Mart</title>
-            <link rel="canonical" href={`https://www.etimadmart.com/brand/${brand}`} />
+            <link rel="canonical" href={window.location.href} />
+        <meta name="robots" content="index, follow" />
         </Helmet>
         <div className="w-full min-h-screen px-4 md:px-8">
             <h1 className="text-2xl md:text-3xl text-secondary font-extrabold text-center  my-3 md:my-6 capitalize">

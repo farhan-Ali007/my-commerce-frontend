@@ -37,7 +37,8 @@ const Home = () => {
     <>
       <Helmet>
         <meta name="description" content="Etimad Mart – trusted online store in Pakistan. Shop top-quality grooming tools, trimmers & shavers, fashion wear, kitchen & household items with great deals." />
-        <link rel="canonical" href="https://www.etimadmart.com/" />
+        <link rel="canonical" href={window.location.href} />
+        <meta name="robots" content="index, follow" />
         <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
       </Helmet>

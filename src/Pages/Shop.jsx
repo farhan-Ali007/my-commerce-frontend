@@ -228,7 +228,8 @@ const Shop = () => {
             <Helmet>
                 <title>Shop | Etimad Mart</title>
                 <meta name="description" content="Browse and shop the best products at Etimad Mart. Discover top brands, categories, and amazing deals on grooming tools, fashion, kitchen, and household items in Pakistan." />
-                <link rel="canonical" href="https://www.etimadmart.com/shop" />
+                <link rel="canonical" href={window.location.href} />
+                <meta name="robots" content="index, follow" />
                 <script type="application/ld+json">{JSON.stringify(shopSchema)}</script>
             </Helmet>
             <div className="container mx-auto p-4">

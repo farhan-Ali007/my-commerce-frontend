@@ -46,7 +46,8 @@ const DynamicPage = () => {
       <Helmet>
         <title>{page.title} | Etimad Mart</title>
         <meta name="description" content={page.metaDescription || ''} />
-        <link rel="canonical" href={`https://www.etimadmart.com/${slug}`} />
+        <link rel="canonical" href={window.location.href} />
+        <meta name="robots" content="index, follow" />
         <script type="application/ld+json">{JSON.stringify(schema)}</script>
       </Helmet>
       <h1 className="text-3xl font-bold mb-4">{page.title}</h1>

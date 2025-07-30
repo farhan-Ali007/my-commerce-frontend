@@ -67,7 +67,8 @@ const ProductsBySub = () => {
         <>
         <Helmet>
             <title>{subcategorySlug.replace(/-/g, ' ')} | Etimad Mart</title>
-            <link rel="canonical" href={`https://www.etimadmart.com/subcategory/${subcategorySlug}`} />
+            <link rel="canonical" href={window.location.href} />
+        <meta name="robots" content="index, follow" />
         </Helmet>
         <div className="w-full min-h-screen px-4 md:px-8">
             {/* Title */}

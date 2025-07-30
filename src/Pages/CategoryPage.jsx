@@ -264,12 +264,8 @@ const CategoryPage = () => {
           name="description"
           content={categoryMetaDescription || "Browse our collection of products at Etimad Mart."}
         />
-        <link
-          rel="canonical"
-          href={`https://www.etimadmart.com/category/${categorySlug}${
-            subcategorySlug ? `/${subcategorySlug}` : ""
-          }`}
-        />
+        <link rel="canonical" href={window.location.href} />
+        <meta name="robots" content="index, follow" />
         <script type="application/ld+json">{JSON.stringify(schema)}</script>
       </Helmet>
       <div className="max-w-screen mx-2 md:mx-5 flex flex-col md:flex-row">
