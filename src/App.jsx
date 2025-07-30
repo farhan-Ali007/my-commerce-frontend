@@ -21,6 +21,7 @@ const SingleProduct = lazy(() => import("./Pages/product/SingleProduct"));
 const Cart = lazy(() => import("./Pages/Cart"));
 const Checkout = lazy(() => import("./Pages/Checkout"));
 const Shop = lazy(() => import("./Pages/Shop"));
+const Search = lazy(() => import("./Pages/Search"));
 const History = lazy(() => import("./Pages/user/History"));
 const AdminDashboard = lazy(() => import("./Pages/admin/AdminDashboard"));
 const CreateProduct = lazy(() => import("./Pages/admin/CreateProduct"));
@@ -94,6 +95,7 @@ const App = () => {
             </Route>
 
             <Route path="/shop" element={<Shop />} />
+            <Route path="/search" element={<Search />} />
             <Route path="/category/:categorySlug/subcategory/:subcategorySlug" element={<ProductsBySub />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/products/:brand" element={<ProductsByBrand />} />

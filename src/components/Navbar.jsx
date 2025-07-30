@@ -149,6 +149,20 @@ const Navbar = React.memo(() => {
 
   const handleSearchKeyDown = useCallback(
     (e) => {
+      if (e.key === "Enter") {
+        if (selectedIndex >= 0 && searchState.results.length > 0) {
+          // If an item is selected, navigate to that product
+          handleProductSelect(searchState.results[selectedIndex].slug);
+        } else if (search.trim()) {
+          // If no item is selected but there's a search query, go to search page
+          setMenuDisplay(false);
+          dispatch(setSearchQuery(""));
+          setSearch("");
+          navigateTo(`/search?query=${encodeURIComponent(search.trim())}`);
+        }
+        return;
+      }
+
       if (searchState.results.length === 0) return;
 
       if (e.key === "ArrowDown") {
@@ -159,11 +173,9 @@ const Navbar = React.memo(() => {
         setSelectedIndex((prevIndex) =>
           prevIndex > 0 ? prevIndex - 1 : searchState.results.length - 1
         );
-      } else if (e.key === "Enter" && selectedIndex >= 0) {
-        handleProductSelect(searchState.results[selectedIndex].slug);
       }
     },
-    [searchState.results, selectedIndex]
+    [searchState.results, selectedIndex, search, dispatch, navigateTo]
   );
 
   const handleMouseEnter = useCallback((index) => {

@@ -35,6 +35,7 @@ const FilterDrawer = ({
                     <IoIosClose size={30} className="font-extrabold text-secondary" />
                 </button>
             </div>
+            
             {/* Category Filter */}
             <div className="mb-4">
                 <h4 className="text-lg font-bold mb-2 font-space text-secondary">By Category</h4>
@@ -45,7 +46,7 @@ const FilterDrawer = ({
                                 type="checkbox"
                                 name="category"
                                 value={cat.slug}
-                                checked={categoryFilter[0] === cat.name}
+                                checked={categoryFilter.includes(cat.slug)}
                                 onChange={handleCategoryChange}
                                 className="mr-2 text-secondary"
                             />

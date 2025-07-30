@@ -2,7 +2,6 @@ import axios from 'axios'
 import { BASE_URL } from '../config/baseURL'
 
 export const searchProduct = async (data) => {
-
     if (typeof data !== 'object' || data === null) {
         console.error('Invalid data passed to searchProduct:', data);
         return;
@@ -14,7 +13,8 @@ export const searchProduct = async (data) => {
         });
         return response?.data;
     } catch (error) {
-        console.log("Error in searching products", error)
+        console.log("Error in searching products", error);
+        throw error;
     }
 }
 
