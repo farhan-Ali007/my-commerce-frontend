@@ -1,4 +1,6 @@
-const API_BASE = '/api/v1/page';
+import { BASE_URL } from '../config/baseURL';
+
+const API_BASE = `${BASE_URL}/page`;
 
 export const getAllPages = async () => {
   const res = await fetch(API_BASE);
