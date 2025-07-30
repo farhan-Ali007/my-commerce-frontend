@@ -6,7 +6,7 @@ function stripHtml(html) {
 
 export const getProductSchemaData = (product, currentPrice) => {
     try {
-        const url = typeof window !== 'undefined' ? window.location.href : '';
+        const url = typeof window !== 'undefined' ? window.location.href : 'https://etimadmart.com';
         
         // Collect all images: main product images + variant images
         const mainImages = Array.isArray(product?.images)
