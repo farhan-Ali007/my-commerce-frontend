@@ -20,11 +20,8 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
-    city: "",
     streetAddress: "",
-    apartment: "",
     mobile: "",
-    email: user?.email || "",
     additionalInstructions: "",
   });
   const [rememberMe, setRememberMe] = useState(false);
@@ -117,10 +114,6 @@ const Checkout = () => {
       toast.error("Full Name is required");
       return;
     }
-    if (!formData.city) {
-      toast.error("City is required");
-      return;
-    }
     if (!formData.streetAddress) {
       toast.error("Street Address is required");
       return;
@@ -129,6 +122,10 @@ const Checkout = () => {
 
     if (!formData.mobile || !pakistaniMobileRegex.test(formData.mobile)) {
       toast.error("Please enter a valid Pakistani mobile number");
+      return;
+    }
+    if (!formData.mobile) {
+      toast.error("Mobile Number is required");
       return;
     }
 
@@ -176,11 +173,8 @@ const Checkout = () => {
       setCartItems(null);
       setFormData({
         fullName: "",
-        city: "",
         streetAddress: "",
-        apartment: "",
         mobile: "",
-        email: user?.email || "",
         additionalInstructions: "",
       });
       toast.success(response?.data?.message || "Order placed successfully!");
@@ -284,10 +278,6 @@ const Checkout = () => {
             ))}
           </div>
           <div className="flex flex-col mt-4">
-            {/* <div className="flex justify-between p-2 border-b border-gray-200">
-                            <span className="font-semibold text-gray-700">Subtotal:</span>
-                            <span className="font-semibold text-gray-900">Rs.{calculateTotalPrice().toLocaleString()}</span>
-                        </div> */}
             <div className="flex justify-between p-2 border-b border-gray-200">
               <span className="font-semibold text-gray-700">
                 Delivery charges:
@@ -320,31 +310,31 @@ const Checkout = () => {
           className="p-6 mb-8 bg-white rounded-lg shadow-lg"
         >
           <h3 className="mb-4 text-xl font-bold">Shipping Address</h3>
-          <form autoComplete="on" className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <input
-                type="text"
-                name="fullName"
-                autoComplete="name"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                placeholder="Full Name *"
-                required
-              />
-            </div>
-            <div>
-              <input
-                type="text"
-                name="city"
-                autoComplete="address-level2"
-                value={formData.city}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                placeholder="City * (شہر)"
-                required
-              />
-            </div>
+                      <form autoComplete="on" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <input
+                  type="text"
+                  name="fullName"
+                  autoComplete="name"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  placeholder="Full Name *"
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="tel"
+                  name="mobile"
+                  autoComplete="tel"
+                  value={formData.mobile}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  placeholder="Mobile Number * (موبائل نمبر)"
+                  required
+                />
+              </div>
             <div className="md:col-span-2">
               <input
                 type="text"
@@ -354,40 +344,6 @@ const Checkout = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
                 placeholder="Street Address * (گلی کا پتہ)"
-                required
-              />
-            </div>
-            <div className="md:col-span-2">
-              <input
-                type="text"
-                name="apartment"
-                value={formData.apartment}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                placeholder="Apartment, Suite, etc. (optional) (اپارٹمنٹ، سوٹ، وغیرہ)"
-              />
-            </div>
-            <div>
-              <input
-                type="tel"
-                name="mobile"
-                autoComplete="tel"
-                value={formData.mobile}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                placeholder="Mobile Number * (موبائل نمبر)"
-                required
-              />
-            </div>
-            <div>
-              <input
-                type="email"
-                name="email"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                placeholder="Email(optional) * (ای میل"
                 required
               />
             </div>

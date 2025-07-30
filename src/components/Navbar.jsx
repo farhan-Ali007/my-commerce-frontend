@@ -23,6 +23,7 @@ import NavDrawer from "./drawers/NavDrawer";
 import { menuCategories } from "../functions/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import { getActiveBars } from "../functions/topbar";
+import NotificationBell from "./NotificationBell";
 
 const Navbar = React.memo(() => {
   const hideCategoryBarOn = useMemo(
@@ -434,6 +435,7 @@ const Navbar = React.memo(() => {
                     <FaUserShield className="text-3xl text-secondary" />
                   </Link>
                 )}
+                {user && <NotificationBell />}
                 <Link to="/shop" className="relative z-20 cursor-pointer group">
                   <AiOutlineShopping className="text-3xl text-secondary" />
                 </Link>

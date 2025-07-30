@@ -253,15 +253,17 @@ const CategoryPage = () => {
     products, // pass the products array
   });
 
+  if (categories.length === 0) {
+    return <div>Loading...</div>;
+  }
   return (
     <>
       <Helmet>
-        <title>{`${
-          categoryName ? categoryName : "Category"
-        } | Etimad Mart`}</title>
-        {categoryMetaDescription && (
-          <meta name="description" content={categoryMetaDescription} />
-        )}
+        <title>{`${categoryName ? categoryName : "Category"} | Etimad Mart`}</title>
+        <meta
+          name="description"
+          content={categoryMetaDescription || "Browse our collection of products at Etimad Mart."}
+        />
         <link
           rel="canonical"
           href={`https://www.etimadmart.com/category/${categorySlug}${

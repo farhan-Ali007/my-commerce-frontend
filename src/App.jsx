@@ -25,6 +25,7 @@ const History = lazy(() => import("./Pages/user/History"));
 const AdminDashboard = lazy(() => import("./Pages/admin/AdminDashboard"));
 const CreateProduct = lazy(() => import("./Pages/admin/CreateProduct"));
 const EditProduct = lazy(() => import("./Pages/admin/EditProduct"));
+const AdminUsers = lazy(() => import("./Pages/admin/AdminUsers"));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -102,6 +103,7 @@ const App = () => {
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
               <Route path="/add-product" element={<CreateProduct />} />
               <Route path="/edit-product/:slug" element={<EditProduct />} />
+              <Route path="/admin-users" element={<AdminUsers />} />
             </Route>
 
             <Route path="/:slug" element={<DynamicPage />} />

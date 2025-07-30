@@ -95,6 +95,9 @@ const AllOrders = () => {
       );
       setOrders(updatedOrders);
       toast.success(`Status updated to ${newStatus}`);
+      
+      // Trigger notification count refresh
+      window.dispatchEvent(new CustomEvent('refreshNotifications'));
     } catch (error) {
       console.log("Error updating order status", error);
       toast.error(error?.message || "Error in updating order status");
