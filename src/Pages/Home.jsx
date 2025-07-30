@@ -48,7 +48,7 @@ const Home = () => {
       <Categories />
       <Brands />
       <Marquee speed={50} pauseOnHover direction="left" gradient gradientColor="#FFB727" gradientWidth={50}  className="text-2xl md:text-3xl font-roboto font-semibold md:font-extrabold my-2 md:my-8 text-primary">
-        🔥 Sale 50% Off! updated  🔥 &nbsp; | &nbsp;  Limited Time Offer!  &nbsp; | &nbsp; New Arrivals Available Now! 🎉
+        🔥 Sale 50% Off!   🔥 &nbsp; | &nbsp;  Limited Time Offer!  &nbsp; | &nbsp; New Arrivals Available Now! 🎉
       </Marquee>
       <FeaturedProducts />
       <NewArrivals />
