@@ -435,7 +435,7 @@ const Navbar = React.memo(() => {
                     <FaUserShield className="text-3xl text-secondary" />
                   </Link>
                 )}
-                {user && <NotificationBell />}
+                {user?.role === "admin" && <NotificationBell />}
                 <Link to="/shop" className="relative z-20 cursor-pointer group">
                   <AiOutlineShopping className="text-3xl text-secondary" />
                 </Link>

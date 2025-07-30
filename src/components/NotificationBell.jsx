@@ -89,7 +89,7 @@ const NotificationBell = () => {
         fetchUnreadCount(true); // Background refresh, no loader
     };
 
-    if (!user) return null;
+    if (!user || user.role !== 'admin') return null;
 
     return (
         <div className="relative" ref={dropdownRef}>

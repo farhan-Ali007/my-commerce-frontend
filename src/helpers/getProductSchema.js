@@ -7,13 +7,34 @@ function stripHtml(html) {
 export const getProductSchemaData = (product, currentPrice) => {
     try {
         const url = typeof window !== 'undefined' ? window.location.href : '';
-        const images = Array.isArray(product?.images)
+        
+        // Collect all images: main product images + variant images
+        const mainImages = Array.isArray(product?.images)
             ? product.images.filter(img => typeof img === 'string' && img.startsWith('http'))
             : [];
+            
+        const variantImages = product?.variants?.flatMap(variant => 
+            variant.values?.filter(val => val.image && val.image.startsWith('http')).map(val => val.image) || []
+        ) || [];
+        
+        const allImages = [...mainImages, ...variantImages];
+        
+        // Ensure we have at least one image
+        const images = allImages.length > 0 ? allImages : ['/default-product-image.jpg'];
 
         const price = typeof currentPrice === 'number' && !isNaN(currentPrice)
             ? currentPrice
             : product?.price || product?.salePrice || 0;
+
+        // Helper function to determine brand name
+        const getBrandName = (brand) => {
+            if (!brand || !brand.name) return "Etimad Mart";
+            const brandName = brand.name.trim().toLowerCase();
+            if (brandName === "no-brand" || brandName === "nobrand" || brandName === "") {
+                return "Etimad Mart";
+            }
+            return brand.name.trim();
+        };
 
         // --- Aggregate Rating ---
         let aggregateRating = undefined;
@@ -34,7 +55,7 @@ export const getProductSchemaData = (product, currentPrice) => {
                 "@type": "Review",
                 "author": {
                     "@type": "Person",
-                    "name": r.reviewerId?.name || r.reviewerName || "Anonymous"
+                    "name": r.reviewerId?.username || r.reviewerName || "Anonymous"
                 },
                 "datePublished": r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : "",
                 "reviewBody": stripHtml(r.reviewText || ""),
@@ -84,37 +105,80 @@ export const getProductSchemaData = (product, currentPrice) => {
         // --- Variants ---
         let hasVariant = undefined;
         if (product?.variants?.length > 0) {
-            hasVariant = product.variants.map(variant => ({
-                "@type": "Product",
-                "name": `${product.title} - ${variant.name}`,
-                "description": `${product.title} in ${variant.name}`,
-                "category": category,
-                "brand": {
-                    "@type": "Brand",
-                    "name": product?.brand?.name?.trim() || "Your Store"
-                },
-                "offers": {
-                    "@type": "Offer",
-                    "priceCurrency": "PKR",
-                    "price": price,
-                    "availability": product?.stock > 0
-                        ? "https://schema.org/InStock"
-                        : "https://schema.org/OutOfStock"
-                }
-            }));
+            hasVariant = product.variants.map(variant => {
+                const variantImages = variant.values?.filter(val => val.image && val.image.startsWith('http')).map(val => val.image) || [];
+                return {
+                    "@type": "Product",
+                    "name": `${product.title} - ${variant.name}`,
+                    "description": `${product.title} in ${variant.name}`,
+                    "url": url,
+                    "image": variantImages.length > 0 ? variantImages : (mainImages.length > 0 ? [mainImages[0]] : ['/default-product-image.jpg']),
+                    "productGroupID": product?.category?.slug || product?.category?.name || "default-group",
+                    "category": category,
+                    "brand": {
+                        "@type": "Brand",
+                        "name": getBrandName(product?.brand)
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "priceCurrency": "PKR",
+                        "price": price,
+                        "availability": product?.stock > 0
+                            ? "https://schema.org/InStock"
+                            : "https://schema.org/OutOfStock",
+                        "shippingDetails": {
+                            "@type": "OfferShippingDetails",
+                            "shippingRate": {
+                                "@type": "MonetaryAmount",
+                                "value": product?.freeShipping ? 0 : (product?.deliveryCharges || 250),
+                                "currency": "PKR"
+                            },
+                            "shippingDestination": {
+                                "@type": "DefinedRegion",
+                                "addressCountry": "PK"
+                            },
+                            "deliveryTime": {
+                                "@type": "ShippingDeliveryTime",
+                                "handlingTime": {
+                                    "@type": "QuantitativeValue",
+                                    "minValue": 0,
+                                    "maxValue": 1,
+                                    "unitCode": "DAY"
+                                },
+                                "transitTime": {
+                                    "@type": "QuantitativeValue",
+                                    "minValue": 2,
+                                    "maxValue": 5,
+                                    "unitCode": "DAY"
+                                }
+                            }
+                        },
+                        "hasMerchantReturnPolicy": {
+                            "@type": "MerchantReturnPolicy",
+                            "applicableCountry": "PK",
+                            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                            "merchantReturnDays": 7,
+                            "returnMethod": "https://schema.org/ReturnByMail",
+                            "returnFees": "https://schema.org/FreeReturn"
+                        }
+                    }
+                };
+            });
         }
 
         const schemaData = {
             "@context": "https://schema.org/",
             "@type": "Product",
             "name": product?.title?.trim() || "Unnamed Product",
-            "image": images.length ? images : ['/default-product-image.jpg'],
+            "url": url,
+            "image": images,
             "description": stripHtml(product?.description?.trim() || ""),
             "sku": product?._id || "",
             "mpn": product?._id || "",
+            "productGroupID": product?.category?.slug || product?.category?.name || "default-group",
             "brand": {
                 "@type": "Brand",
-                "name": product?.brand?.name?.trim() || "Your Store"
+                "name": getBrandName(product?.brand)
             },
             "category": category,
             "offers": {
@@ -130,11 +194,46 @@ export const getProductSchemaData = (product, currentPrice) => {
                 "seller": {
                     "@type": "Organization",
                     "name": "Etimad Mart"
+                },
+                "shippingDetails": {
+                    "@type": "OfferShippingDetails",
+                    "shippingRate": {
+                        "@type": "MonetaryAmount",
+                        "value": product?.freeShipping ? 0 : (product?.deliveryCharges || 200),
+                        "currency": "PKR"
+                    },
+                    "shippingDestination": {
+                        "@type": "DefinedRegion",
+                        "addressCountry": "PK"
+                    },
+                    "deliveryTime": {
+                        "@type": "ShippingDeliveryTime",
+                        "handlingTime": {
+                            "@type": "QuantitativeValue",
+                            "minValue": 0,
+                            "maxValue": 1,
+                            "unitCode": "DAY"
+                        },
+                        "transitTime": {
+                            "@type": "QuantitativeValue",
+                            "minValue": 2,
+                            "maxValue": 5,
+                            "unitCode": "DAY"
+                        }
+                    }
+                },
+                "hasMerchantReturnPolicy": {
+                    "@type": "MerchantReturnPolicy",
+                    "applicableCountry": "PK",
+                    "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                    "merchantReturnDays": 7,
+                    "returnMethod": "https://schema.org/ReturnByMail",
+                    "returnFees": "https://schema.org/FreeReturn"
                 }
             },
             "manufacturer": {
                 "@type": "Organization",
-                "name": product?.brand?.name?.trim() || "Your Store"
+                "name": getBrandName(product?.brand)
             }
         };
 

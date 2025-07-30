@@ -104,8 +104,8 @@ const Cart = () => {
     0
   );
 
-  const deliveryCharges = cartData.some((item) => item.deliveryCharges === 200)
-    ? 200
+  const deliveryCharges = cartData.some((item) => item.deliveryCharges === 200 || item.deliveryCharges === 250)
+    ? 250
     : 0;
 
   const totalBill = totalPrice + deliveryCharges;
