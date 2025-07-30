@@ -764,7 +764,7 @@ const SingleProduct = () => {
           name="twitter:image"
           content={product?.images?.[0] || selectedImage || "default-image.jpg"}
         />
-        <link rel="canonical" href={`https://www.etimadmart.com/products/${slug}`} />
+        <link rel="canonical" href={`https://www.etimadmart.com/product/${slug}`} />
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
 
