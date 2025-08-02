@@ -12,6 +12,14 @@ import Popup from "./components/Popup";
 import { getUserAPI } from "./functions/auth";
 import { setUser } from "./store/authSlice";
 
+// Sitemap redirect component
+const SitemapRedirect = () => {
+  useEffect(() => {
+    window.location.href = 'https://etimadmart.up.railway.app/sitemap.xml';
+  }, []);
+  return <div>Redirecting to sitemap...</div>;
+};
+
 const Home = lazy(() => import("./Pages/Home"));
 const Signup = lazy(() => import("./Pages/Signup"));
 const ProductsBySub = lazy(() => import('./Pages/product/ProductsBySub'))
@@ -104,6 +112,11 @@ const App = () => {
             <Route path="/category/:categorySlug/subcategory/:subcategorySlug" element={<ProductsBySub />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/brand/:brandSlug" element={<ProductsByBrand />} />
+
+            {/* Sitemap redirect */}
+            <Route path="/sitemap.xml" element={
+              <SitemapRedirect />
+            } />
 
             {/* Protected Routes for Admin Only */}
             <Route element={<AdminRoute />}>
