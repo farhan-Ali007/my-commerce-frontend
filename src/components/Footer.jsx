@@ -100,7 +100,8 @@ const Footer = () => {
   // Fallbacks
   const logoUrl = footerData?.logoUrl || "/f-logo.png";
   const aboutText = footerData?.aboutText || "Shopping karain Etimad ke sath";
-  const quickLinks = footerData?.quickLinks || [
+  // Ensure Contact Us is always included in quick links
+  const defaultQuickLinks = [
     { label: "About Us", url: "/about" },
     { label: "Shop", url: "/shop" },
     { label: "Contact Us", url: "/contact-us" },
@@ -109,6 +110,18 @@ const Footer = () => {
     { label: "Shipping Policy", url: "/shipping-policy" },
     { label: "Return Policy", url: "/return-policy" },
   ];
+
+  // Use backend data if available, otherwise use fallback
+  const quickLinks = footerData?.quickLinks || defaultQuickLinks;
+
+  // Ensure Contact Us is always present
+  const hasContactUs = quickLinks.some(link => 
+    link.label === "Contact Us" || link.url === "/contact-us"
+  );
+  
+  const finalQuickLinks = hasContactUs 
+    ? quickLinks 
+    : [...quickLinks, { label: "Contact Us", url: "/contact-us" }];
   const contactInfo = footerData?.contactInfo || {
     address: "Zahir Pir, Rahim Yar Khan",
     whatsapp: "+923071111832",
@@ -162,25 +175,26 @@ const Footer = () => {
               </motion.p>
             </motion.div>
 
-            {/* Quick Links - Horizontal Scroll on Mobile */}
+            {/* Quick Links - Clean List Layout on Mobile */}
             <motion.div
-              className="overflow-x-auto pb-2"
+              className="px-4"
               variants={itemVariants}
             >
               <motion.h3
-                className="text-lg font-semibold mb-3 text-center text-secondary"
+                className="text-lg font-semibold mb-4 text-center text-secondary"
                 whileHover={{ scale: 1.02 }}
               >
                 Quick Links
               </motion.h3>
-              <div className="flex justify-center space-x-6 min-w-max px-4">
-                {quickLinks.map((link, idx) => (
+                             <div className="flex flex-col space-y-2">
+                 {finalQuickLinks.map((link, idx) => (
                   <motion.a
                     key={link._id || link.url || idx}
                     href={link.url}
-                    className="text-white hover:text-main text-sm font-medium no-underline whitespace-nowrap transition-colors"
+                    className="text-white hover:text-secondary text-sm font-medium no-underline text-center py-2 transition-colors duration-300 border-b border-white/10 hover:border-secondary/30"
                     variants={linkVariants}
                     whileHover="hover"
+                    whileTap={{ scale: 0.98 }}
                   >
                     {link.label}
                   </motion.a>
@@ -300,8 +314,8 @@ const Footer = () => {
               >
                 Quick Links
               </motion.h3>
-              <ul className="text-white space-y-2 text-center md:text-start list-none">
-                {quickLinks.map((link, idx) => (
+                             <ul className="text-white space-y-2 text-center md:text-start list-none">
+                 {finalQuickLinks.map((link, idx) => (
                   <motion.li key={link._id || link.url || idx} variants={linkVariants} whileHover="hover">
                     <a
                       href={link.url}
