@@ -9,9 +9,8 @@ export default {
         space: ["Space Grotesk", "sans-serif"],
       },
       colors: {
-        primary: "#000000",
-        secondary: "#FFB727",//#F59728
-        main: "#02076C",
+        primary: "#000000", // Will be overridden by API colors
+        secondary: "#FFB727", // Will be overridden by API colors
       },
       opacity: {
         10: "0.1",
