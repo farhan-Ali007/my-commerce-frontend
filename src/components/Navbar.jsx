@@ -362,7 +362,7 @@ const Navbar = React.memo(() => {
     <>
       {/* Top bar */}
       <motion.div
-        className="bg-gradient-to-r from-[#000000] to-[#FFB828] text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
+        className="bg-gradient-to-r from-primary to-secondary text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
         variants={topBarVariants}
         initial="hidden"
         animate="visible"

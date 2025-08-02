@@ -28,6 +28,10 @@ import AdminDynamicPages from "./AdminDynamicPages";
 import { getRecentOrders } from "../../functions/order";
 import AdminFooter from "./AdminFooter";
 import { MdOutlineSpaceBar } from "react-icons/md";
+import AdminColorSettings from "./AdminColorSettings";
+import { MdColorLens } from "react-icons/md";
+import AdminPopups from "./AdminPopups";
+import { IoNotifications } from "react-icons/io5";
 
 const AdminDashboard = () => {
   const [selectedPage, setSelectedPage] = useState("allProducts");
@@ -138,6 +142,18 @@ const AdminDashboard = () => {
             <AdminFooter />
           </div>
         );
+      case "colorSettings":
+        return (
+          <div>
+            <AdminColorSettings />
+          </div>
+        );
+      case "popups":
+        return (
+          <div>
+            <AdminPopups />
+          </div>
+        );
       default:
         return <div>Select a page from the navigation</div>;
     }
@@ -159,7 +175,16 @@ const AdminDashboard = () => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:transform-none transition-transform duration-200 ease-in-out`}
       >
-        <h2 className="text-2xl font-bold p-4">Admin Panel</h2>
+        <div className="flex items-center justify-between p-4">
+          <h2 className="text-2xl font-bold">Admin Panel</h2>
+          <button
+            onClick={() => setSelectedPage("colorSettings")}
+            className="lg:hidden p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
+            title="Color Settings"
+          >
+            <MdColorLens className="text-lg" />
+          </button>
+        </div>
         <nav className="flex flex-col gap-4 p-4">
           <button
             className={`flex items-center gap-3 py-2 px-4 text-left ${
@@ -352,6 +377,34 @@ const AdminDashboard = () => {
           >
             <MdOutlineSpaceBar className="text-lg" />
             Footer
+          </button>
+          <button
+            className={`flex items-center gap-3 py-2 px-4 text-left ${
+              selectedPage === "colorSettings"
+                ? "bg-gray-700 rounded-full"
+                : "hover:bg-gray-700 rounded-full"
+            }`}
+            onClick={() => {
+              setSelectedPage("colorSettings");
+              setIsSidebarOpen(false);
+            }}
+          >
+            <MdColorLens className="text-lg" />
+            Color Settings
+          </button>
+          <button
+            className={`flex items-center gap-3 py-2 px-4 text-left ${
+              selectedPage === "popups"
+                ? "bg-gray-700 rounded-full"
+                : "hover:bg-gray-700 rounded-full"
+            }`}
+            onClick={() => {
+              setSelectedPage("popups");
+              setIsSidebarOpen(false);
+            }}
+          >
+            <IoNotifications className="text-lg" />
+            Popup Banners
           </button>
         </nav>
       </div>

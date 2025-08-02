@@ -1385,7 +1385,7 @@ const SingleProduct = () => {
       <AnimatePresence>
         {hoveredVariantImage && (
           <motion.div
-            className="fixed z-[9999] p-2 bg-white border border-gray-300 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+            className="fixed z-[9998] p-2 bg-white border border-gray-300 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}

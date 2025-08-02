@@ -12,7 +12,7 @@ export const getProductSchemaData = (product, currentPrice) => {
         const mainImages = Array.isArray(product?.images)
             ? product.images.filter(img => typeof img === 'string' && img.startsWith('http'))
             : [];
-        
+
         // Robust variant image extraction - handle different possible structures
         let variantImages = [];
         
@@ -55,7 +55,7 @@ export const getProductSchemaData = (product, currentPrice) => {
             return {
                 "@type": "Product",
                 "name": `${product.title} - ${variant.name}`,
-                "description": product.description || `${product.title} - ${variant.name}`,
+                "description": stripHtml(product.description) || `${product.title} - ${variant.name}`,
                 "image": variantImages.length > 0 ? variantImages : (mainImages.length > 0 ? [mainImages[0]] : ['/default-product-image.jpg']),
                 "productGroupID": product?.category?.slug || product?.category?.name || "default-group",
                 "url": url,
@@ -64,7 +64,8 @@ export const getProductSchemaData = (product, currentPrice) => {
                     "@type": "Offer",
                     "price": variant.values?.[0]?.price || currentPrice || product.price,
                     "priceCurrency": "PKR",
-                    "availability": "https://schema.org/InStock",
+                    "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                    "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
                     "seller": {
                         "@type": "Organization",
                         "name": "Etimad Mart"
@@ -113,22 +114,22 @@ export const getProductSchemaData = (product, currentPrice) => {
             "@type": "Review",
             "reviewRating": {
                 "@type": "Rating",
-                "ratingValue": r.rating,
+                "ratingValue": r.rating || 5,
                 "bestRating": 5
             },
             "author": {
                 "@type": "Person",
                 "name": r.reviewerId?.username || "Anonymous"
             },
-            "reviewBody": r.reviewText,
-            "datePublished": r.createdAt
+            "reviewBody": stripHtml(r.reviewText || ""),
+            "datePublished": r.createdAt || new Date().toISOString()
         })) || [];
 
         const schemaData = {
             "@context": "https://schema.org",
             "@type": "Product",
             "name": product.title,
-            "description": product.description,
+            "description": stripHtml(product.description),
             "url": url,
             "image": images,
             "productGroupID": product?.category?.slug || product?.category?.name || "default-group",
@@ -142,7 +143,7 @@ export const getProductSchemaData = (product, currentPrice) => {
                 "@type": "Offer",
                 "price": currentPrice || product.price,
                 "priceCurrency": "PKR",
-                "availability": "https://schema.org/InStock",
+                "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
                 "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
                 "seller": {
                     "@type": "Organization",
@@ -205,6 +206,22 @@ export const getProductSchemaData = (product, currentPrice) => {
         // Add variants if they exist
         if (hasVariant.length > 0) {
             schemaData.hasVariant = hasVariant;
+        }
+
+        // Ensure we have at least one of the required fields
+        if (!schemaData.offers && !schemaData.review && !schemaData.aggregateRating) {
+            // Add a basic offer if none exists
+            schemaData.offers = {
+                "@type": "Offer",
+                "price": currentPrice || product.price || 0,
+                "priceCurrency": "PKR",
+                "availability": "https://schema.org/InStock",
+                "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                "seller": {
+                    "@type": "Organization",
+                    "name": "Etimad Mart"
+                }
+            };
         }
 
         return schemaData;

@@ -9,7 +9,7 @@ import { Helmet } from 'react-helmet-async';
 const ProductsByBrand = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
-    const { brand } = useParams();
+    const { brandSlug } = useParams();
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalProducts, setTotalProducts] = useState(0);
@@ -18,7 +18,7 @@ const ProductsByBrand = () => {
     const fetchProducts = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await getProductsByBrand(brand, page, productsPerPage);
+            const response = await getProductsByBrand(brandSlug, page, productsPerPage);
             
             if (response && response.success) {
                 setProducts(response.products || []);
@@ -35,7 +35,7 @@ const ProductsByBrand = () => {
 
     useEffect(() => {
         fetchProducts(currentPage);
-    }, [brand, currentPage]);
+    }, [brandSlug, currentPage]);
 
     const handlePageChange = (pageNumber) => {
         if (pageNumber < 1 || pageNumber > totalPages) return;
@@ -65,13 +65,13 @@ const ProductsByBrand = () => {
     return (
         <>
         <Helmet>
-            <title>{brand.replace(/-/g, ' ')} | Etimad Mart</title>
+            <title>{brandSlug.replace(/-/g, ' ')} | Etimad Mart</title>
             <link rel="canonical" href={window.location.href} />
         <meta name="robots" content="index, follow" />
         </Helmet>
         <div className="w-full min-h-screen px-4 md:px-8">
             <h1 className="text-2xl md:text-3xl text-secondary font-extrabold text-center  my-3 md:my-6 capitalize">
-                {brand.replace(/-/g, ' ')}
+                {brandSlug.replace(/-/g, ' ')}
             </h1>
 
             {!loading && products.length > 0 && (

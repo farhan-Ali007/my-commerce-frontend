@@ -48,19 +48,19 @@ const ShowcaseCategories = ({
   }, []);
 
   return (
-    <section className="max-w-screen-xl mx-auto px-2 md:px-8 py-4 md:py-0">
+    <section className="w-full max-w-screen-xl mx-auto px-2 md:px-8 py-4 md:py-0">
       <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch min-h-[300px] md:min-h-[400px]">
         {/* Left: Category Name and Static Image */}
-        <div className="w-full md:w-1/4 flex flex-row md:flex-col items-center md:items-center justify-between md:justify-center mb-2 md:mb-0 h-full gap-4 md:gap-0">
-          <Link className="no-underline flex-1 md:flex-none" to={`/category/${categorySlug}`}> 
-            <h2 className="text-xl md:text-2xl font-bold text-secondary font-space mb-0 md:mb-4 text-center md:text-left block">
+        <div className="w-full md:w-1/4 flex flex-row md:flex-col items-center md:items-center justify-center md:justify-center mb-2 md:mb-0 h-full gap-4 md:gap-0 px-2 md:px-0">
+          <Link className="no-underline flex-1 md:flex-none max-w-[50%] md:max-w-none" to={`/category/${categorySlug}`}> 
+            <h2 className="text-lg md:text-2xl font-bold text-secondary font-space mb-0 md:mb-4 text-center md:text-left block truncate">
               {categoryName}
             </h2>
           </Link>
           <img
             src={categoryImage}
             alt={categoryName}
-            className="block w-20 h-20 md:w-full md:max-w-[300px] md:h-[380px] object-cover bg-gray-100 self-center rounded shadow-none hover:shadow-md"
+            className="block w-16 h-16 md:w-full md:max-w-[300px] md:h-[380px] object-cover bg-gray-100 self-center rounded shadow-none hover:shadow-md flex-shrink-0"
             loading="lazy"
           />
         </div>
@@ -68,18 +68,18 @@ const ShowcaseCategories = ({
         <div className="w-full md:w-3/4 flex flex-col h-full justify-center self-center md:mt-24 md:mb-8">
           <div
             ref={scrollRef}
-            className="overflow-x-auto scrollbar-hide w-screen  px-4 md:w-full md:mx-0 md:px-0"
+            className="overflow-x-auto scrollbar-hide w-full px-2 md:px-0"
           >
             <div className="flex flex-row gap-3">
               {loadingProducts ? (
                 Array.from({ length: 4 }).map((_, idx) => (
-                  <div key={idx} className="w-1/2 md:w-60 flex-shrink-0">
+                  <div key={idx} className="w-[calc(50%-6px)] md:w-60 flex-shrink-0">
                     <ProductCardSkeleton />
                   </div>
                 ))
               ) : products.length > 0 ? (
                 products.map((product) => (
-                  <div key={product._id} className="w-1/2 md:w-60 flex-shrink-0">
+                  <div key={product._id} className="w-[calc(50%-6px)] md:w-60 flex-shrink-0">
                     <ProductCard product={product} />
                   </div>
                 ))

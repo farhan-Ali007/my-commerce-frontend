@@ -27,6 +27,22 @@ export const getAllBrands = async () => {
     }
 }
 
+
+export const updateBrand = async (id, brand) => {
+    try {
+        const response = await axios.put(`${BASE_URL}/brand/${id}`, brand, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': "multipart/form-data",
+            }
+        })
+        return response?.data;
+    } catch (error) {
+        console.log("Error in updating brand", error)
+        return error.response.data
+    }
+}
+
 export const deleteBrand = async (id) => {
     try {
         const response = await axios.delete(`${BASE_URL}/brand/${id}`, {

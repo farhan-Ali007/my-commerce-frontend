@@ -8,6 +8,7 @@ import AdminRoute from "./components/AdminRoute";
 import Footer from "./components/Footer";
 import MetaPixelTracker from './components/MetaPixelTracker';
 import Navbar from "./components/Navbar";
+import Popup from "./components/Popup";
 import { getUserAPI } from "./functions/auth";
 import { setUser } from "./store/authSlice";
 
@@ -27,6 +28,7 @@ const AdminDashboard = lazy(() => import("./Pages/admin/AdminDashboard"));
 const CreateProduct = lazy(() => import("./Pages/admin/CreateProduct"));
 const EditProduct = lazy(() => import("./Pages/admin/EditProduct"));
 const AdminUsers = lazy(() => import("./Pages/admin/AdminUsers"));
+const AdminColorSettings = lazy(() => import("./Pages/admin/AdminColorSettings"));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -73,6 +75,9 @@ const App = () => {
       <div className="flex flex-col">
         {/* Conditionally render Navbar */}
         {!hiddenNavbarRoutes.includes(location.pathname) && <Navbar />}
+        
+        {/* Popup Component - appears on all pages */}
+        <Popup />
 
         <Suspense
           fallback={
@@ -98,7 +103,7 @@ const App = () => {
             <Route path="/search" element={<Search />} />
             <Route path="/category/:categorySlug/subcategory/:subcategorySlug" element={<ProductsBySub />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
-            <Route path="/products/:brand" element={<ProductsByBrand />} />
+            <Route path="/brand/:brandSlug" element={<ProductsByBrand />} />
 
             {/* Protected Routes for Admin Only */}
             <Route element={<AdminRoute />}>
@@ -106,7 +111,11 @@ const App = () => {
               <Route path="/add-product" element={<CreateProduct />} />
               <Route path="/edit-product/:slug" element={<EditProduct />} />
               <Route path="/admin-users" element={<AdminUsers />} />
+              <Route path="/admin-color-settings" element={<AdminColorSettings />} />
             </Route>
+
+            {/* Direct access to color settings for admins */}
+            <Route path="/color-settings" element={<AdminColorSettings />} />
 
             <Route path="/:slug" element={<DynamicPage />} />
             <Route path="*" element={<NotFound />} />

@@ -111,7 +111,7 @@ const Footer = () => {
   ];
   const contactInfo = footerData?.contactInfo || {
     address: "Zahir Pir, Rahim Yar Khan",
-    whatsapp: "03071111832",
+    whatsapp: "+923071111832",
     phone: "03071111832",
     email: "info@etimadmart.com",
   };

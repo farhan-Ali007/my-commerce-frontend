@@ -65,7 +65,7 @@ const Brands = React.memo(() => {
                 onHoverEnd={() => setHoveredIndex(null)}
             >
                 <Link 
-                    to={`/products/${brand?.name}`} 
+                    to={`/brand/${brand?.slug}`} 
                     className="p-[2px] rounded-full bg-gradient-to-r from-primary via-orange-600 to-secondary"
                 >
                     <motion.div 
@@ -117,13 +117,15 @@ const Brands = React.memo(() => {
     }, [brands, error, hoveredIndex, brandAnimation, handleImageError]);
 
     return (
-        <div ref={ref} className="container mx-auto px-2 md:px-0 lg:px-8 py-3 md:py-4">
-            <h2 className="text-2xl md:text-4xl font-extrabold font-space text-secondary text-center mb-5 md:mb-7">
-                Top Brands
-            </h2>
+        <div ref={ref} className="w-full py-3 md:py-4">
+            <div className="container mx-auto px-4 md:px-6 lg:px-8">
+                <h2 className="text-2xl md:text-4xl font-extrabold font-space text-secondary text-center mb-5 md:mb-7">
+                    Top Brands
+                </h2>
+            </div>
 
             <motion.div 
-                className="flex justify-start lg:justify-center space-x-4 md:space-x-5 lg:space-x-8 overflow-x-auto scrollbar-hide px-4"
+                className="flex space-x-4 md:space-x-5 lg:space-x-8 overflow-x-auto scrollbar-hide px-4 md:px-6 lg:px-8"
                 {...containerAnimation}
             >
                 {renderBrands}

@@ -92,7 +92,7 @@ const NotificationBell = () => {
     if (!user || user.role !== 'admin') return null;
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative hidden lg:block" ref={dropdownRef}>
             {/* Notification Bell Button */}
             <button
                 onClick={handleBellClick}
@@ -128,7 +128,7 @@ const NotificationBell = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                         className="fixed rounded-tl-full rounded-tr-full sm:absolute right-2 sm:right-0 top-28 sm:top-auto sm:mt-2 z-[9999] w-[calc(100vw-1rem)] sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200"
+                         className="fixed rounded-tl-full rounded-tr-full sm:absolute right-2 sm:right-0 top-28 sm:top-auto sm:mt-2 z-[9998] w-[calc(100vw-1rem)] sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200"
                     >
                         <NotificationDropdown 
                             userId={user._id}
