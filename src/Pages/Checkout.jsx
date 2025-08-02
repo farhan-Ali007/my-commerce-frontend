@@ -21,6 +21,7 @@ const Checkout = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     streetAddress: "",
+    city: "",
     mobile: "",
     additionalInstructions: "",
   });
@@ -118,6 +119,10 @@ const Checkout = () => {
       toast.error("Street Address is required");
       return;
     }
+    if (!formData.city) {
+      toast.error("City is required");
+      return;
+    }
     const pakistaniMobileRegex = /^03[0-9]{9}$/;
 
     if (!formData.mobile || !pakistaniMobileRegex.test(formData.mobile)) {
@@ -174,6 +179,7 @@ const Checkout = () => {
       setFormData({
         fullName: "",
         streetAddress: "",
+        city: "",
         mobile: "",
         additionalInstructions: "",
       });
@@ -319,7 +325,7 @@ const Checkout = () => {
                   value={formData.fullName}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
-                  placeholder="Full Name *"
+                  placeholder="Full Name * (پورا نام)"
                   required
                 />
               </div>
@@ -335,7 +341,19 @@ const Checkout = () => {
                   required
                 />
               </div>
-            <div className="md:col-span-2">
+              <div>
+              <input
+                type="text"
+                name="city"
+                autoComplete="address-level2"
+                value={formData.city}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                placeholder="City * (شہر)"
+                required
+              />
+            </div>
+            <div>
               <input
                 type="text"
                 name="streetAddress"
@@ -343,7 +361,7 @@ const Checkout = () => {
                 value={formData.streetAddress}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
-                placeholder="Street Address * (گلی کا پتہ)"
+                placeholder="Street Address * (مکمل پتہ)"
                 required
               />
             </div>
