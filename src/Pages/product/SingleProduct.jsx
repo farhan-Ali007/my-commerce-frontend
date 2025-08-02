@@ -27,6 +27,7 @@ import { getProductSchemaData } from "../../helpers/getProductSchema";
 import { addToCart } from "../../store/cartSlice";
 import { addItemToCart } from "../../functions/cart";
 import useFacebookPixel from "../../hooks/useFacebookPixel";
+import useWhatsAppTracking from "../../hooks/useWhatsAppTracking";
 import { AiOutlineClose } from "react-icons/ai";
 
 const LazyRelatedProducts = lazy(() =>
@@ -87,6 +88,7 @@ const SingleProduct = () => {
   const userId = user?._id;
   const currentCartItems = useSelector((state) => state.cart.products);
   const { track } = useFacebookPixel();
+  const { trackWhatsAppAddToCart, trackWhatsAppOrder } = useWhatsAppTracking();
 
   // State management
   const [product, setProduct] = useState(null);
@@ -592,13 +594,22 @@ const SingleProduct = () => {
 
     toast.success(`${cartItemsToAdd.length} item(s) added to cart!`);
     setIsDrawerOpen(true);
+    
+    // Facebook Pixel tracking
     track("AddToCart", {
       content_ids: [product._id],
       content_name: product.title,
       value: product.salePrice ? product.salePrice : product.price,
       currency: "PKR",
     });
-  }, [selectedVariants, product, dispatch, setIsDrawerOpen, selectedQuantity, currentPrice, track]);
+    
+    // WhatsApp tracking for add to cart
+    trackWhatsAppAddToCart({
+      _id: product._id,
+      title: product.title,
+      price: product.salePrice ? product.salePrice : product.price
+    });
+  }, [selectedVariants, product, dispatch, setIsDrawerOpen, selectedQuantity, currentPrice, track, trackWhatsAppAddToCart]);
 
   const handleByNow = useCallback(async () => {
     // Prepare cart items for each selected variant value
@@ -660,7 +671,7 @@ const SingleProduct = () => {
         };
         await addItemToCart(userId, cartPayload);
         cartItemsToAdd.forEach(cartItem => dispatch(addToCart(cartItem)));
-        track("InitiateCheckout", {
+        track("AddToCart", {
           content_ids: [product._id],
           content_name: product.title,
           value: product.salePrice ? product.salePrice : product.price,
@@ -671,7 +682,7 @@ const SingleProduct = () => {
       } else {
         // For guest users, just add all to Redux
         cartItemsToAdd.forEach(cartItem => dispatch(addToCart(cartItem)));
-        track("InitiateCheckout", {
+        track("AddToCart", {
           content_ids: [product._id],
           content_name: product.title,
           value: product.salePrice ? product.salePrice : product.price,
@@ -723,7 +734,22 @@ const SingleProduct = () => {
       message
     )}`;
     window.open(url, "_blank");
-  }, [product, currentPrice, selectedVariants, productVariants]);
+    
+    // Facebook Pixel tracking - AddToCart event
+    track("AddToCart", {
+      content_ids: [product._id],
+      content_name: product.title,
+      value: product.salePrice ? product.salePrice : product.price,
+      currency: "PKR",
+    });
+    
+    // WhatsApp tracking for order
+    trackWhatsAppOrder({
+      _id: product._id,
+      title: product.title,
+      price: currentPrice
+    });
+  }, [product, currentPrice, selectedVariants, productVariants, trackWhatsAppOrder, track]);
 
   // Memoize schema data to prevent duplicate generation
   const schemaData = useMemo(() => {

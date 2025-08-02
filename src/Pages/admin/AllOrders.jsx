@@ -110,7 +110,7 @@ const AllOrders = () => {
   );
 
   return (
-    <div className="container p-6 mx-auto text-center">
+    <div className="container p-6 mx-auto text-center h-screen overflow-hidden flex flex-col">
       <h1 className="mb-6 text-3xl font-bold text-main">
         All Orders [{totalOrders}]
       </h1>
@@ -125,19 +125,22 @@ const AllOrders = () => {
         />
       </div>
       {/* Orders Table */}
-      {loading ? (
-        <p>Loading...</p>
-      ) : filteredOrders.length === 0 ? (
-        <p>No orders available.</p>
-      ) : (
-        <SimpleBar
-          forceVisible="x"
-          autoHide={false}
+      <div className="flex-1 overflow-hidden">
+        {loading ? (
+          <p>Loading...</p>
+        ) : filteredOrders.length === 0 ? (
+          <p>No orders available.</p>
+        ) : (
+          <SimpleBar
           style={{
             maxWidth: "100%",
-            height: "320px", // or any height you want
-            overflowY: "auto", // vertical scroll inside the box
-            overflowX: "auto", // horizontal scroll
+            height: "100%", // Take full height of parent
+            minHeight: "400px", // Minimum height for smaller screens
+          }}
+          options={{
+            scrollbarMinSize: 40,
+            scrollbarMaxSize: 300,
+            forceVisible: "y", // Force vertical scrollbar to be visible
           }}
         >
           <table className="min-w-[2000px] border-collapse border-black table-auto border-1">
@@ -317,7 +320,8 @@ const AllOrders = () => {
             </div>
           )}
         </SimpleBar>
-      )}
+        )}
+      </div>
       {previewProduct && previewOrder && (
         <div
           className="fixed inset-0 top-20 z-50 flex items-center justify-center bg-black bg-opacity-70"

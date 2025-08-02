@@ -90,6 +90,19 @@ body {
   display: none;
 }
 
+/* Ensure SimpleBar scrollbars are visible */
+.simplebar-scrollbar {
+  display: block !important;
+}
+
+.simplebar-track {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.simplebar-scrollbar:before {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
 /* Custom styles for react-range-slider-input */
 .range-slider__range {
   background: #F0AD26 !important;
