@@ -149,6 +149,9 @@ const NewOrders = () => {
                                         <span>Recipient ph.No</span>
                                     </div>
                                 </th>
+                                <th className="px-6 py-2 border">
+                                    <span>City</span>
+                                </th>
                                 <th className="px-6 py-2 border w-72">
                                     <span>Address</span>
                                 </th>
@@ -234,6 +237,9 @@ const NewOrders = () => {
                                     <td className="px-4 py-2 border">
                                         {order?.shippingAddress?.mobile}
                                     </td>
+                                    <td className="px-4 py-2 border">
+                                        {order?.shippingAddress?.city || "—"}
+                                    </td>
                                     <td className="px-4 py-2 border min-w-72 max-w-80">
                                         {order?.shippingAddress?.streetAddress || "—"}
                                     </td>
@@ -297,6 +303,9 @@ const NewOrders = () => {
                             <hr className="my-2" />
                             <p className="text-gray-700">
                                 <span className="font-semibold">Mobile:</span> {previewOrder?.shippingAddress?.mobile}
+                            </p>
+                            <p className="text-gray-700">
+                                <span className="font-semibold">City:</span> {previewOrder?.shippingAddress?.city}
                             </p>
                             <p className="text-gray-700">
                                 <span className="font-semibold">Address:</span> {previewOrder?.shippingAddress?.streetAddress}

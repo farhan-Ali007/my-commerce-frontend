@@ -321,9 +321,18 @@ const ShopCard = ({ product }) => {
             Rs.{salePrice}
           </p>
           {salePrice && price && (
-            <p className="p-1 text-xs text-primary text-center border-2 sm:text-sm border-secondary">
-              {Math.floor(((price - salePrice) / price) * 100)}% Off
-            </p>
+            <span className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs font-semibold">
+              <svg
+                className="w-3 h-3 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {Math.floor(((price - salePrice) / price) * 100)}% Save
+            </span>
           )}
         </div>
       </div>

@@ -159,6 +159,13 @@ const SingleProduct = () => {
     return hasVariantPrice ? variantPriceSum : (product.salePrice || product.price);
   }, [selectedVariants, product]);
 
+  // Calculate percentage off
+  const percentageOff = useMemo(() => {
+    if (!product || !product.salePrice || product.salePrice >= product.price) return 0;
+    const discount = ((product.price - product.salePrice) / product.price) * 100;
+    return Math.round(discount);
+  }, [product]);
+
   // Animation variants
   const containerVariants = useMemo(
     () => ({
@@ -536,6 +543,15 @@ const SingleProduct = () => {
   }, []);
 
   const handleAddToCart = useCallback(async () => {
+    // Check if product has variants and no variants are selected
+    if (productVariants && productVariants.length > 0) {
+      const hasSelectedVariants = Object.values(selectedVariants).some(values => values && values.length > 0);
+      if (!hasSelectedVariants) {
+        toast.error("Please select at least one variant before adding to cart!");
+        return;
+      }
+    }
+
     let cartItemsToAdd = [];
 
     Object.entries(selectedVariants).forEach(([variantName, values]) => {
@@ -609,9 +625,18 @@ const SingleProduct = () => {
       title: product.title,
       price: product.salePrice ? product.salePrice : product.price
     });
-  }, [selectedVariants, product, dispatch, setIsDrawerOpen, selectedQuantity, currentPrice, track, trackWhatsAppAddToCart]);
+  }, [selectedVariants, product, productVariants, dispatch, setIsDrawerOpen, selectedQuantity, currentPrice, track, trackWhatsAppAddToCart]);
 
   const handleByNow = useCallback(async () => {
+    // Check if product has variants and no variants are selected
+    if (productVariants && productVariants.length > 0) {
+      const hasSelectedVariants = Object.values(selectedVariants).some(values => values && values.length > 0);
+      if (!hasSelectedVariants) {
+        toast.error("Please select at least one variant before proceeding to checkout!");
+        return;
+      }
+    }
+
     // Prepare cart items for each selected variant value
     let cartItemsToAdd = [];
     Object.entries(selectedVariants).forEach(([variantName, values]) => {
@@ -695,7 +720,7 @@ const SingleProduct = () => {
       toast.error("Failed to proceed to checkout. Please try again.");
       console.error("Error during Buy Now:", error);
     }
-  }, [selectedVariants, product, selectedQuantity, dispatch, userId, navigateTo, track, productVariants]);
+  }, [selectedVariants, product, productVariants, selectedQuantity, dispatch, userId, navigateTo, track]);
 
   const handleQuantityChange = useCallback(
     (operation) => {
@@ -713,6 +738,15 @@ const SingleProduct = () => {
   // }, [showFullDescription]);
 
   const handleWhatsAppOrder = useCallback(() => {
+    // Check if product has variants and no variants are selected
+    if (productVariants && productVariants.length > 0) {
+      const hasSelectedVariants = Object.values(selectedVariants).some(values => values && values.length > 0);
+      if (!hasSelectedVariants) {
+        toast.error("Please select at least one variant before ordering via WhatsApp!");
+        return;
+      }
+    }
+
     const phoneNumber = "923071111832";
     const productLink = window.location.href;
     const imageLink = product?.images?.[0];
@@ -1076,6 +1110,21 @@ const SingleProduct = () => {
                 Free Shipping
               </span>
             )}
+            
+            {percentageOff > 0 && (
+              <span className="flex items-center gap-1 px-3 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs md:text-sm font-semibold">
+                <svg
+                  className="w-4 h-4 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {percentageOff}% Save
+              </span>
+            )}
           </motion.div>
 
           {/* Mobile Variant Images Row (after price, before description) */}
@@ -1186,6 +1235,21 @@ const SingleProduct = () => {
                   <path d="M3 13V7a2 2 0 012-2h11a2 2 0 012 2v6m-1 4h2a2 2 0 002-2v-5a2 2 0 00-2-2h-2m-2 7a2 2 0 11-4 0 2 2 0 014 0zm-8 0a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 Free Shipping
+              </span>
+            )}
+            
+            {percentageOff > 0 && (
+              <span className="flex items-center gap-1 px-3 py-1 bg-green-100 border border-green-200  text-green-700  rounded-full  text-xs md:text-sm font-semibold">
+                <svg
+                  className="w-4 h-4 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {percentageOff}% OFF
               </span>
             )}
           </motion.div>

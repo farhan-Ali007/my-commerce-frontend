@@ -1,13 +1,13 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { truncateTitle } from '../../helpers/truncateTitle';
+import { AnimatePresence, motion } from "framer-motion";
+import React, { useCallback, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { TbTruckDelivery } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart } from '../../store/cartSlice';
-import { toast } from 'react-hot-toast'
-import { addItemToCart, getMyCart } from '../../functions/cart'
-import { motion, AnimatePresence } from "framer-motion";
+import { Link, useNavigate } from 'react-router-dom';
+import { addItemToCart } from '../../functions/cart';
+import { truncateTitle } from '../../helpers/truncateTitle';
 import useFacebookPixel from '../../hooks/useFacebookPixel';
+import { addToCart } from '../../store/cartSlice';
 
 const ProductCard = ({ product, backendCartItems = [] }) => {
     const dispatch = useDispatch();
@@ -290,7 +290,20 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                         )}{' '}
                         Rs.{salePrice}
                     </p>
-                    {off && <p className="p-1 text-xs text-primary text-center border-2 sm:text-sm border-secondary">{off}% Off</p>}
+                    {off && (
+                        <span className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs font-semibold">
+                            <svg
+                                className="w-3 h-3 text-green-500"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                viewBox="0 0 24 24"
+                            >
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {off}% Save
+                        </span>
+                    )}
                 </div>
             </div>
         </motion.div>

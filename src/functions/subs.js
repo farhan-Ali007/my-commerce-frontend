@@ -47,3 +47,13 @@ export const deleteSub = async (id) => {
         console.log("Error in deleting category")
     }
 }
+
+export const getSubCategoryBySlug = async (slug) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/sub/${slug}`, { withCredentials: true })
+        return response?.data
+    } catch (error) {
+        console.log("Error in fetching subcategory by slug", error)
+        throw error
+    }
+}

@@ -1,19 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { getProductsBySub } from '../../functions/product';
+import { getSubCategoryBySlug } from '../../functions/subs';
 import { useParams } from 'react-router-dom';
 import ProductCard from '../../components/cards/ProductCard';
 import ProductCardSkeleton from '../../components/skeletons/ProductCardSkeleton';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { Helmet } from 'react-helmet-async';
+import getSubCategorySchema from '../../helpers/getSubCategorySchema';
 
 const ProductsBySub = () => {
     const [products, setProducts] = useState([]);
+    const [subCategory, setSubCategory] = useState(null);
     const [loading, setLoading] = useState(false);
     const { subcategorySlug } = useParams();
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalProducts, setTotalProducts] = useState(0);
     const productsPerPage = 10; // You can adjust this number
+
+    const fetchSubCategory = async () => {
+        try {
+            const response = await getSubCategoryBySlug(subcategorySlug);
+            if (response?.success) {
+                setSubCategory(response.subCategory);
+            }
+        } catch (error) {
+            console.log("Error in fetching subcategory details", error);
+        }
+    };
 
     const fetchProducts = async (page = 1) => {
         try {
@@ -34,6 +48,7 @@ const ProductsBySub = () => {
     };
 
     useEffect(() => {
+        fetchSubCategory();
         fetchProducts(currentPage);
     }, [subcategorySlug, currentPage]);
 
@@ -63,18 +78,36 @@ const ProductsBySub = () => {
         return visiblePages;
     };
 
+    // Generate schema data
+    const schemaData = subCategory ? getSubCategorySchema({
+        name: subCategory.name,
+        slug: subCategory.slug,
+        description: subCategory.metaDescription,
+        category: subCategory.category,
+        products: products
+    }) : null;
+
     return (
         <>
         <Helmet>
-            <title>{subcategorySlug.replace(/-/g, ' ')} | Etimad Mart</title>
+            <title>{subCategory?.name || subcategorySlug.replace(/-/g, ' ')} | Etimad Mart</title>
+            <meta name="description" content={subCategory?.metaDescription || `Browse ${subcategorySlug.replace(/-/g, ' ')} products at Etimad Mart`} />
             <link rel="canonical" href={window.location.href} />
-        <meta name="robots" content="index, follow" />
+            <meta name="robots" content="index, follow" />
+            {schemaData && <script type="application/ld+json">{JSON.stringify(schemaData)}</script>}
         </Helmet>
         <div className="w-full min-h-screen px-4 md:px-8">
             {/* Title */}
             <h1 className="text-2xl md:text-3xl font-extrabold text-center text-secondary mt-6 mb-3 capitalize">
-                {subcategorySlug.replace(/-/g, ' ')}
+                {subCategory?.name || subcategorySlug.replace(/-/g, ' ')}
             </h1>
+            
+            {/* Subcategory Description */}
+            {/* {subCategory?.metaDescription && (
+                <p className="text-center text-gray-600 mb-4 max-w-2xl mx-auto">
+                    {subCategory.metaDescription}
+                </p>
+            )} */}
 
             {/* Product count */}
             {!loading && products.length > 0 && (
