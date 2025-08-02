@@ -100,7 +100,7 @@ const AdminCategories = () => {
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8">
       <div className="w-full bg-white shadow-lg rounded-lg p-6 mb-8">
-        <h3 className="text-main text-3xl font-extrabold text-center pb-6">
+        <h3 className="text-primary text-3xl font-extrabold text-center pb-6">
           {editMode ? "Edit Category" : "Create New Category"}
         </h3>
 
@@ -149,7 +149,7 @@ const AdminCategories = () => {
             )}
             <label
               htmlFor="image-input"
-              className="cursor-pointer outline-none text-main p-3 border-2 border-main hover:bg-main hover:text-white rounded-md opacity-80 hover:bg-opacity-90 transition w-full flex items-center justify-center"
+              className="cursor-pointer outline-none text-primary p-3 border-2 border-main hover:bg-main hover:text-white rounded-md opacity-80 hover:bg-opacity-90 transition w-full flex items-center justify-center"
             >
               {imageFile
                 ? "Image selected"
@@ -166,7 +166,7 @@ const AdminCategories = () => {
           </div>
           <button
             onClick={handleCreateOrEditCategory}
-            className="bg-main opacity-80 hover:bg-opacity-90 text-white p-3 rounded-md transition w-full md:w-1/3 flex items-center justify-center"
+            className="bg-secondary opacity-80 hover:bg-opacity-90 text-white p-3 rounded-md transition w-full md:w-1/3 flex items-center justify-center"
           >
             {loading
               ? editMode
@@ -187,7 +187,7 @@ const AdminCategories = () => {
         </div>
       </div>
       <hr className="my-6 border-gray-200" />
-      <h2 className="text-center text-2xl pb-2 font-extrabold text-main">
+      <h2 className="text-center text-2xl pb-2 font-extrabold text-primary">
         All Categories ({`${categories?.length}`})
       </h2>
 

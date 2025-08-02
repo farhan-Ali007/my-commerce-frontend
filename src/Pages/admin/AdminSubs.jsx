@@ -178,7 +178,7 @@ const AdminSubs = () => {
                     )}
                     <label
                         htmlFor="image-input"
-                        className="cursor-pointer outline-none text-main p-3 border-2 border-main hover:bg-main hover:text-white rounded-lg opacity-80 hover:opacity-100 transition-all duration-300 w-full flex items-center justify-center gap-2"
+                        className="cursor-pointer outline-none text-main p-3 border-2 border-main hover:bg-secondary hover:text-white rounded-lg opacity-80 hover:opacity-100 transition-all duration-300 w-full flex items-center justify-center gap-2"
                     >
                         <FaUpload />
                         {imageFile ? 'Image selected' : (editMode ? 'Change Image (optional)' : 'Select Image')}
@@ -193,7 +193,7 @@ const AdminSubs = () => {
                 <button
                     onClick={handleCreateOrEditSubCategory}
                     disabled={loading}
-                    className="bg-main opacity-80 hover:bg-opacity-90 text-white p-3 rounded-lg transition-all duration-300 w-full md:w-1/3 flex items-center justify-center gap-2"
+                    className="bg-secondary opacity-80 hover:bg-opacity-90 text-white p-3 rounded-lg transition-all duration-300 w-full md:w-1/3 flex items-center justify-center gap-2"
                 >
                     {editMode ? 'Update Subcategory' : 'Add Subcategory'}
                 </button>
