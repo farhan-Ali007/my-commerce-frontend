@@ -141,7 +141,7 @@ const ReviewForm = ({ slug, product }) => {
   const ratingSummary = calculateRatingSummary();
 
   return (
-    <div className="max-w-screen-xl px-4 py-4 mx-auto md:px-16 md:py-6 lg:py-2">
+    <div className="max-w-screen-xl px-4 py-4 mx-auto md:px-6 lg:px-16 md:py-6 lg:py-2">
       {/* Tab Navigation */}
       <div className="flex gap-4 mb-6">
         <button
@@ -296,7 +296,7 @@ const ReviewForm = ({ slug, product }) => {
           )}
 
           {/* Review Form - Now inside reviews tab and full width */}
-          <div className="w-full p-4 mt-8 rounded-lg shadow-lg md:w-1/3 bg-gray-50 md:p-6">
+          <div className="w-full p-4 mt-8 rounded-lg shadow-lg  bg-gray-50 md:p-6">
             <h2 className="mb-6 text-3xl font-semibold text-center text-gray-900 font-space">
               Leave Review
             </h2>

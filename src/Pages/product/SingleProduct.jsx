@@ -770,7 +770,7 @@ const SingleProduct = () => {
     window.open(url, "_blank");
     
     // Facebook Pixel tracking - AddToCart event
-    track("AddToCart", {
+    track("startConversation", {
       content_ids: [product._id],
       content_name: product.title,
       value: product.salePrice ? product.salePrice : product.price,
@@ -797,7 +797,7 @@ const SingleProduct = () => {
   if (!schemaData) return null;
 
   return (
-    <div className="px-4 pt-1 max-w-screen md:px-12 md:pt-3">
+    <div className="px-4 pt-1 max-w-screen md:px-8 lg:px-12 md:pt-3">
       <Helmet>
         <title>
           {product.title
@@ -829,13 +829,13 @@ const SingleProduct = () => {
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
 
-      <div className="flex flex-col gap-0 md:flex-row">
+      <div className="flex flex-col gap-0 lg:flex-row">
         {/* Product Images */}
-        <div className="flex flex-col w-full md:w-1/2 md:flex-row">
+        <div className="flex flex-col w-full lg:w-1/2 lg:flex-row">
           {/* Main Image */}
-          <div className="relative flex-1 order-1 mt-4 md:order-2 md:mt-3 ">
+          <div className="relative flex-1 order-1 mt-4 lg:order-2 lg:mt-3 ">
             <div
-              className="overflow-hidden aspect-square h-[350px] md:h-[400px] md:w-[400px] w-[350px] border border-red-100 mx-auto relative"
+              className="overflow-hidden aspect-square h-[350px] md:h-[400px] lg:w-[400px] w-[350px] border border-red-100 mx-auto relative"
               onMouseMove={isLargeScreen ? handleMouseMove : undefined}
               onMouseLeave={isLargeScreen ? handleMouseLeave : undefined}
             >
@@ -994,23 +994,23 @@ const SingleProduct = () => {
           </div>
 
           {/* Thumbnail List */}
-          <div className="relative flex flex-row items-center order-2 mt-8 md:w-20 md:order-1 max-h-80 md:flex-col">
+          <div className="relative flex flex-row items-center order-2 mt-8 lg:w-20 lg:order-1 max-h-80 lg:flex-col">
             <button
               onClick={() => scrollThumbnails("up")}
-              className="absolute top-0 hidden font-extrabold transform -translate-x-1/2 md:block left-1/2 bg-none text-secondary "
+              className="absolute top-0 hidden font-extrabold transform -translate-x-1/2 lg:block left-1/2 bg-none text-secondary "
             >
               <FaChevronUp strokeWidth={24} />
             </button>
             <button
               onClick={() => scrollThumbnails("down")}
-              className="absolute bottom-0 hidden font-extrabold transform -translate-x-1/2 md:block left-1/2 bg-none text-secondary "
+              className="absolute bottom-0 hidden font-extrabold transform -translate-x-1/2 lg:block left-1/2 bg-none text-secondary "
             >
               <FaChevronDown strokeWidth={24} />
             </button>
 
             <div
               ref={thumbnailRef}
-              className="relative flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto whitespace-nowrap scrollbar-hide max-h-[300px] py-2 md:py-6 z-10"
+              className="relative flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto whitespace-nowrap scrollbar-hide max-h-[300px] py-2 lg:py-6 z-10"
             >
               {product?.images?.map((image, index) => (
                 <div
@@ -1053,13 +1053,13 @@ const SingleProduct = () => {
 
             <button
               onClick={() => scrollThumbnails("left")}
-              className="absolute left-0 font-semibold transform -translate-y-1/2 md:hidden top-1/2 bg-none text-secondary "
+              className="absolute left-0 font-semibold transform -translate-y-1/2 lg:hidden top-1/2 bg-none text-secondary "
             >
               <FaChevronLeft strokeWidth={24} />
             </button>
             <button
               onClick={() => scrollThumbnails("right")}
-              className="absolute right-0 font-semibold transform -translate-y-1/2 md:hidden top-1/2 bg-none text-secondary "
+              className="absolute right-0 font-semibold transform -translate-y-1/2 lg:hidden top-1/2 bg-none text-secondary "
             >
               <FaChevronRight strokeWidth={24} />
             </button>
@@ -1068,13 +1068,13 @@ const SingleProduct = () => {
 
         {/* Product Details */}
         <motion.div
-          className="w-full max-w-screen-xl py-0 ml-0 md:w-1/2 md:ml-2 md:py-4"
+          className="w-full max-w-screen-xl py-0 ml-0 lg:w-1/2 lg:ml-2 lg:py-4"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           <motion.h1
-            className="text-[20px] md:text-[26px]  font-space capitalize font-semibold text-secondary mb-[2px]"
+            className="text-[20px] md:text-[24px] lg:text-[26px] font-space capitalize font-semibold text-secondary mb-[2px]"
             variants={itemVariants}
           >
             {product?.title || "Product Title"}
@@ -1082,7 +1082,7 @@ const SingleProduct = () => {
 
           {/* Mobile Price Block */}
           <motion.div
-            className="mb-3 mt-2 flex flex-wrap items-center gap-3 text-xl font-semibold md:text-2xl font-poppins md:hidden"
+            className="mb-3 mt-2 flex flex-wrap items-center gap-3 text-xl font-semibold md:text-2xl font-poppins lg:hidden"
             variants={itemVariants}
           >
             {product.salePrice && currentPrice === originalPrice ? (
@@ -1129,7 +1129,7 @@ const SingleProduct = () => {
 
           {/* Mobile Variant Images Row (after price, before description) */}
           {productVariants && productVariants.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto py-2 mb-1 md:hidden">
+            <div className="flex gap-2 overflow-x-auto py-2 mb-1 lg:hidden">
               {productVariants.map((variant, vIdx) =>
                 variant.values.map((val, idx) => (
                   idx === 0 && (
@@ -1164,7 +1164,7 @@ const SingleProduct = () => {
           {/* Mobile Quantity Selector (after variants, before description) */}
           {product?.stock && (
             <motion.div
-              className="flex items-center gap-4 mb-3 md:hidden"
+              className="flex items-center gap-4 mb-3 lg:hidden"
               variants={itemVariants}
             >
               <motion.button
@@ -1209,7 +1209,7 @@ const SingleProduct = () => {
 
           {/* Desktop Price Block */}
           <motion.div
-            className="mb-3 mt-3 flex flex-wrap items-center gap-3 text-xl font-semibold md:text-2xl font-poppins hidden md:flex"
+            className="mb-3 mt-3 flex flex-wrap items-center gap-3 text-xl font-semibold md:text-2xl font-poppins hidden lg:flex"
             variants={itemVariants}
           >
             {product.salePrice && currentPrice === originalPrice ? (
@@ -1257,7 +1257,7 @@ const SingleProduct = () => {
           {/* Quantity Selector */}
           {product?.stock && (
             <motion.div
-              className="flex items-center gap-4 mb-3 hidden md:flex"
+              className="flex items-center gap-4 mb-3 hidden lg:flex"
               variants={itemVariants}
             >
               <motion.button
@@ -1300,10 +1300,10 @@ const SingleProduct = () => {
                   className="gap-2 mb-3 "
                   variants={itemVariants}
                 >
-                  <h3 className="font-semibold hidden md:block capitalize text-md text-secondary font-space">
+                  <h3 className="font-semibold hidden lg:block capitalize text-md text-secondary font-space">
                     {variant.name}
                   </h3>
-                  <div className="hidden md:flex  flex-wrap items-center gap-3">
+                  <div className="hidden lg:flex  flex-wrap items-center gap-3">
                     {variant.values.map((value, idx) =>
                       value.image ? (
                         <motion.div
@@ -1409,10 +1409,10 @@ const SingleProduct = () => {
           {/* Actions */}
           <motion.div variants={itemVariants}>
             {/* Desktop Actions */}
-            <div className="hidden md:flex flex-col w-full gap-4 md:flex-row md:justify-start">
+            <div className="hidden lg:flex flex-col w-full gap-4 lg:flex-row lg:justify-start">
               <motion.a
                 onClick={handleByNow}
-                className="w-full px-6 py-2 text-sm font-bold text-center text-white no-underline bg-primary/80 lg:text-base md:w-auto md:flex-2 hover:bg-primary"
+                className="w-full px-6 py-2 text-sm font-bold text-center text-white no-underline bg-primary/80 lg:text-base lg:w-auto lg:flex-2 hover:bg-primary"
                 whileHover={{ scale: 1.03, opacity: 0.95 }}
                 whileTap={{ scale: 0.98 }}
                 href="#"
@@ -1421,7 +1421,7 @@ const SingleProduct = () => {
               </motion.a>
               <motion.a
                 onClick={handleAddToCart}
-                className="flex items-center justify-center w-full gap-1 px-6 py-2 text-sm font-bold text-primary no-underline bg-secondary/80 md:w-auto lg:text-base hover:bg-secondary"
+                className="flex items-center justify-center w-full gap-1 px-6 py-2 text-sm font-bold text-primary no-underline bg-secondary/80 lg:w-auto lg:text-base hover:bg-secondary"
                 whileHover={{ scale: 1.03, opacity: 0.95 }}
                 whileTap={{ scale: 0.98 }}
                 href="#"
@@ -1432,7 +1432,7 @@ const SingleProduct = () => {
             </div>
             <motion.button
               onClick={handleWhatsAppOrder}
-              className="hidden md:flex items-center justify-center w-full gap-2 px-8 py-2 my-3 text-base font-bold text-white bg-[#25CC64] sm:w-auto md:w-[23rem] hover:bg-green-800 md:text-xl"
+              className="hidden lg:flex items-center justify-center w-full gap-2 px-8 py-2 my-3 text-base font-bold text-white bg-[#25CC64] sm:w-auto lg:w-[23rem] hover:bg-green-800 lg:text-xl"
               whileHover={{ scale: 1.03, backgroundColor: "#218B00" }}
               whileTap={{ scale: 0.98 }}
             >
@@ -1504,7 +1504,7 @@ const SingleProduct = () => {
       </AnimatePresence>
 
       {/* Mobile Sticky Actions */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white border-t border-gray-200 shadow-lg md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white border-t border-gray-200 shadow-lg lg:hidden">
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
             <motion.a
@@ -1539,7 +1539,7 @@ const SingleProduct = () => {
       </div>
 
       {/* Add bottom padding to prevent content from being hidden behind sticky buttons on mobile */}
-      <div className="h-32 md:hidden"></div>
+      <div className="h-32 lg:hidden"></div>
 
       {/* Drawer/Modal for variant selection */}
       <AnimatePresence>
