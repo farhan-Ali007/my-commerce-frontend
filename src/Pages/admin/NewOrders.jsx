@@ -9,6 +9,7 @@ import { FcViewDetails } from "react-icons/fc";
 import { IoIosPerson } from "react-icons/io";
 import { GrStatusGoodSmall } from "react-icons/gr";
 import SimpleBar from "simplebar-react";
+import { dateFormatter } from "../../utils/dateFormatter";
 
 const NewOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -112,8 +113,8 @@ const NewOrders = () => {
           <table className="min-w-[2000px] border-collapse border-black table-auto border-1">
             <thead>
               <tr>
-                <th className="px-6 py-2 border">
-                  <span>Order ID</span>
+                <th className="px-6 py-2 min-w-44 border">
+                  <span>Date </span>
                 </th>
                 <th className="px-6 py-2 border">
                   <div className="flex items-center justify-center gap-2">
@@ -174,7 +175,11 @@ const NewOrders = () => {
             <tbody>
               {filteredOrders.map((order, index) => (
                 <tr key={order._id}>
-                  <td className="px-4 py-2 border">{order._id}</td>
+                  <td className="px-4 py-2 border text-center">
+                    <span className="font-mono text-[14px]">
+                      {dateFormatter(order.orderedAt)}
+                    </span>
+                  </td>
                   <td className="px-4 py-2 border">
                     {order?.orderedBy?.username ||
                       `${order?.shippingAddress?.fullName}`}
