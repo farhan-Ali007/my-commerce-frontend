@@ -899,12 +899,9 @@ const SingleProduct = () => {
                   return (
                     <div className="w-full flex justify-center mt-3 mb-1">
                       <div className="flex flex-col w-full max-w-[400px] gap-2">
-                        <div className="flex items-center justify-center w-full bg-red-600 border border-yellow-300 shadow-sm px-4 py-2 gap-3">
-                          <span className="px-3 py-1 bg-primary text-white font-bold rounded-full text-sm">
-                            Special Offer
-                          </span>
-                          <span className="text-lg font-bold text-white">
-                            Rs. {product.specialOfferPrice}
+                        <div className="flex items-center justify-center w-full bg-green-700 border border-primary shadow-sm px-4 py-2 gap-3">
+                          <span className="px-3 py-1 bg-white text-green-700 font-bold rounded-full text-sm">
+                            Azadi Offer
                           </span>
                           <span className="text-base font-semibold text-white">
                             {offerCountdown}
