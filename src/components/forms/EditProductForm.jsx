@@ -363,7 +363,7 @@ const EditProductForm = ({
         submissionData.append("specialOfferEnd", formData.specialOfferEnd);
     }
 
-    // Debug: Log freeShipping and all FormData entries
+    // Debug: Log freeShipping and also  all FormData entries
     // console.log("[EditProductForm] freeShipping value:", freeShipping);
     for (let pair of submissionData.entries()) {
       console.log(`[EditProductForm] FormData: ${pair[0]} =`, pair[1]);
