@@ -15,7 +15,7 @@ import { setUser } from "./store/authSlice";
 // Sitemap redirect component
 const SitemapRedirect = () => {
   useEffect(() => {
-    window.location.href = 'https://etimadmart.up.railway.app/sitemap.xml';
+    window.location.href = 'https://etimadmart.com/sitemap.xml';
   }, []);
   return <div>Redirecting to sitemap...</div>;
 };

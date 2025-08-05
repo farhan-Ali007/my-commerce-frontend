@@ -304,31 +304,33 @@ const Navbar = React.memo(() => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            {searchState.results.map((product, index) => (
-              <motion.div
-                key={product._id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Link
-                  to={`/product/${product.slug}`}
-                  className={`block px-4 py-2 no-underline hover:bg-gray-100 shadow-sm rounded-full md:rounded-none bg-white ${
-                    selectedIndex === index ? "bg-gray-200" : ""
-                  }
-                                    }`}
-                  onMouseEnter={() => handleMouseEnter(index)}
-                  onClick={() => handleProductSelect(product.slug)}
+            <div className="max-h-[300px] md:max-h-[400px] overflow-y-auto bg-white rounded shadow-lg">
+              {searchState.results.map((product, index) => (
+                <motion.div
+                  key={product._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <span className="md:hidden">
-                    {truncateTitle(product.title, 35)}
-                  </span>
-                  <span className="hidden text-sm md:inline">
-                    {truncateTitle(product.title, 60)}
-                  </span>
-                </Link>
-              </motion.div>
-            ))}
+                  <Link
+                    to={`/product/${product.slug}`}
+                    className={`block px-4 py-2 no-underline hover:bg-gray-100 hover:border-primary hover:border-l-[6px] font-medium font-poppins shadow-sm rounded-full md:rounded bg-white ${
+                      selectedIndex === index ? "bg-gray-200" : ""
+                    }
+                                      }`}
+                    onMouseEnter={() => handleMouseEnter(index)}
+                    onClick={() => handleProductSelect(product.slug)}
+                  >
+                    <span className="md:hidden text-secondary">
+                      {truncateTitle(product.title, 35)}
+                    </span>
+                    <span className="hidden text-[15px] text-secondary md:inline">
+                      {truncateTitle(product.title, 60)}
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

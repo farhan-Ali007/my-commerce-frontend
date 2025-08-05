@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { FaFacebook, FaInstagram, FaTiktok, FaTwitter, FaLinkedin } from "react-icons/fa";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaTiktok,
+  FaTwitter,
+  FaLinkedin,
+} from "react-icons/fa";
 import { FaWhatsapp } from "react-icons/fa6";
 import { MdLocationOn, MdPhone, MdMail } from "react-icons/md";
 import { motion } from "framer-motion";
@@ -52,17 +58,47 @@ const linkVariants = {
 const getSocialIcon = (icon) => {
   switch (icon?.toLowerCase()) {
     case "facebook":
-      return <FaFacebook className="text-white hover:text-secondary transition-colors" size={24} />;
+      return (
+        <FaFacebook
+          className="text-white hover:text-secondary transition-colors"
+          size={24}
+        />
+      );
     case "instagram":
-      return <FaInstagram className="transition-all duration-300 text-white hover:text-secondary" size={24} />;
+      return (
+        <FaInstagram
+          className="transition-all duration-300 text-white hover:text-secondary"
+          size={24}
+        />
+      );
     case "tiktok":
-      return <FaTiktok className="text-white hover:text-secondary transition-colors" size={24} />;
+      return (
+        <FaTiktok
+          className="text-white hover:text-secondary transition-colors"
+          size={24}
+        />
+      );
     case "twitter":
-      return <FaTwitter className="text-white hover:text-secondary transition-colors" size={24} />;
+      return (
+        <FaTwitter
+          className="text-white hover:text-secondary transition-colors"
+          size={24}
+        />
+      );
     case "linkedin":
-      return <FaLinkedin className="text-white hover:text-secondary transition-colors" size={24} />;
+      return (
+        <FaLinkedin
+          className="text-white hover:text-secondary transition-colors"
+          size={24}
+        />
+      );
     case "whatsapp":
-      return <FaWhatsapp className="text-white hover:text-secondary transition-colors" size={24} />;
+      return (
+        <FaWhatsapp
+          className="text-white hover:text-secondary transition-colors"
+          size={24}
+        />
+      );
     default:
       return null;
   }
@@ -93,8 +129,8 @@ const Footer = () => {
 
   useEffect(() => {
     const handleResize = () => setIsLargeScreen(window.innerWidth >= 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Fallbacks
@@ -115,12 +151,12 @@ const Footer = () => {
   const quickLinks = footerData?.quickLinks || defaultQuickLinks;
 
   // Ensure Contact Us is always present
-  const hasContactUs = quickLinks.some(link => 
-    link.label === "Contact Us" || link.url === "/contact-us"
+  const hasContactUs = quickLinks.some(
+    (link) => link.label === "Contact Us" || link.url === "/contact-us"
   );
-  
-  const finalQuickLinks = hasContactUs 
-    ? quickLinks 
+
+  const finalQuickLinks = hasContactUs
+    ? quickLinks
     : [...quickLinks, { label: "Contact Us", url: "/contact-us" }];
   const contactInfo = footerData?.contactInfo || {
     address: "Zahir Pir, Rahim Yar Khan",
@@ -129,9 +165,9 @@ const Footer = () => {
     email: "info@etimadmart.com",
   };
   const socialLinks = footerData?.socialLinks || [
-    { icon: "facebook", url: "https://facebook.com" },
-    { icon: "instagram", url: "https://instagram.com" },
-    { icon: "tiktok", url: "https://tiktok.com" },
+    { icon: "facebook", url: "https://www.facebook.com/EtimadMart/" },
+    { icon: "instagram", url: "https://www.instagram.com/etimad_mart" },
+    { icon: "tiktok", url: "https://www.tiktok.com/@etimad_mart" },
   ];
   const copyright = footerData?.copyright || "© 2025. All Rights Reserved.";
 
@@ -176,18 +212,15 @@ const Footer = () => {
             </motion.div>
 
             {/* Quick Links - Clean List Layout on Mobile */}
-            <motion.div
-              className="px-4"
-              variants={itemVariants}
-            >
+            <motion.div className="px-4" variants={itemVariants}>
               <motion.h3
                 className="text-lg font-semibold mb-4 text-center text-secondary"
                 whileHover={{ scale: 1.02 }}
               >
                 Quick Links
               </motion.h3>
-                             <div className="flex flex-col space-y-2">
-                 {finalQuickLinks.map((link, idx) => (
+              <div className="flex flex-col space-y-2">
+                {finalQuickLinks.map((link, idx) => (
                   <motion.a
                     key={link._id || link.url || idx}
                     href={link.url}
@@ -314,9 +347,13 @@ const Footer = () => {
               >
                 Quick Links
               </motion.h3>
-                             <ul className="text-white space-y-2 text-center md:text-start list-none">
-                 {finalQuickLinks.map((link, idx) => (
-                  <motion.li key={link._id || link.url || idx} variants={linkVariants} whileHover="hover">
+              <ul className="text-white space-y-2 text-center md:text-start list-none">
+                {finalQuickLinks.map((link, idx) => (
+                  <motion.li
+                    key={link._id || link.url || idx}
+                    variants={linkVariants}
+                    whileHover="hover"
+                  >
                     <a
                       href={link.url}
                       className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors"
