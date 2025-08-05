@@ -315,11 +315,11 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
     return (
         <form onSubmit={handleSubmit} className="max-w-[600px] md:w-[800px] my-4 mx-auto p-6 bg-white shadow-none md:shadow-md rounded-lg">
-            <h2 className="text-2xl text-center font-semibold mb-4 text-main">{formTitle}</h2>
+            <h2 className="text-2xl text-center font-semibold mb-4 text-primaryondary">{formTitle}</h2>
 
             {/* Title */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Title</label>
+                <label className="block font-medium mb-2 text-primaryondary">Title</label>
                 <input
                     type="text"
                     name="title"
@@ -331,7 +331,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Slug */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Slug (Optional)</label>
+                <label className="block font-medium mb-2 text-primaryondary">Slug (Optional)</label>
                 <input
                     type="text"
                     name="slug"
@@ -344,7 +344,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Description */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Description</label>
+                <label className="block font-medium mb-2 text-primaryondary">Description</label>
                 <div className="h-56 ">
                     <ReactQuill
                         value={formData.description}
@@ -368,7 +368,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Long Description */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Long Description</label>
+                <label className="block font-medium mb-2 text-primaryondary">Long Description</label>
                 <div className="mb-2 text-yellow-700 text-xs font-semibold">
                     <span>⚠️</span> Images are uploaded immediately. Please only upload images you intend to keep in the description.
                 </div>
@@ -386,7 +386,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Meta Description */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Meta Description</label>
+                <label className="block font-medium mb-2 text-primaryondary">Meta Description</label>
                 <textarea
                     name="metaDescription"
                     value={formData.metaDescription}
@@ -399,7 +399,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Weight */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Weight</label>
+                <label className="block font-medium mb-2 text-primaryondary">Weight</label>
                 <input
                     type="number"
                     name="weight"
@@ -412,7 +412,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Brand */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Brand</label>
+                <label className="block font-medium mb-2 text-primaryondary">Brand</label>
                 <select
                     name="brand"
                     value={formData.brand}
@@ -427,7 +427,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             </div>
             {/* Category */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Category</label>
+                <label className="block font-medium mb-2 text-primaryondary">Category</label>
                 <select
                     name="category"
                     value={formData.category}
@@ -443,7 +443,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* SubCategory */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">subCategory</label>
+                <label className="block font-medium mb-2 text-primaryondary">subCategory</label>
                 <select
                     name="subCategory"
                     value={formData.subCategory}
@@ -459,7 +459,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Tags Selection */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Tags</label>
+                <label className="block font-medium mb-2 text-primaryondary">Tags</label>
                 <div className="flex flex-wrap gap-2">
                     {tags?.map((tag, index) => (
                         <button
@@ -475,7 +475,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
                 <div className="mt-2 flex flex-wrap gap-2">
                     {formData?.tags?.map((tag, index) => (
-                        <div key={index} className="flex items-center gap-2 bg-main opacity-90 text-white px-4 py-1 rounded-full">
+                        <div key={index} className="flex items-center gap-2 bg-secondary opacity-90 text-primaryte px-4 py-1 rounded-full">
                             <span>{tag?.name}</span> {/* Access the name property of the tag */}
                             <button
                                 type="button"
@@ -492,7 +492,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Price */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Price</label>
+                <label className="block font-medium mb-2 text-primaryondary">Price</label>
                 <input
                     type="text"
                     name="price"
@@ -504,7 +504,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Sale Price */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Sale Price</label>
+                <label className="block font-medium mb-2 text-primaryondary">Sale Price</label>
                 <input
                     type="text"
                     name="salePrice"
@@ -516,10 +516,10 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Variants */}
             <div className="mb-6">
-                <label className="block font-medium mb-3 text-main">Variants</label>
+                <label className="block font-medium mb-3 text-primaryondary">Variants</label>
                 {formData.variants.map((variant, variantIndex) => (
                     <div key={variantIndex} className="border border-gray-200 p-5 mb-4 rounded-lg shadow-sm bg-white">
-                        <label className="block font-medium mb-2 text-main">Variant {variantIndex + 1}</label>
+                        <label className="block font-medium mb-2 text-primaryondary">Variant {variantIndex + 1}</label>
                         <div className="mb-4">
                             <input
                                 type="text"
@@ -550,7 +550,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                                     <button
                                         type="button"
                                         onClick={() => addVariantValue(variantIndex)}
-                                        className="flex items-center justify-center w-10 h-10 bg-gray-400 text-white rounded-md hover:bg-gray-600 transition-colors"
+                                        className="flex items-center justify-center w-10 h-10 bg-gray-400 text-primaryte rounded-md hover:bg-gray-600 transition-colors"
                                     >
                                         <IoIosAdd size={20} />
                                     </button>
@@ -592,7 +592,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                             <button
                                 type="button"
                                 onClick={() => removeVariant(variantIndex)}
-                                className="flex items-center gap-1 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+                                className="flex items-center gap-1 bg-red-500 text-primaryte px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
                             >
                                 <IoTrash /> Remove Variant
                             </button>
@@ -603,7 +603,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                 <button
                     type="button"
                     onClick={addVariant}
-                    className="flex items-center gap-1 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                    className="flex items-center gap-1 bg-blue-500 text-primaryte px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
                 >
                     <IoAddCircle /> Add Variant
                 </button>
@@ -614,7 +614,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
 
             {/* Stock */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Stock</label>
+                <label className="block font-medium mb-2 text-primaryondary">Stock</label>
                 <input
                     type="text"
                     name="stock"
@@ -625,10 +625,10 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             </div>
             {/* Product Images */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">Product Images</label>
+                <label className="block font-medium mb-2 text-primaryondary">Product Images</label>
                 <label
                     htmlFor="fileInput"
-                    className="flex justify-center items-center gap-2 px-4 py-2 border border-dashed border-gray-400 rounded-lg cursor-pointer bg-main bg-opacity-35 hover:bg-opacity-60 transition"
+                    className="flex justify-center items-center gap-2 px-4 py-2 border border-dashed border-gray-400 rounded-lg cursor-pointer bg-secondary bg-opacity-35 hover:bg-opacity-60 transition"
                 >
                     <FaCloudUploadAlt className="text-gray-600 text-xl" />
                     <span className="text-gray-700 font-medium">Upload Images (only webp)</span>
@@ -667,7 +667,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                                                     <button
                                                         type="button"
                                                         onClick={() => handleImageRemove(index)}
-                                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                                                        className="absolute top-1 right-1 bg-red-500 text-primaryte rounded-full p-1 text-xs"
                                                     >
                                                         <IoTrash />
                                                     </button>
@@ -685,7 +685,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             </div>
             {/* Free shipping */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-main">
+                <label className="block font-medium mb-2 text-primaryondary">
                     <input
                         type="checkbox"
                         checked={freeShipping}
@@ -700,7 +700,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             <div className="flex justify-center">
                 <button
                     type="submit"
-                    className="bg-main opacity-70 hover:opacity-90 w-full text-white px-8 py-2 rounded-md"
+                    className="bg-secondary opacity-70 hover:opacity-90 w-full text-primaryte px-8 py-2 rounded-md"
                 >
                     {buttonText}
                 </button>
