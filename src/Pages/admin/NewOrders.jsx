@@ -199,7 +199,7 @@ const NewOrders = () => {
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-2 border min-w-[500px] max-w-[900px]">
+                  <td className="px-4 py-2 border min-w-[600px] max-w-[900px]">
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="bg-gray-50">
@@ -217,17 +217,17 @@ const NewOrders = () => {
                               <img
                                 src={product.image}
                                 alt={product.title}
-                                className="w-12 h-12 object-cover rounded border cursor-pointer hover:shadow-lg transition"
+                                className="w-14 h-14 object-cover mx-2 rounded border cursor-pointer hover:shadow-lg transition"
                                 onClick={() => {
                                   setPreviewProduct(product);
                                   setPreviewOrder(order);
                                 }}
                               />
                             </td>
-                            <td>{product.title}</td>
-                            <td>Rs.{product.price}</td>
-                            <td>{product.count}</td>
-                            <td>
+                            <td className="max-w-[200px] text-[15px] ">{product.title}</td>
+                            <td className="min-w-[100px]">Rs.{product.price}</td>
+                            <td className="min-w-[50px]">{product.count}</td>
+                            <td className="min-w-[200px]">
                               {product.selectedVariants?.length > 0
                                 ? product.selectedVariants.map(
                                     (variant, vIdx) => (

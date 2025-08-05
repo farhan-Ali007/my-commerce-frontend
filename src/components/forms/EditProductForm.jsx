@@ -719,7 +719,7 @@ const EditProductForm = ({
           {formData?.tags?.map((tag, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 bg-main opacity-90 text-white px-4 py-1 rounded-full"
+              className="flex items-center gap-2 bg-secondary opacity-90 text-primary px-4 py-1 rounded-full"
             >
               <span>{tag?.name}</span>{" "}
               {/* Access the name property of the tag */}
@@ -818,7 +818,7 @@ const EditProductForm = ({
                 disabled={
                   !tempSpecialOfferStart || !formData.specialOfferEnabled
                 }
-                className="px-3 py-1 bg-yellow-500 text-white rounded"
+                className="px-3 py-1 bg-yellow-500 text-primary rounded"
               >
                 Set
               </button>
@@ -858,7 +858,7 @@ const EditProductForm = ({
                   setSpecialOfferEndSet(!!tempSpecialOfferEnd);
                 }}
                 disabled={!tempSpecialOfferEnd || !formData.specialOfferEnabled}
-                className="px-3 py-1 bg-yellow-500 text-white rounded"
+                className="px-3 py-1 bg-yellow-500 text-primary rounded"
               >
                 Set
               </button>
@@ -976,7 +976,7 @@ const EditProductForm = ({
                             variants: updatedVariants,
                           }));
                         }}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        className="absolute -top-2 -right-2 bg-red-500 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
                         title="Remove image"
                       >
                         ×
@@ -989,14 +989,14 @@ const EditProductForm = ({
                   <button
                     type="button"
                     onClick={() => addVariantValue(variantIndex)}
-                    className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm"
+                    className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-primary px-4 py-2 rounded-md text-sm"
                   >
                     <IoAddCircle /> Add Value
                   </button>
                   <button
                     type="button"
                     onClick={() => removeVariantValue(variantIndex, valueIndex)}
-                    className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm"
+                    className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-primary px-4 py-2 rounded-md text-sm"
                   >
                     <IoTrash /> Remove Value
                   </button>
@@ -1008,7 +1008,7 @@ const EditProductForm = ({
               <button
                 type="button"
                 onClick={() => removeVariant(variantIndex)}
-                className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-primary px-4 py-2 rounded-md"
               >
                 <IoTrash /> Remove Variant
               </button>
@@ -1019,7 +1019,7 @@ const EditProductForm = ({
         <button
           type="button"
           onClick={addVariant}
-          className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-base"
+          className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-primary px-5 py-2 rounded-md text-base"
         >
           <IoAddCircle /> Add Variant
         </button>
@@ -1077,7 +1077,7 @@ const EditProductForm = ({
                           <button
                             type="button"
                             onClick={() => handleImageRemove(index)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                            className="absolute top-1 right-1 bg-red-500 text-primary rounded-full p-1 text-xs"
                           >
                             <IoTrash />
                           </button>
@@ -1110,7 +1110,7 @@ const EditProductForm = ({
       <div className="flex justify-center">
         <button
           type="submit"
-          className="bg-main opacity-70 hover:opacity-90 w-full text-white px-8 py-2 rounded-md"
+          className="bg-secondary opacity-70 hover:opacity-90 w-full text-primary px-8 py-2 rounded-md"
         >
           {buttonText}
         </button>
