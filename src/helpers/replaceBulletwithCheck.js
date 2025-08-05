@@ -7,6 +7,12 @@ export function replaceBulletsWithCheck(html) {
   const doc = parser.parseFromString(`<div>${html}</div>`, "text/html");
   const root = doc.body.firstChild;
 
+    // Increase font size for all <h2> elements
+    const h2Elements = root.querySelectorAll("h2");
+    h2Elements.forEach((h2) => {
+      h2.style.fontSize = "20px"; // Or any size you prefer
+    });
+
   // Helper to process only top-level <li> in a list
   function processList(list, isNested = false) {
     for (const li of list.children) {
