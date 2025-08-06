@@ -214,6 +214,15 @@ const Navbar = React.memo(() => {
     [dispatch, navigateTo]
   );
 
+  const handleSearchIconClick = useCallback(() => {
+    if (search.trim()) {
+      setMenuDisplay(false);
+      dispatch(setSearchQuery(""));
+      setSearch("");
+      navigateTo(`/search?query=${encodeURIComponent(search.trim())}`);
+    }
+  }, [search, dispatch, navigateTo]);
+
   const toggleDrawer = useCallback(() => {
     setIsDrawerOpen(!isDrawerOpen);
   }, [isDrawerOpen]);
@@ -298,7 +307,7 @@ const Navbar = React.memo(() => {
         {menuDisplay && searchState.results.length > 0 && (
           <motion.div
             ref={searchMenuRef}
-            className="absolute top-[7rem] md:top-[calc(100%+0.5rem)] left-0 gap-1 md:gap-0 rounded-lg right-0 pb-1 mx-auto bg-transparent w-[97%] md:w-[70%] lg:w-[50%] overflow-hidden backdrop-blur-md z-10"
+            className="absolute top-full left-0 right-0 mt-2 mx-auto bg-transparent w-full max-w-md lg:max-w-lg xl:max-w-lg overflow-hidden backdrop-blur-md z-10"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -350,7 +359,7 @@ const Navbar = React.memo(() => {
       searchState.results.length === 0 && (
         <div
           ref={searchMenuRef}
-          className="absolute top-[calc(100%+0.5rem)] left-0 right-0 mx-auto bg-white shadow-lg max-w-lg w-3/4 rounded-full overflow-hidden backdrop-blur-md z-10"
+          className="absolute top-full left-0 right-0 mt-2 mx-auto bg-white shadow-lg w-full max-w-md lg:max-w-lg xl:max-w-lg rounded-lg overflow-hidden backdrop-blur-md z-10"
         >
           <p className="block px-4 py-2 text-center text-gray-500">
             No product matched
@@ -399,100 +408,172 @@ const Navbar = React.memo(() => {
         </div>
       </motion.div>
 
-      <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0 py-0 md:py-2">
-        <div className="container relative z-10 flex flex-col items-center justify-between px-4 pt-2 pb-0 mx-auto min-w-auto md:px-2 lg:px-4 lg:flex-row">
-          <div className="flex items-center justify-between w-full pr-0 md:pr-2 lg:pr-0">
-            <CgMenu
-              className="text-[26px] md:hidden text-primary font-bold cursor-pointer"
-              onClick={toggleDrawer}
-            />
-            <motion.a
-              href="/"
-              className="flex-shrink-0 w-40 h-12 sm:w-48 sm:h-14 md:w-auto md:h-auto"
-              variants={logoVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className="w-full h-12 md:h-14"
-                loading="eager"
-              />
-            </motion.a>
-            <motion.div
-              className="flex items-center gap-4 lg:gap-5"
-              variants={supportVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <div className="items-center hidden gap-1 text-base font-bold text-secondary md:hidden lg:flex">
-                <span className="text-xl font-semibold">
-                  <FaMobileAlt size={32} />
-                </span>
-                <div className="flex flex-col items-center">
-                  <div className="text-sm font-medium text-black">
-                    24<span className="text-xs">/</span>7 Support
-                  </div>
-                  <a
-                    href="tel:0307-1111832"
-                    className="text-sm font-medium no-underline text-primary hover:text-secondary opacity-80"
-                  >
-                    0307-1111832
-                  </a>
-                </div>
-              </div>
-
-              <div className="relative flex items-center gap-2 cursor-pointer md:gap-4 lg:gap-4">
-                {user?.role === "admin" && (
-                  <Link to="/admin-dashboard" className="relative group">
-                    <FaUserShield className="text-3xl text-secondary" />
-                  </Link>
-                )}
-                {user?.role === "admin" && <NotificationBell />}
-                <Link to="/shop" className="relative z-20 cursor-pointer group">
-                  <AiOutlineShopping className="text-3xl text-secondary" />
-                </Link>
-
-                <Link to="/cart" className="relative z-20 cursor-pointer group">
-                  <IoCartOutline className="text-3xl text-secondary" />
-                  <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-primary bg-opacity-90">
-                    {cart.products?.length || 0}
+             <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0">
+         <div className="container mx-auto px-4 py-2">
+           {/* Desktop Layout */}
+           <div className="hidden md:flex items-center justify-between">
+             {/* Left Section - Logo */}
+             <div className="flex-shrink-0">
+               <motion.a
+                 href="/"
+                 className="block"
+                 variants={logoVariants}
+                 initial="hidden"
+                 animate="visible"
+               >
+                 <img
+                   src="/logo.png"
+                   alt="Logo"
+                   className="h-12"
+                   loading="eager"
+                 />
+               </motion.a>
+             </div>
+             
+                                         {/* Center Section - Search Bar */}
+               <div className="flex-1 flex justify-center items-center">
+                 <div className="w-full max-w-md  lg:max-w-lg xl:max-w-[30rem] ml-0 lg:ml-10 ">
+                   <motion.div
+                     className="relative flex items-center bg-gray-50 rounded-full border border-secondary shadow-md w-full"
+                     variants={inputVariants}
+                     animate={isFocused ? "focused" : "unfocused"}
+                   >
+                     <input
+                       type="text"
+                       placeholder="Search product here..."
+                       className="w-full bg-transparent outline-none px-3 py-2 lg:px-4 lg:py-2.5 rounded-l-full placeholder-primary/70 text-sm"
+                       value={search}
+                       onKeyDown={handleSearchKeyDown}
+                       onChange={handleSearchChange}
+                       onFocus={() => setIsFocused(true)}
+                       onBlur={() => setIsFocused(false)}
+                       aria-label="Search products"
+                     />
+                     <div 
+                       className="absolute flex items-center justify-center w-8 h-8 lg:w-9 lg:h-9 text-white transition-transform transform rounded-full right-1 bg-primary hover:scale-105 cursor-pointer"
+                       onClick={handleSearchIconClick}
+                     >
+                       <FiSearch className="w-4 h-4 lg:w-5 lg:h-5" />
+                     </div>
+                   </motion.div>
+                 </div>
+               </div>
+             
+                           {/* Right Section - Support & Icons */}
+              <motion.div
+                className="flex items-center gap-2 md:gap-4 lg:gap-6"
+                variants={supportVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                               {/* Support Info - Hidden on mobile, shown on medium+ screens */}
+                <div className="items-center hidden gap-2 text-base font-bold text-secondary md:flex">
+                  <span className="text-xl font-semibold">
+                    <FaMobileAlt size={28} className="md:w-7 md:h-7 lg:w-8 lg:h-8" />
                   </span>
-                </Link>
-              </div>
+                  <div className="flex flex-col items-center">
+                    <div className="text-xs md:text-sm font-medium text-black">
+                      24<span className="text-xs">/</span>7 Support
+                    </div>
+                    <a
+                      href="tel:0307-1111832"
+                      className="text-xs md:text-sm font-medium no-underline text-primary hover:text-secondary opacity-80"
+                    >
+                      0307-1111832
+                    </a>
+                  </div>
+                </div>
+
+               {/* Action Icons */}
+               <div className="relative flex items-center gap-3 lg:gap-4">
+                 {user?.role === "admin" && (
+                   <Link to="/admin-dashboard" className="relative group">
+                     <FaUserShield className="text-2xl lg:text-3xl text-secondary" />
+                   </Link>
+                 )}
+                 {user?.role === "admin" && <NotificationBell />}
+                 <Link to="/shop" className="relative z-20 cursor-pointer group">
+                   <AiOutlineShopping className="text-2xl lg:text-3xl text-secondary" />
+                 </Link>
+
+                 <Link to="/cart" className="relative z-20 cursor-pointer group">
+                   <IoCartOutline className="text-2xl lg:text-3xl text-secondary" />
+                   <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-primary bg-opacity-90">
+                     {cart.products?.length || 0}
+                   </span>
+                 </Link>
+               </div>
+             </motion.div>
+           </div>
+
+           {/* Mobile Layout */}
+           <div className="md:hidden flex items-center justify-between">
+             <CgMenu
+               className="text-2xl text-primary cursor-pointer"
+               onClick={toggleDrawer}
+             />
+             
+             <motion.a
+               href="/"
+               className="flex-shrink-0"
+               variants={logoVariants}
+               initial="hidden"
+               animate="visible"
+             >
+               <img
+                 src="/logo.png"
+                 alt="Logo"
+                 className="h-10"
+                 loading="eager"
+               />
+             </motion.a>
+
+             <motion.div
+               className="flex items-center gap-3"
+               variants={supportVariants}
+               initial="hidden"
+               animate="visible"
+             >
+               <Link to="/shop" className="relative z-20 cursor-pointer group">
+                 <AiOutlineShopping className="text-2xl text-secondary" />
+               </Link>
+
+               <Link to="/cart" className="relative z-20 cursor-pointer group">
+                 <IoCartOutline className="text-2xl text-secondary" />
+                 <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-primary bg-opacity-90">
+                   {cart.products?.length || 0}
+                 </span>
+               </Link>
+             </motion.div>
+           </div>
+         </div>
+
+                                   {/* Mobile Search Bar - Only shown on mobile */}
+          <div className="md:hidden px-4 py-2">
+            <motion.div
+              className="relative flex items-center bg-gray-50 rounded-full border border-secondary shadow-md w-full"
+              variants={inputVariants}
+              animate={isFocused ? "focused" : "unfocused"}
+            >
+              <input
+                type="text"
+                placeholder="Search product here..."
+                className="w-full bg-transparent outline-none px-3 py-2.5 rounded-l-full placeholder-primary/70 text-sm"
+                value={search}
+                onKeyDown={handleSearchKeyDown}
+                onChange={handleSearchChange}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                aria-label="Search products"
+              />
+                             <div 
+                 className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 bg-primary hover:scale-105 cursor-pointer"
+                 onClick={handleSearchIconClick}
+               >
+                 <FiSearch className="w-4 h-4" />
+               </div>
             </motion.div>
           </div>
-        </div>
-
-        <motion.div
-          className="container px-2 pt-2 md:pt-0 mb-3 md:mb-0 md:absolute top-3 md:top-6 rounded-full lg:top-[18px]"
-          ref={searchBarRef}
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div
-            className="relative flex items-center bg-gray-50 rounded-full border md:border-[1.5px] border-secondary shadow-md w-full md:max-w-sm lg:max-w-md ml-0 md:ml-[230px] lg:ml-[400px] z-10"
-            variants={inputVariants}
-            animate={isFocused ? "focused" : "unfocused"}
-          >
-            <input
-              type="text"
-              placeholder="Search product here..."
-              className="w-full bg-transparent outline-none px-3 py-2 md:py-2 lg:py-[0.6rem] rounded-full placeholder-primary/70"
-              value={search}
-              onKeyDown={handleSearchKeyDown}
-              onChange={handleSearchChange}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              aria-label="Search products"
-            />
-            <div className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 md:h-7 md:w-7 lg:h-9 lg:w-9 bg-primary hover:scale-105">
-              <FiSearch className="w-4 h-4 md:h-5 md:w-5 lg:h-6 lg:w-6" />
-            </div>
-          </motion.div>
-        </motion.div>
 
         {renderSearchResults}
         {renderNoResults}
