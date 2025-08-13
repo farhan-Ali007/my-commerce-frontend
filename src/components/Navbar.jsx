@@ -364,7 +364,8 @@ const Navbar = React.memo(() => {
     <>
       {/* Top bar */}
       <motion.div
-        className="bg-gradient-to-r from-primary to-secondary text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
+        className="text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
+        style={{ background: 'linear-gradient(90deg, var(--color-primary, #5a67d8), var(--color-secondary, #3182ce))' }}
         variants={topBarVariants}
         initial="hidden"
         animate="visible"
@@ -460,6 +461,23 @@ const Navbar = React.memo(() => {
                     {cart.products?.length || 0}
                   </span>
                 </Link>
+
+                {/* {user ? (
+                  <button
+                    onClick={handleLogout}
+                    className="ml-1 md:ml-2 px-3 py-1.5 text-sm font-semibold text-white bg-primary rounded-full hover:bg-primary/90 transition-colors"
+                    aria-label="Logout"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="ml-1 md:ml-2 px-3 py-1.5 text-sm font-semibold text-white bg-secondary rounded-full hover:bg-secondary/90 no-underline transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                )} */}
               </div>
             </motion.div>
           </div>

@@ -81,18 +81,23 @@ const EditProductForm = ({
         specialOfferEnd: defaultValues.specialOfferEnd || "",
       });
 
-      // Handle images (either URL or File object)
+      // Handle images: string URL, File, or object { url, publicId }
       setImagePreviews(
-        defaultValues.images.map((img) => {
+        (defaultValues.images || []).map((img) => {
           if (typeof img === "string") {
-            // If it's a URL, return it as is
+            // Pre-existing schema: direct URL string
             return img;
-          } else if (img instanceof File) {
-            // If it's a File object, create an object URL
+          }
+          if (img instanceof File) {
+            // Newly added file in client state
             return URL.createObjectURL(img);
           }
-          return null; // Handle other cases if necessary
-        })
+          if (img && typeof img === "object" && (img.url || img.secure_url)) {
+            // New schema from backend: object with url/publicId
+            return img.url || img.secure_url;
+          }
+          return null;
+        }).filter(Boolean)
       );
 
       setTempSpecialOfferStart(
@@ -345,11 +350,23 @@ const EditProductForm = ({
       }
     });
 
-    // Add existing image references as JSON
-    const existingImageUrls = formData.images.filter(
-      (image) => typeof image === "string"
-    );
-    submissionData.append("existingImages", JSON.stringify(existingImageUrls));
+    // Add existing image references (support string URLs and objects { url, public_id })
+    const existingImageRefs = (formData.images || [])
+      .filter((image) => !(image instanceof File))
+      .map((image) => {
+        if (typeof image === "string") {
+          return { url: image };
+        }
+        if (image && typeof image === "object") {
+          return {
+            url: image.url || image.secure_url || "",
+            public_id: image.public_id || image.publicId || "",
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+    submissionData.append("existingImages", JSON.stringify(existingImageRefs));
 
     // Add freeShipping value
     submissionData.append("freeShipping", freeShipping);

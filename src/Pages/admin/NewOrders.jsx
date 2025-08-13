@@ -84,7 +84,7 @@ const NewOrders = () => {
       </h1>
 
       {/* Search Bar */}
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <input
           type="text"
           placeholder="Search Orders by Order ID"
@@ -92,101 +92,128 @@ const NewOrders = () => {
           onChange={handleSearchChange}
           className="px-4 py-2 w-full sm:w-1/2 border rounded-full focus:ring-1 ring-main focus:outline-none"
         />
-      </div>
+      </div> */}
 
       {/* Orders Table */}
       {loading ? (
-        <p>Loading...</p>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading orders...</p>
+          </div>
+        </div>
       ) : filteredOrders.length === 0 ? (
-        <p>No orders available.</p>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="text-gray-400 text-6xl mb-4">📦</div>
+            <p className="text-gray-600">No orders found.</p>
+          </div>
+        </div>
       ) : (
         <SimpleBar
-          forceVisible="x"
-          autoHide={false}
           style={{
             maxWidth: "100%",
-            height: "320px", // or your preferred height
-            overflowY: "auto",
+            height: "360px",
             overflowX: "auto",
+            overflowY: "auto",
           }}
+          autoHide={false}
+          forceVisible="x"
+          scrollableNodeProps={{ ref: null }}
         >
-          <table className="min-w-[2000px] border-collapse border-black table-auto border-1">
-            <thead>
-              <tr>
-                <th className="px-6 py-2 min-w-44 border">
-                  <span>Date </span>
+          <table className="min-w-[2000px] w-full border-collapse bg-white">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr className="border-b border-gray-200">
+                <th className="px-4 py-3 min-w-44 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                  Date
                 </th>
-                <th className="px-6 py-2 border">
-                  <div className="flex items-center justify-center gap-2">
-                    <IoIosPerson size={24} className="text-gray-600" />
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <IoIosPerson size={20} className="text-gray-500" />
                     <span>Customer</span>
                   </div>
                 </th>
-                <th className="px-6 py-2 border">
-                  <div className="flex items-center justify-center gap-2">
-                    <GrStatusGoodSmall size={24} className="text-gray-600" />
-                    <span>Order Status</span>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                  <span>Source</span>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <GrStatusGoodSmall size={20} className="text-gray-500" />
+                    <span>Status</span>
                   </div>
                 </th>
-                <th className="px-10 py-2 border w-96">
-                  <div className="flex items-center justify-center gap-2">
-                    <FcViewDetails size={24} />
-                    <span>Product Details</span>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200 min-w-[500px]">
+                  <div className="flex items-center gap-2">
+                    <FcViewDetails size={20} />
+                    <span>Products</span>
                   </div>
                 </th>
-                <th className="px-6 py-2 border">
-                  <div className="flex items-center justify-center gap-2">
-                    <FaMoneyBillTrendUp size={24} className="text-gray-600" />
-                    <span>Delivery Charges</span>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <FaMoneyBillTrendUp size={20} className="text-gray-500" />
+                    <span>Delivery</span>
                   </div>
                 </th>
-                <th className="px-6 py-2 border">
-                  <div className="flex items-center justify-center gap-2">
-                    <GiMoneyStack size={24} className="text-gray-600" />
-                    <span>Total Amount</span>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <GiMoneyStack size={20} className="text-gray-500" />
+                    <span>Total</span>
                   </div>
                 </th>
-                <th className="px-6 py-2 border">
-                  <div className="flex items-center justify-center gap-1">
-                    <IoMdCall size={24} className="text-gray-600" />
-                    <span>Recipient ph.No</span>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                  <div className="flex items-center gap-1">
+                    <IoMdCall size={20} className="text-gray-500" />
+                    <span>Phone</span>
                   </div>
                 </th>
-                <th className="px-6 py-2 border">
+                <th className="px-4 py-3 text-left text-xs min-w-[150px] font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                   <span>City</span>
                 </th>
-                <th className="px-6 py-2 border min-w-96 max-w-lg">
+                <th className="px-4 py-3 text-left text-xs min-w-[300px] font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                   <span>Address</span>
                 </th>
-                {/* <th className="px-6 py-2 border">
-                  <div className="flex items-center justify-center gap-2">
-                    <MdAlternateEmail size={24} className="text-gray-600" />
-                    <span>Mail</span>
-                  </div>
-                </th> */}
-                <th className="px-6 py-2 border">
-                  <div className="flex items-center justify-center gap-2">
-                    <MdNotes size={22} className="text-gray-600" />
-                    <span>Instructions</span>
+                <th className="px-4 py-3 text-left text-xs min-w-[200px] font-semibold text-gray-700 uppercase tracking-wider">
+                  <div className="flex items-center gap-2 w-56">
+                    <MdNotes size={18} className="text-gray-500" />
+                    <span>Notes</span>
                   </div>
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {filteredOrders.map((order, index) => (
-                <tr key={order._id}>
-                  <td className="px-4 py-2 border text-center">
-                    <span className="font-mono text-[14px]">
+            <tbody className="divide-y divide-gray-200">
+              {filteredOrders.map((order) => (
+                <tr
+                  key={order._id}
+                  className="hover:bg-gray-50 transition-colors duration-150"
+                >
+                  <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
+                    <span className="font-mono text-xs">
                       {dateFormatter(order.orderedAt)}
                     </span>
                   </td>
-                  <td className="px-4 py-2 border">
-                    {order?.orderedBy?.username ||
-                      `${order?.shippingAddress?.fullName}`}
+                  <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
+                    <div className="font-medium">
+                      {order?.orderedBy?.username ||
+                        `${order?.shippingAddress?.fullName}`}
+                    </div>
                   </td>
-                  <td className="px-4 py-2 border">
+                  <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
+                        order?.source === "web"
+                          ? "bg-blue-100 text-blue-700"
+                          : order?.source === "mobile"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                      title={order?.source || "unknown"}
+                    >
+                      {order?.source || "unknown"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm border-r border-gray-200">
                     <select
-                      className="px-4 py-2 border rounded-md"
+                      className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                       value={order.status || "Pending"}
                       onChange={(e) =>
                         handleStatusChange(order._id, e.target.value)
@@ -199,71 +226,106 @@ const NewOrders = () => {
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-2 border min-w-[600px] max-w-[900px]">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th>Image</th>
-                          <th>Product</th>
-                          <th>Price</th>
-                          <th>Qty</th>
-                          <th>Variants</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {order.cartSummary?.map((product, idx) => (
-                          <tr key={idx}>
-                            <td>
-                              <img
-                                src={product.image}
-                                alt={product.title}
-                                className="w-14 h-14 object-cover mx-2 rounded border cursor-pointer hover:shadow-lg transition"
-                                onClick={() => {
-                                  setPreviewProduct(product);
-                                  setPreviewOrder(order);
-                                }}
-                              />
-                            </td>
-                            <td className="max-w-[200px] text-[15px] ">{product.title}</td>
-                            <td className="min-w-[100px]">Rs.{product.price}</td>
-                            <td className="min-w-[50px]">{product.count}</td>
-                            <td className="min-w-[200px]">
-                              {product.selectedVariants?.length > 0
-                                ? product.selectedVariants.map(
-                                    (variant, vIdx) => (
-                                      <span key={vIdx}>
-                                        {variant.name}:{" "}
-                                        {variant.values.join(", ")}
-                                      </span>
-                                    )
-                                  )
-                                : "-"}
-                            </td>
+                  <td className="px-4 py-3 border-r border-gray-200">
+                    <div className="max-w-[700px]">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">
+                              Image
+                            </th>
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">
+                              Product
+                            </th>
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">
+                              Price
+                            </th>
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">
+                              Qty
+                            </th>
+                            <th className="px-2 py-1 text-xs font-semibold text-gray-600">
+                              Variants
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {order.cartSummary?.map((product, idx) => (
+                            <tr key={idx} className="border-b last:border-b-0">
+                              <td className="px-2 py-1">
+                                <img
+                                  src={product.image}
+                                  alt={product.title}
+                                  className="w-12 h-12 object-cover rounded border cursor-pointer hover:shadow-lg transition"
+                                  onClick={() => {
+                                    setPreviewProduct(product);
+                                    setPreviewOrder(order);
+                                  }}
+                                />
+                              </td>
+                              <td className="px-2 py-1 text-sm font-medium text-blue-600">
+                                {product.title}
+                              </td>
+                              <td className="px-2 py-1 text-sm font-semibold">
+                                Rs.{product.price}
+                              </td>
+                              <td className="px-2 py-1 text-sm">
+                                {product.count}
+                              </td>
+                              <td className="px-2 py-1 text-xs">
+                                {product.selectedVariants &&
+                                product.selectedVariants.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {product.selectedVariants.map(
+                                      (variant, vIdx) => (
+                                        <span
+                                          key={vIdx}
+                                          className="px-2 py-0.5 border border-blue-200 capitalize"
+                                        >
+                                          {variant.name}:{" "}
+                                          {variant.values.join(", ")}
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400">—</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </td>
-                  <td className="px-4 py-2 border">
+                  <td className="px-4 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200">
                     Rs.{order?.deliveryCharges}
                   </td>
-                  <td className="px-4 py-2 border">Rs.{order?.totalPrice}</td>
-                  <td className="px-4 py-2 border">
-                    {order?.shippingAddress?.mobile}
+                  <td className="px-4 py-3 text-sm font-bold text-green-600 border-r border-gray-200">
+                    Rs.{order?.totalPrice}
                   </td>
-                  <td className="px-4 py-2 border">
+                  <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
+                    <span className="font-mono">
+                      {order?.shippingAddress?.mobile}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
                     {order?.shippingAddress?.city || "—"}
                   </td>
-                  <td className="px-4 py-2 border min-w-72 max-w-80">
-                    {order?.shippingAddress?.streetAddress || "—"}
+                  <td className="px-4 py-3 min-w-96 text-nowrap text-sm text-gray-900 border-r border-gray-200 max-w-lg">
+                    <div
+                      className="truncate"
+                      title={order?.shippingAddress?.streetAddress}
+                    >
+                      {order?.shippingAddress?.streetAddress || "—"}
+                    </div>
                   </td>
-                  {/* <td className="px-4 py-2 border">
-                    {order?.shippingAddress?.email}
-                  </td> */}
-                  <td className="px-4 py-2 border">
-                    {order?.additionalInstructions
-                      ? order.additionalInstructions
-                      : "—"}
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    <div
+                      className="max-w-[150px] truncate"
+                      title={order?.additionalInstructions}
+                    >
+                      {order?.additionalInstructions || "—"}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -325,6 +387,10 @@ const NewOrders = () => {
                   </div>
                 )}
               <hr className="my-2" />
+              <p className="text-black">
+                <span className="font-semibold">Name:</span>{" "}
+                {previewOrder?.shippingAddress?.fullName}
+              </p>
               <p className="text-black">
                 <span className="font-semibold">Mobile:</span>{" "}
                 {previewOrder?.shippingAddress?.mobile}

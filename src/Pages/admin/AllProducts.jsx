@@ -118,6 +118,13 @@ const AllProducts = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  const getImageUrl = (img) => {
+    if (!img) return '';
+    if (typeof img === 'string') return img;
+    if (typeof img === 'object') return img.url || '';
+    return '';
+  };
+
   const fetchProducts = async (pageNum) => {
     setLoading(true);
     console.log('Fetching products for page:', pageNum);
@@ -189,7 +196,7 @@ const AllProducts = () => {
                   </td>
                   <td className="py-2 px-2">
                     <img
-                      src={product?.images[0]}
+                      src={getImageUrl(product?.images && product.images[0])}
                       alt={product?.title}
                       className="w-16 h-16 object-cover rounded shadow"
                     />

@@ -1,40 +1,46 @@
 import React, { useEffect, useState } from "react";
+import { BiSolidCategory } from "react-icons/bi";
 import {
-  FaUsers,
   FaBoxOpen,
-  FaShoppingCart,
-  FaTags,
   FaCrown,
   FaFileAlt,
+  FaRegImage,
+  FaShoppingCart,
+  FaTags,
+  FaUsers,
 } from "react-icons/fa";
-import { MdCampaign } from "react-icons/md";
-import { BiSolidCategory } from "react-icons/bi";
-import { RiMenuUnfoldFill } from "react-icons/ri";
 import { GiVerticalBanner } from "react-icons/gi";
-import { FaFolderOpen } from "react-icons/fa6";
-import AllProducts from "./AllProducts";
-import AllUsers from "./AllUsers";
-import AllOrders from "./AllOrders";
-import { MdFiberNew } from "react-icons/md";
-import NewOrders from "./NewOrders";
-import AdminCategories from "./AdminCategories";
-import AdminTags from "./AdminTags";
-import AdminSubs from "./AdminSubs";
-import MenuCategories from "./MenuCategories";
-import AdminTopbarText from "./TopBar";
+import { IoNotifications } from "react-icons/io5";
+import {
+  MdCampaign,
+  MdColorLens,
+  MdFiberNew,
+  MdOutlineSpaceBar,
+  MdSettings,
+} from "react-icons/md";
+import { RiMenuUnfoldFill } from "react-icons/ri";
+import { SiSimpleanalytics } from "react-icons/si";
+import { getRecentOrders } from "../../functions/order";
 import AdminBanner from "./AdminBanner";
 import AdminBrands from "./AdminBrands";
-import AdminDynamicPages from "./AdminDynamicPages";
-import { getRecentOrders } from "../../functions/order";
-import AdminFooter from "./AdminFooter";
-import { MdOutlineSpaceBar } from "react-icons/md";
+import AdminCategories from "./AdminCategories";
 import AdminColorSettings from "./AdminColorSettings";
-import { MdColorLens } from "react-icons/md";
+import AdminDynamicPages from "./AdminDynamicPages";
+import AdminFooter from "./AdminFooter";
+import AdminLogo from "./AdminLogo";
 import AdminPopups from "./AdminPopups";
-import { IoNotifications } from "react-icons/io5";
+import AdminSubs from "./AdminSubs";
+import AdminTags from "./AdminTags";
+import AllOrders from "./AllOrders";
+import AllProducts from "./AllProducts";
+import AllUsers from "./AllUsers";
+import Dashboard from "./Dashboard";
+import MenuCategories from "./MenuCategories";
+import NewOrders from "./NewOrders";
+import AdminTopbarText from "./TopBar";
 
 const AdminDashboard = () => {
-  const [selectedPage, setSelectedPage] = useState("allProducts");
+  const [selectedPage, setSelectedPage] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [newOrdersCount, setNewOrdersCount] = useState(1);
 
@@ -64,6 +70,18 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (selectedPage) {
+      case "dashboard":
+        return (
+          <div>
+            <Dashboard />
+          </div>
+        );
+      case "logo":
+        return (
+          <div>
+            <AdminLogo />
+          </div>
+        );
       case "allUsers":
         return (
           <div>
@@ -171,7 +189,7 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <div
-        className={`w-full lg:w-1/5 bg-gray-800 z-[100] h-max text-white flex flex-col absolute lg:relative transform ${
+        className={`w-full lg:w-1/5 bg-gray-800 z-[100] h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:transform-none transition-transform duration-200 ease-in-out`}
       >
@@ -185,21 +203,101 @@ const AdminDashboard = () => {
             <MdColorLens className="text-lg" />
           </button>
         </div>
-        <nav className="flex flex-col gap-4 p-4">
+        <nav className="flex flex-col gap-2 text-white">
+          {/* Dashboard */}
           <button
             className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "allProducts"
+              selectedPage === "dashboard"
                 ? "bg-gray-700 rounded-full"
                 : "hover:bg-gray-700 rounded-full"
             }`}
             onClick={() => {
-              setSelectedPage("allProducts");
+              setSelectedPage("dashboard");
               setIsSidebarOpen(false);
             }}
           >
-            <FaBoxOpen className="text-lg" />
-            All Products
+            <SiSimpleanalytics className="text-lg" />
+            Dashboard
           </button>
+
+          {/* Products group with hover submenu */}
+          <div className="relative group">
+            <button
+              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-full"}`}
+            >
+              <FaBoxOpen className="text-lg" />
+              Products
+            </button>
+            <div className="absolute left-full top-0 -ml-2 hidden group-hover:block z-50">
+              <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allProducts");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaBoxOpen /> All Products
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allUsers");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaUsers /> Users
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allTags");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaTags /> Tags
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allCategories");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <BiSolidCategory /> Categories
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allBrands");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaCrown /> Brands
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allSubs");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <RiMenuUnfoldFill /> Subcategories
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("menuCategories");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <GiVerticalBanner /> Menu Categories
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Keep Users standalone */}
           <button
             className={`flex items-center gap-3 py-2 px-4 text-left ${
               selectedPage === "allUsers"
@@ -212,200 +310,116 @@ const AdminDashboard = () => {
             }}
           >
             <FaUsers className="text-lg" />
-            All Users
+            Users
           </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "adminBanner"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("adminBanner");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <GiVerticalBanner className="text-lg" />
-            Banner
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "allCategories"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("allCategories");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <BiSolidCategory className="text-lg" />
-            Categories
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "menuCategories"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("menuCategories");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <RiMenuUnfoldFill className="text-lg" />
-            Menu Categories
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "allSubs"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("allSubs");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <FaFolderOpen className="text-lg" />
-            SubCategories
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "allBrands"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("allBrands");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <FaCrown className="text-lg" />
-            Brands
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "allTags"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("allTags");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <FaTags className="text-lg" />
-            Tags
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "newOrders"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("newOrders");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <span className="relative group flex items-center">
-              <MdFiberNew className="text-lg" />
+          {/* Orders group with hover submenu */}
+          <div className="relative group">
+            <button
+              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-full"}`}
+            >
+              <FaShoppingCart className="text-lg" />
+              Orders
               {newOrdersCount > 0 && (
-                <span className="absolute -top-2 right-0 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 z-20 min-w-[18px] flex items-center justify-center border-2 border-gray-800">
+                <span className="ml-auto bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
                   {newOrdersCount}
                 </span>
               )}
-              <span className="absolute left-1/2 -translate-x-1/2 mt-8 w-max bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
-                {newOrdersCount} new orders
-              </span>
-            </span>
-            New Orders
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "allOrders"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("allOrders");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <FaShoppingCart className="text-lg" />
-            All Orders
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "dynamicPages"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("dynamicPages");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <FaFileAlt className="text-lg" />
-            Pages
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "topbarText"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("topbarText");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <MdCampaign className="text-lg" />
-            Topbar Text
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "footer"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("footer");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <MdOutlineSpaceBar className="text-lg" />
-            Footer
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "colorSettings"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("colorSettings");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <MdColorLens className="text-lg" />
-            Color Settings
-          </button>
-          <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "popups"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
-            onClick={() => {
-              setSelectedPage("popups");
-              setIsSidebarOpen(false);
-            }}
-          >
-            <IoNotifications className="text-lg" />
-            Popup Banners
-          </button>
+            </button>
+            <div className="absolute left-full top-0 -ml-2 hidden group-hover:block z-50">
+              <div className="min-w-[200px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allOrders");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaShoppingCart /> All Orders
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("newOrders");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <MdFiberNew /> New Orders
+                  {newOrdersCount > 0 && (
+                    <span className="ml-auto text-xs bg-red-600 text-white rounded px-1">
+                      {newOrdersCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+          {/* Customization group with hover submenu */}
+          <div className="relative group">
+            <button
+              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-full"}`}
+            >
+              <MdSettings className="text-lg" />
+              Customization
+            </button>
+            <div className="absolute left-full -top-32 -ml-2 hidden group-hover:block z-50">
+              <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("logo");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaRegImage /> Logo
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("topbarText");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <MdCampaign /> Topbar
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("dynamicPages");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaFileAlt /> Pages
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("footer");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <MdOutlineSpaceBar /> Footer
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("colorSettings");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <MdColorLens /> Color Settings
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("popups");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <IoNotifications /> Popup
+                </button>
+              </div>
+            </div>
+          </div>
         </nav>
       </div>
 

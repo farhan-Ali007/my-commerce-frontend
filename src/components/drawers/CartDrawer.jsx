@@ -21,6 +21,13 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
     }
   }, [isDrawerOpen]);
 
+  const getImageUrl = (img) => {
+    if (!img) return '';
+    if (typeof img === 'string') return img;
+    if (typeof img === 'object') return img.url || '';
+    return '';
+  };
+
   // Calculate cart total from Redux state
   const cartTotal = cartItems?.reduce(
     (total, item) => total + item.price * item.count,
@@ -60,7 +67,7 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
             cartItems.map((item, index) => (
               <div key={index} className="flex items-center gap-1 mb-3">
                 <img
-                  src={item?.image || "https://via.placeholder.com/500"}
+                  src={getImageUrl(item?.image) || "https://via.placeholder.com/500"}
                   alt={truncateTitle(item?.title, 30)}
                   className="w-20 h-20 object-cover aspect-square"
                 />

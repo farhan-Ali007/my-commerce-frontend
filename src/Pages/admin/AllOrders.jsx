@@ -15,39 +15,31 @@ const AllOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
-  const observer = useRef();
-  const LIMIT = 8;
+  const LIMIT = 20;
   const [previewProduct, setPreviewProduct] = useState(null);
   const [previewOrder, setPreviewOrder] = useState(null);
 
   const fetchAllOrders = async (pageNum = 1) => {
     try {
-      if (pageNum === 1) setLoading(true);
-      else setIsFetchingMore(true);
+      setLoading(true);
       const response = await getAllOrders(pageNum, LIMIT);
-      setTotalOrders(response?.total);
-      if (pageNum === 1) {
-        setOrders(response?.orders || []);
-      } else {
-        setOrders((prev) => [...prev, ...(response?.orders || [])]);
-      }
-      setHasMore(pageNum < response.totalPages);
+      setTotalOrders(response?.total || 0);
+      setTotalPages(response?.totalPages || 1);
+      setOrders(response?.orders || []);
     } catch (error) {
       console.log("Error fetching orders", error);
     } finally {
       setLoading(false);
-      setIsFetchingMore(false);
     }
   };
 
   const Statuses = ["Pending", "Shipped", "Delivered", "Cancelled"];
 
   useEffect(() => {
-    setPage(1);
+    setCurrentPage(1);
     fetchAllOrders(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -65,24 +57,82 @@ const AllOrders = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [previewProduct]);
 
-  // Infinite scroll observer
-  const lastOrderRef = useCallback(
-    (node) => {
-      if (loading || isFetchingMore || !hasMore) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new window.IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          setPage((prev) => {
-            const nextPage = prev + 1;
-            fetchAllOrders(nextPage);
-            return nextPage;
-          });
-        }
-      });
-      if (node) observer.current.observe(node);
+  // Pagination controls
+  const handlePageChange = useCallback(
+    (pageNum) => {
+      if (pageNum < 1 || pageNum > totalPages || pageNum === currentPage) return;
+      setCurrentPage(pageNum);
+      fetchAllOrders(pageNum);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [loading, isFetchingMore, hasMore]
+    [currentPage, totalPages]
   );
+
+  const renderPagination = useCallback(() => {
+    if (totalPages <= 1) return null;
+
+    const createPageArray = () => {
+      const pages = [];
+      const delta = 1; // neighbors
+      const left = Math.max(2, currentPage - delta);
+      const right = Math.min(totalPages - 1, currentPage + delta);
+
+      pages.push(1);
+      if (left > 2) pages.push("ellipsis-left");
+      for (let i = left; i <= right; i++) pages.push(i);
+      if (right < totalPages - 1) pages.push("ellipsis-right");
+      if (totalPages > 1) pages.push(totalPages);
+      return pages;
+    };
+
+    const pages = createPageArray();
+
+    return (
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3 p-4 border-t">
+        <div className="text-sm text-gray-600">
+          Showing <span className="font-semibold">{orders.length}</span> of
+          {" "}
+          <span className="font-semibold">{totalOrders}</span> orders
+          (Page {currentPage} of {totalPages})
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          {pages.map((p, idx) =>
+            typeof p === "number" ? (
+              <button
+                key={idx}
+                onClick={() => handlePageChange(p)}
+                className={`px-3 py-1.5 rounded border text-sm ${
+                  p === currentPage
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </button>
+            ) : (
+              <span key={idx} className="px-2 text-gray-400">
+                …
+              </span>
+            )
+          )}
+          <button
+            className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  }, [orders.length, totalOrders, currentPage, totalPages, handlePageChange]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -184,6 +234,9 @@ const AllOrders = () => {
                         </div>
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                        <span>Source</span>
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <div className="flex items-center gap-2">
                           <GrStatusGoodSmall
                             size={20}
@@ -219,10 +272,10 @@ const AllOrders = () => {
                           <span>Phone</span>
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-4 py-3 text-left text-xs min-w-[200px] font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <span>City</span>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200 min-w-[200px]">
+                      <th className="px-4 py-3 text-left text-xs min-w-[300px] font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <span>Address</span>
                       </th>
                       {/* <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
@@ -244,15 +297,9 @@ const AllOrders = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredOrders.map((order, idx) => {
-                      const isLast = idx === filteredOrders.length - 1;
                       return (
                         <tr
                           key={order._id}
-                          ref={
-                            isLast && hasMore && !searchQuery
-                              ? lastOrderRef
-                              : null
-                          }
                           className="hover:bg-gray-50 transition-colors duration-150"
                         >
                           <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
@@ -265,6 +312,20 @@ const AllOrders = () => {
                               {order?.orderedBy?.username ||
                                 `${order?.shippingAddress?.fullName}`}
                             </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
+                                order?.source === "web"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : order?.source === "mobile"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-gray-100 text-gray-700"
+                              }`}
+                              title={order?.source || "unknown"}
+                            >
+                              {order?.source || "unknown"}
+                            </span>
                           </td>
                           <td className="px-4 py-3 text-sm border-r border-gray-200">
                             <select
@@ -399,26 +460,7 @@ const AllOrders = () => {
                   </tbody>
                 </table>
 
-                {/* Pagination Status */}
-                {isFetchingMore && (
-                  <div className="py-6 text-center">
-                    <div className="inline-flex items-center gap-2 text-gray-600">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-                      <span>Loading more orders...</span>
-                    </div>
-                  </div>
-                )}
-
-                {!hasMore && filteredOrders.length > 0 && (
-                  <div className="py-6 text-center">
-                    {/* <div className="inline-flex items-center gap-2 text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
-                      <span>✓</span>
-                      <span className="text-sm">
-                        All orders loaded ({filteredOrders.length} orders)
-                      </span>
-                    </div> */}
-                  </div>
-                )}
+                {renderPagination()}
               </SimpleBar>
             </div>
           )}
@@ -480,6 +522,10 @@ const AllOrders = () => {
                   </div>
                 )}
               <hr className="my-1 text-secondary" />
+              <p className="text-black">
+                <span className="font-semibold">Name:</span>{" "}
+                {previewOrder?.shippingAddress?.fullName}
+              </p>
               <p className="text-black">
                 <span className="font-semibold">Mobile:</span>{" "}
                 {previewOrder?.shippingAddress?.mobile}

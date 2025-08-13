@@ -28,15 +28,17 @@ const Checkout = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const { track } = useFacebookPixel();
 
+  const getImageUrl = (img) => {
+    if (!img) return '';
+    if (typeof img === 'string') return img;
+    if (typeof img === 'object') return img.url || '';
+    return '';
+  };
+
   const calculateGuestDeliveryCharges = (products) => {
-    if (!products || !Array.isArray(products) || products.length === 0)
-      return 0;
-    // Free shipping if total is over 2000, otherwise 200 flat rate
-    const total = products.reduce(
-      (sum, item) => sum + item.price * item.count,
-      0
-    );
-    return total >= 2000 ? 0 : 200;
+    if (!products || !Array.isArray(products) || products.length === 0) return 0;
+    const allFree = products.every((item) => item.freeShipping);
+    return allFree ? 0 : 250;
   };
   const normalizeCartData = (data, isLoggedIn) => {
     if (!data) return null;
@@ -48,7 +50,9 @@ const Checkout = () => {
         products: data.products.map((item) => ({
           ...item,
           title: item.product?.title || item.title,
-          image: (item.product?.images && item.product.images[0]) || item.image,
+          image:
+            getImageUrl((item.product?.images && item.product.images[0])) ||
+            getImageUrl(item.image),
           price: item.product?.salePrice || item.price,
           productId: item.product?._id || item.productId,
         })),
@@ -57,10 +61,14 @@ const Checkout = () => {
     } else {
       // For guests: use the Redux cart state values
       const productsArray = Array.isArray(data) ? data : data.products || [];
+      const computedDelivery = data.deliveryCharges != null
+        ? data.deliveryCharges
+        : calculateGuestDeliveryCharges(productsArray);
+      const freeShippingAll = productsArray.every((p) => p.freeShipping);
       return {
         products: productsArray,
-        deliveryCharges: data.deliveryCharges || 0,
-        freeShipping: data.freeShipping || false,
+        deliveryCharges: computedDelivery,
+        freeShipping: freeShippingAll,
         cartTotal:
           data.cartTotal ||
           productsArray.reduce((sum, item) => sum + item.price * item.count, 0),
@@ -261,7 +269,7 @@ const Checkout = () => {
               >
                 <div className="relative w-16 h-16 mr-3 flex-shrink-0">
                   <img
-                    src={item.image || item.product.images[0]}
+                    src={getImageUrl(item.image) || getImageUrl(item.product?.images && item.product.images[0])}
                     alt={item.title}
                     className="object-cover w-full h-full rounded"
                   />

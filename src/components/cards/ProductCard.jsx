@@ -13,6 +13,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     const dispatch = useDispatch();
     const navigateTo = useNavigate();
     const { user } = useSelector((state) => state.auth);
+    const currentCartItems = useSelector((state) => state.cart.products);
     const userId = user?._id;
     const { images, title, averageRating, price, salePrice, slug, freeShipping } = product;
     const off = salePrice && Math.floor(((price - salePrice) / price) * 100);
@@ -24,18 +25,27 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     const imageWidth = 180;
     const imageHeight = 180;
 
+    const hasVariants = Array.isArray(product?.variants) && product.variants.length > 0;
+
     const handleAddToCart = useCallback(async () => {
+        // If product has variants, require selection on PDP
+        if (Array.isArray(product?.variants) && product.variants.length > 0) {
+            toast.error("Please select product options first.");
+            navigateTo(`/product/${product?.slug}`);
+            return;
+        }
         const variantsForBackend = [];
 
         const cartItem = {
+            cartItemId: product?._id,
             productId: product?._id,
             title: product?.title,
             price: product?.salePrice ? product?.salePrice : product?.price,
-            image: product?.images[0],
+            image: getImageUrl(product?.images && product?.images[0]),
             count: 1,
             selectedVariants: variantsForBackend,
             freeShipping: product?.freeShipping,
-            deliveryCharges: product?.freeShipping ? 0 : product?.deliveryCharges
+            deliveryCharges: product?.freeShipping ? 0 : 250
         };
 
         try {
@@ -55,36 +65,41 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     }, [product, userId, navigateTo, dispatch, track]);
 
     const handleByNow = useCallback(async () => {
+        // If product has variants, require selection on PDP
+        if (Array.isArray(product?.variants) && product.variants.length > 0) {
+            toast.error("Please select product options first.");
+            navigateTo(`/product/${product?.slug}`);
+            return;
+        }
         const variantsForBackend = [];
         const cartItem = {
+            cartItemId: product?._id,
             productId: product?._id,
             title: product?.title,
             price: product?.salePrice ? product?.salePrice : product?.price,
-            image: product?.images[0],
+            image: getImageUrl(product?.images && product?.images[0]),
             count: 1,
             selectedVariants: variantsForBackend,
             freeShipping: product?.freeShipping,
-            deliveryCharges: product?.freeShipping ? 0 : product?.deliveryCharges
+            deliveryCharges: product?.freeShipping ? 0 : 250
         };
 
         try {
-            // Defensive: always use an array
-            const items = Array.isArray(backendCartItems) ? backendCartItems : [];
-            const existing = items.find(item => item.productId === cartItem.productId);
-            let updatedCartItems;
-            if (existing) {
-                updatedCartItems = items.map(item =>
-                    item.productId === cartItem.productId
-                        ? { ...item, count: item.count + 1 }
-                        : item
-                );
+            // Combine with existing Redux cart and sync to backend
+            const computeKey = (item) => item.cartItemId || `${item.productId}${Array.isArray(item.selectedVariants) && item.selectedVariants.length>0 ? '|' + item.selectedVariants.map(v => `${v.name}:${Array.isArray(v.values)?v.values.join(','):v.values||''}`).join('|') : ''}`;
+            const existingItems = Array.isArray(currentCartItems) ? currentCartItems : [];
+            const combined = [...existingItems];
+            const idx = combined.findIndex(i => computeKey(i) === computeKey(cartItem));
+            if (idx >= 0) {
+                combined[idx] = { ...combined[idx], count: combined[idx].count + cartItem.count };
             } else {
-                updatedCartItems = [...items, cartItem];
+                combined.push(cartItem);
             }
 
             dispatch(addToCart(cartItem));
             const cartPayload = {
-                products: updatedCartItems
+                products: combined,
+                deliveryCharges: combined.every(i => i.freeShipping) ? 0 : 250,
             };
             await addItemToCart(userId, cartPayload);
             // Meta Pixel InitiateCheckout event
@@ -100,7 +115,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             toast.error("Failed to proceed to checkout. Please try again.");
             console.error("Error during Buy Now:", error);
         }
-    }, [product, dispatch, userId, navigateTo, backendCartItems, track]);
+    }, [product, dispatch, userId, navigateTo, currentCartItems, track]);
 
     const cardVariants = {
         hidden: { opacity: 0, y: 20 },
@@ -185,6 +200,13 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
         return stars;
     };
 
+    const getImageUrl = (img) => {
+        if (!img) return '';
+        if (typeof img === 'string') return img;
+        if (typeof img === 'object') return img.url || '';
+        return '';
+    };
+
     const getOptimizedImageUrl = (imageUrl) => {
         return `${imageUrl}?f_auto&q_80&w=${imageWidth}&h=${imageHeight}&c=fill`;
     };
@@ -206,7 +228,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                         className="absolute top-0 left-0 object-cover w-full h-full"
                         src={
                             imgLoaded
-                                ? getOptimizedImageUrl(isHovered && images[1] ? images[1] : images[0])
+                                ? getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))
                                 : '/loadingCard.png'
                         }
                         alt={title}

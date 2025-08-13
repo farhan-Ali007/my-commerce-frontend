@@ -14,6 +14,7 @@ const ShopCard = ({ product }) => {
   const dispatch = useDispatch();
   const navigateTo = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const currentCartItems = useSelector((state) => state.cart.products);
   const userId = user?._id;
   const {
     images,
@@ -30,6 +31,13 @@ const ShopCard = ({ product }) => {
   const [loading, setLoading] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const { track } = useFacebookPixel();
+
+  const getImageUrl = (img) => {
+    if (!img) return '';
+    if (typeof img === 'string') return img;
+    if (typeof img === 'object') return img.url || '';
+    return '';
+  };
 
   const renderStars = (rating) => {
     const stars = [];
@@ -98,14 +106,21 @@ const ShopCard = ({ product }) => {
   };
 
   const handleAddToCart = async () => {
+    // If product has variants, require selection on PDP
+    if (Array.isArray(product?.variants) && product.variants.length > 0) {
+      toast.error("Please select product options first.");
+      navigateTo(`/product/${product?.slug}`);
+      return;
+    }
     const cartItem = {
+      cartItemId: id,
       productId: id,
       price: salePrice ? salePrice : price,
       count: 1,
       title: product.title,
-      image: product.images[0],
+      image: getImageUrl(product?.images && product.images[0]),
       freeShipping: product.freeShipping,
-      deliveryCharges: product.deliveryCharges,
+      deliveryCharges: product.freeShipping ? 0 : 250,
     };
 
     try {
@@ -113,7 +128,7 @@ const ShopCard = ({ product }) => {
       if (userId) {
         const cartPayload = {
           products: [cartItem],
-          deliveryCharges: product.freeShipping ? 0 : 200,
+          deliveryCharges: product.freeShipping ? 0 : 250,
         };
         await addItemToCart(userId, cartPayload);
         dispatch(addToCart(cartItem));
@@ -136,15 +151,21 @@ const ShopCard = ({ product }) => {
     }
   };
 
-  const currentCartItems = useSelector((state) => state.cart.products);
   // console.log("Current Cart Items:", currentCartItems);
   const handleByNow = useCallback(async () => {
+
+    if (Array.isArray(product?.variants) && product.variants.length > 0) {
+      toast.error("Please select product options first.");
+      navigateTo(`/product/${product?.slug}`);
+      return;
+    }
     const variantsForBackend = [];
     const cartItem = {
+      cartItemId: product._id,
       productId: product._id,
       title: product.title,
       price: product.salePrice ? product.salePrice : product.price,
-      image: product.images[0],
+      image: getImageUrl(product?.images && product.images[0]),
       count: 1,
       selectedVariants: variantsForBackend,
       freeShipping: product.freeShipping,
@@ -154,41 +175,40 @@ const ShopCard = ({ product }) => {
     console.log("Cart Items in shop card ------->", cartItem);
     try {
       setLoading(true);
+      // Combine with Redux cart and sync for logged-in users
+      const computeKey = (item) => item.cartItemId || `${item.productId}${Array.isArray(item.selectedVariants) && item.selectedVariants.length>0 ? '|' + item.selectedVariants.map(v => `${v.name}:${Array.isArray(v.values)?v.values.join(','):v.values||''}`).join('|') : ''}`;
+      const existingItems = Array.isArray(currentCartItems) ? currentCartItems : [];
+      const combined = [...existingItems];
+      const idx = combined.findIndex(i => computeKey(i) === computeKey(cartItem));
+      if (idx >= 0) {
+        combined[idx] = { ...combined[idx], count: combined[idx].count + cartItem.count };
+      } else {
+        combined.push(cartItem);
+      }
+
       dispatch(addToCart(cartItem));
-      setTimeout(async () => {
-        if (userId) {
-          const updatedCartItems =
-            JSON.parse(localStorage.getItem("cartproducts")) || [];
-          const cartPayload = {
-            products: updatedCartItems.map((item) => ({
-              productId: item.productId,
-              title: item.title,
-              price: item.price,
-              image: item.image,
-              count: item.count,
-              selectedVariants: item.selectedVariants,
-              freeShipping: item.freeShipping,
-              deliveryCharges: item.deliveryCharges,
-            })),
-          };
-          await addItemToCart(userId, cartPayload);
-        }
-        setLoading(false);
-        // Meta Pixel InitiateCheckout event
-        track('InitiateCheckout', {
-          content_ids: [product._id],
-          content_name: product.title,
-          value: product.salePrice ? product.salePrice : product.price,
-          currency: 'PKR'
-        });
-        navigateTo("/cart/checkout");
-        toast.success("Proceeding to checkout!");
-      }, 0);
+      if (userId) {
+        const cartPayload = {
+          products: combined,
+          deliveryCharges: combined.every(i => i.freeShipping) ? 0 : 250,
+        };
+        await addItemToCart(userId, cartPayload);
+      }
+      setLoading(false);
+      // Meta Pixel InitiateCheckout event
+      track('InitiateCheckout', {
+        content_ids: [product._id],
+        content_name: product.title,
+        value: product.salePrice ? product.salePrice : product.price,
+        currency: 'PKR'
+      });
+      navigateTo("/cart/checkout");
+      toast.success("Proceeding to checkout!");
     } catch (error) {
       toast.error("Failed to proceed to checkout. Please try again.");
       console.error("Error during Buy Now:", error);
     }
-  }, [product, dispatch, userId, navigateTo, track]);
+  }, [product, dispatch, userId, navigateTo, track, currentCartItems]);
 
   return (
     <motion.div
@@ -210,7 +230,7 @@ const ShopCard = ({ product }) => {
             className="absolute top-0 left-0 object-cover w-full h-full"
             src={
               imgLoaded
-                ? (isHovered && images[1] ? images[1] : images[0])
+                ? (isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))
                 : '/loadingCard.png'
             }
             alt={title}

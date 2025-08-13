@@ -66,7 +66,8 @@ const Brands = React.memo(() => {
             >
                 <Link 
                     to={`/brand/${brand?.slug}`} 
-                    className="p-[2px] rounded-full bg-gradient-to-r from-primary via-orange-600 to-secondary"
+                    className="p-[2px] rounded-full"
+                    style={{ background: 'linear-gradient(90deg, var(--color-primary, #5a67d8), var(--color-secondary, #3182ce))' }}
                 >
                     <motion.div 
                         className="w-16 md:w-20 lg:w-28 h-16 md:h-20 lg:h-28 bg-white rounded-full flex items-center justify-center"
