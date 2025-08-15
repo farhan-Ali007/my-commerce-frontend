@@ -81,18 +81,23 @@ const EditProductForm = ({
         specialOfferEnd: defaultValues.specialOfferEnd || "",
       });
 
-      // Handle images (either URL or File object)
+      // Handle images: string URL, File, or object { url, publicId }
       setImagePreviews(
-        defaultValues.images.map((img) => {
+        (defaultValues.images || []).map((img) => {
           if (typeof img === "string") {
-            // If it's a URL, return it as is
+            // Pre-existing schema: direct URL string
             return img;
-          } else if (img instanceof File) {
-            // If it's a File object, create an object URL
+          }
+          if (img instanceof File) {
+            // Newly added file in client state
             return URL.createObjectURL(img);
           }
-          return null; // Handle other cases if necessary
-        })
+          if (img && typeof img === "object" && (img.url || img.secure_url)) {
+            // New schema from backend: object with url/publicId
+            return img.url || img.secure_url;
+          }
+          return null;
+        }).filter(Boolean)
       );
 
       setTempSpecialOfferStart(
@@ -345,11 +350,23 @@ const EditProductForm = ({
       }
     });
 
-    // Add existing image references as JSON
-    const existingImageUrls = formData.images.filter(
-      (image) => typeof image === "string"
-    );
-    submissionData.append("existingImages", JSON.stringify(existingImageUrls));
+    // Add existing image references (support string URLs and objects { url, public_id })
+    const existingImageRefs = (formData.images || [])
+      .filter((image) => !(image instanceof File))
+      .map((image) => {
+        if (typeof image === "string") {
+          return { url: image };
+        }
+        if (image && typeof image === "object") {
+          return {
+            url: image.url || image.secure_url || "",
+            public_id: image.public_id || image.publicId || "",
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+    submissionData.append("existingImages", JSON.stringify(existingImageRefs));
 
     // Add freeShipping value
     submissionData.append("freeShipping", freeShipping);
@@ -719,7 +736,7 @@ const EditProductForm = ({
           {formData?.tags?.map((tag, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 bg-secondary opacity-90 text-primaryte px-4 py-1 rounded-full"
+              className="flex items-center gap-2 bg-secondary opacity-90 text-primary px-4 py-1 rounded-full"
             >
               <span>{tag?.name}</span>{" "}
               {/* Access the name property of the tag */}
@@ -818,7 +835,7 @@ const EditProductForm = ({
                 disabled={
                   !tempSpecialOfferStart || !formData.specialOfferEnabled
                 }
-                className="px-3 py-1 bg-yellow-500 text-primaryte rounded"
+                className="px-3 py-1 bg-yellow-500 text-primary rounded"
               >
                 Set
               </button>
@@ -858,7 +875,7 @@ const EditProductForm = ({
                   setSpecialOfferEndSet(!!tempSpecialOfferEnd);
                 }}
                 disabled={!tempSpecialOfferEnd || !formData.specialOfferEnabled}
-                className="px-3 py-1 bg-yellow-500 text-primaryte rounded"
+                className="px-3 py-1 bg-yellow-500 text-primary rounded"
               >
                 Set
               </button>
@@ -976,7 +993,7 @@ const EditProductForm = ({
                             variants: updatedVariants,
                           }));
                         }}
-                        className="absolute -top-2 -right-2 bg-red-500 text-primaryte rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        className="absolute -top-2 -right-2 bg-red-500 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
                         title="Remove image"
                       >
                         ×
@@ -989,14 +1006,14 @@ const EditProductForm = ({
                   <button
                     type="button"
                     onClick={() => addVariantValue(variantIndex)}
-                    className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-primaryte px-4 py-2 rounded-md text-sm"
+                    className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-primary px-4 py-2 rounded-md text-sm"
                   >
                     <IoAddCircle /> Add Value
                   </button>
                   <button
                     type="button"
                     onClick={() => removeVariantValue(variantIndex, valueIndex)}
-                    className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-primaryte px-4 py-2 rounded-md text-sm"
+                    className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-primary px-4 py-2 rounded-md text-sm"
                   >
                     <IoTrash /> Remove Value
                   </button>
@@ -1008,7 +1025,7 @@ const EditProductForm = ({
               <button
                 type="button"
                 onClick={() => removeVariant(variantIndex)}
-                className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-primaryte px-4 py-2 rounded-md"
+                className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-primary px-4 py-2 rounded-md"
               >
                 <IoTrash /> Remove Variant
               </button>
@@ -1019,7 +1036,7 @@ const EditProductForm = ({
         <button
           type="button"
           onClick={addVariant}
-          className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-primaryte px-5 py-2 rounded-md text-base"
+          className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-primary px-5 py-2 rounded-md text-base"
         >
           <IoAddCircle /> Add Variant
         </button>
@@ -1077,7 +1094,7 @@ const EditProductForm = ({
                           <button
                             type="button"
                             onClick={() => handleImageRemove(index)}
-                            className="absolute top-1 right-1 bg-red-500 text-primaryte rounded-full p-1 text-xs"
+                            className="absolute top-1 right-1 bg-red-500 text-primary rounded-full p-1 text-xs"
                           >
                             <IoTrash />
                           </button>
@@ -1110,7 +1127,7 @@ const EditProductForm = ({
       <div className="flex justify-center">
         <button
           type="submit"
-          className="bg-secondary opacity-70 hover:opacity-90 w-full text-primaryte px-8 py-2 rounded-md"
+          className="bg-secondary opacity-70 hover:opacity-90 w-full text-primary px-8 py-2 rounded-md"
         >
           {buttonText}
         </button>

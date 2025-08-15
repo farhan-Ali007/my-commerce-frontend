@@ -4,7 +4,16 @@ import { BASE_URL } from '../config/baseURL'
 
 export const placeOrder = async (data) => {
     try {
-        const response = await axios.post(`${BASE_URL}/order/create`, data, { withCredentials: true })
+        const response = await axios.post(
+            `${BASE_URL}/order/create`,
+            data,
+            {
+                withCredentials: true,
+                headers: {
+                    'X-Client': 'web',
+                },
+            }
+        )
         return response?.data
     } catch (error) {
         console.log("Erorr in creating order", error)

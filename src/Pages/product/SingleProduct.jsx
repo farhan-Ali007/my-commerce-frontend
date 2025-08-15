@@ -18,7 +18,6 @@ import {
   FaWhatsapp,
 } from "react-icons/fa6";
 import { TiShoppingCart } from "react-icons/ti";
-import { replaceBulletsWithCheck } from "../../helpers/replaceBulletwithCheck";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import SingleProductSkeleton from "../../components/skeletons/SingleProductSkeleton";
@@ -77,8 +76,8 @@ const SingleProduct = () => {
 
   useEffect(() => {
     const handleResize = () => setIsLargeScreen(window.innerWidth >= 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const dispatch = useDispatch();
@@ -123,6 +122,13 @@ const SingleProduct = () => {
   const [selectedVariantValue, setSelectedVariantValue] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
 
+  const getImageUrl = useCallback((img) => {
+    if (!img) return "";
+    if (typeof img === "string") return img;
+    if (typeof img === "object") return img.url || "";
+    return "";
+  }, []);
+
   useEffect(() => {
     if (product) {
       track("ViewContent", {
@@ -139,7 +145,9 @@ const SingleProduct = () => {
     let variantPriceSum = 0;
     let hasVariantPrice = false;
 
-    for (const [variantName, selectedValues] of Object.entries(selectedVariants)) {
+    for (const [variantName, selectedValues] of Object.entries(
+      selectedVariants
+    )) {
       if (selectedValues && selectedValues.length > 0) {
         const variant = product.variants?.find((v) => v.name === variantName);
         if (variant) {
@@ -156,13 +164,17 @@ const SingleProduct = () => {
 
     // If any variant is selected and has a price, use the sum of variant prices
     // Otherwise, use the base price
-    return hasVariantPrice ? variantPriceSum : (product.salePrice || product.price);
+    return hasVariantPrice
+      ? variantPriceSum
+      : product.salePrice || product.price;
   }, [selectedVariants, product]);
 
   // Calculate percentage off
   const percentageOff = useMemo(() => {
-    if (!product || !product.salePrice || product.salePrice >= product.price) return 0;
-    const discount = ((product.price - product.salePrice) / product.price) * 100;
+    if (!product || !product.salePrice || product.salePrice >= product.price)
+      return 0;
+    const discount =
+      ((product.price - product.salePrice) / product.price) * 100;
     return Math.round(discount);
   }, [product]);
 
@@ -371,11 +383,12 @@ const SingleProduct = () => {
       setProductVariants(response?.product?.variants || []);
 
       // Preload all product images including variant images
+
       const allImages = new Set(
         [
-          ...(response?.product?.images || []),
-          ...(response?.product?.variants?.flatMap((variant) =>
-            variant.values.map((val) => val.image).filter(Boolean)
+          ...(response?.product?.images || []).map(getImageUrl),
+          ...((response?.product?.variants || []).flatMap((variant) =>
+            variant.values.map((val) => getImageUrl(val.image)).filter(Boolean)
           ) || []),
         ].filter(Boolean)
       );
@@ -389,7 +402,7 @@ const SingleProduct = () => {
 
       // Set initial selected image to the first main image if available
       if (response?.product?.images?.length) {
-        setSelectedImage(response.product.images[0]);
+        setSelectedImage(getImageUrl(response.product.images[0]));
         // Clear any potential initial variant selections on product load
         setSelectedVariants({});
       }
@@ -418,7 +431,7 @@ const SingleProduct = () => {
 
   // Effect to update selected image based on selected variants
   useEffect(() => {
-    let imageToSet = product?.images?.[0]; // Default to first main image
+    let imageToSet = getImageUrl(product?.images?.[0]); // Default to first main image
 
     // Look for an image associated with the *first* selected variant value found across all selected variants
     // This logic might need refinement depending on desired image behavior with multiple variant selections.
@@ -433,7 +446,7 @@ const SingleProduct = () => {
               (val) => val.value === selectedValue
             );
             if (variantValue?.image) {
-              imageToSet = variantValue.image;
+              imageToSet = getImageUrl(variantValue.image);
               break outerLoop; // Use the first variant image found across any selected value and stop
             }
           }
@@ -536,7 +549,10 @@ const SingleProduct = () => {
     for (const value of firstVariantValues) {
       const restCombinations = generateCombinations(restVariants);
       for (const restCombination of restCombinations) {
-        combinations.push([{ name: firstVariant.name, values: [value] }, ...restCombination]);
+        combinations.push([
+          { name: firstVariant.name, values: [value] },
+          ...restCombination,
+        ]);
       }
     }
     return combinations;
@@ -545,9 +561,13 @@ const SingleProduct = () => {
   const handleAddToCart = useCallback(async () => {
     // Check if product has variants and no variants are selected
     if (productVariants && productVariants.length > 0) {
-      const hasSelectedVariants = Object.values(selectedVariants).some(values => values && values.length > 0);
+      const hasSelectedVariants = Object.values(selectedVariants).some(
+        (values) => values && values.length > 0
+      );
       if (!hasSelectedVariants) {
-        toast.error("Please select at least one variant before adding to cart!");
+        toast.error(
+          "Please select at least one variant before adding to cart!"
+        );
         return;
       }
     }
@@ -555,25 +575,22 @@ const SingleProduct = () => {
     let cartItemsToAdd = [];
 
     Object.entries(selectedVariants).forEach(([variantName, values]) => {
-      const variant = productVariants.find(v => v.name === variantName);
+      const variant = productVariants.find((v) => v.name === variantName);
       values.forEach((value) => {
         let price = product.salePrice ?? product.price;
-        let image = product?.images?.[0];
+        let image = getImageUrl(product?.images?.[0]);
         let variantValue;
         if (variant) {
-          variantValue = variant.values.find(v => v.value === value);
+          variantValue = variant.values.find((v) => v.value === value);
           if (variantValue && typeof variantValue.price === "number") {
             price = variantValue.price;
           }
           if (variantValue && variantValue.image) {
-            image = variantValue.image;
+            image = getImageUrl(variantValue.image);
           }
         }
         // Generate unique cartItemId
-        const cartItemId = [
-          product?._id,
-          `${variantName}:${value}`
-        ].join("|");
+        const cartItemId = [product?._id, `${variantName}:${value}`].join("|");
         const cartItem = {
           cartItemId,
           productId: product?._id,
@@ -583,7 +600,7 @@ const SingleProduct = () => {
           count: selectedQuantity,
           selectedVariants: [{ name: variantName, values: [value] }],
           freeShipping: product?.freeShipping,
-          deliveryCharges: product?.deliveryCharges,
+          deliveryCharges: product?.freeShipping ? 0 : 250,
         };
         cartItemsToAdd.push(cartItem);
       });
@@ -596,11 +613,11 @@ const SingleProduct = () => {
         productId: product?._id,
         title: product?.title,
         price: product.salePrice ?? product.price,
-        image: product?.images?.[0],
+        image: getImageUrl(product?.images?.[0]),
         count: selectedQuantity,
         selectedVariants: [],
         freeShipping: product?.freeShipping,
-        deliveryCharges: product?.deliveryCharges,
+        deliveryCharges: product?.freeShipping ? 0 : 250,
       });
     }
 
@@ -610,7 +627,7 @@ const SingleProduct = () => {
 
     toast.success(`${cartItemsToAdd.length} item(s) added to cart!`);
     setIsDrawerOpen(true);
-    
+
     // Facebook Pixel tracking
     track("AddToCart", {
       content_ids: [product._id],
@@ -618,21 +635,35 @@ const SingleProduct = () => {
       value: product.salePrice ? product.salePrice : product.price,
       currency: "PKR",
     });
-    
+
     // WhatsApp tracking for add to cart
     trackWhatsAppAddToCart({
       _id: product._id,
       title: product.title,
-      price: product.salePrice ? product.salePrice : product.price
+      price: product.salePrice ? product.salePrice : product.price,
     });
-  }, [selectedVariants, product, productVariants, dispatch, setIsDrawerOpen, selectedQuantity, currentPrice, track, trackWhatsAppAddToCart]);
+  }, [
+    selectedVariants,
+    product,
+    productVariants,
+    dispatch,
+    setIsDrawerOpen,
+    selectedQuantity,
+    currentPrice,
+    track,
+    trackWhatsAppAddToCart,
+  ]);
 
   const handleByNow = useCallback(async () => {
     // Check if product has variants and no variants are selected
     if (productVariants && productVariants.length > 0) {
-      const hasSelectedVariants = Object.values(selectedVariants).some(values => values && values.length > 0);
+      const hasSelectedVariants = Object.values(selectedVariants).some(
+        (values) => values && values.length > 0
+      );
       if (!hasSelectedVariants) {
-        toast.error("Please select at least one variant before proceeding to checkout!");
+        toast.error(
+          "Please select at least one variant before proceeding to checkout!"
+        );
         return;
       }
     }
@@ -640,13 +671,13 @@ const SingleProduct = () => {
     // Prepare cart items for each selected variant value
     let cartItemsToAdd = [];
     Object.entries(selectedVariants).forEach(([variantName, values]) => {
-      const variant = productVariants.find(v => v.name === variantName);
+      const variant = productVariants.find((v) => v.name === variantName);
       values.forEach((value) => {
         let price = product.salePrice ?? product.price;
         let image = product?.images?.[0];
         let variantValue;
         if (variant) {
-          variantValue = variant.values.find(v => v.value === value);
+          variantValue = variant.values.find((v) => v.value === value);
           if (variantValue && typeof variantValue.price === "number") {
             price = variantValue.price;
           }
@@ -655,10 +686,7 @@ const SingleProduct = () => {
           }
         }
         // Generate unique cartItemId
-        const cartItemId = [
-          product?._id,
-          `${variantName}:${value}`
-        ].join("|");
+        const cartItemId = [product?._id, `${variantName}:${value}`].join("|");
         const cartItem = {
           cartItemId,
           productId: product?._id,
@@ -668,7 +696,7 @@ const SingleProduct = () => {
           count: selectedQuantity,
           selectedVariants: [{ name: variantName, values: [value] }],
           freeShipping: product?.freeShipping,
-          deliveryCharges: product?.deliveryCharges,
+          deliveryCharges: product?.freeShipping ? 0 : 250,
         };
         cartItemsToAdd.push(cartItem);
       });
@@ -684,7 +712,7 @@ const SingleProduct = () => {
         count: selectedQuantity,
         selectedVariants: [],
         freeShipping: product?.freeShipping,
-        deliveryCharges: product?.deliveryCharges,
+        deliveryCharges: product?.freeShipping ? 0 : 250,
       });
     }
     try {
@@ -692,10 +720,10 @@ const SingleProduct = () => {
         // For logged-in users, send all items in one API call
         const cartPayload = {
           products: cartItemsToAdd,
-          deliveryCharges: product?.freeShipping ? 0 : product?.deliveryCharges || 200,
+          deliveryCharges: cartItemsToAdd.every((i) => i.freeShipping) ? 0 : 250,
         };
         await addItemToCart(userId, cartPayload);
-        cartItemsToAdd.forEach(cartItem => dispatch(addToCart(cartItem)));
+        cartItemsToAdd.forEach((cartItem) => dispatch(addToCart(cartItem)));
         track("AddToCart", {
           content_ids: [product._id],
           content_name: product.title,
@@ -706,7 +734,7 @@ const SingleProduct = () => {
         navigateTo("/cart/checkout");
       } else {
         // For guest users, just add all to Redux
-        cartItemsToAdd.forEach(cartItem => dispatch(addToCart(cartItem)));
+        cartItemsToAdd.forEach((cartItem) => dispatch(addToCart(cartItem)));
         track("AddToCart", {
           content_ids: [product._id],
           content_name: product.title,
@@ -720,7 +748,16 @@ const SingleProduct = () => {
       toast.error("Failed to proceed to checkout. Please try again.");
       console.error("Error during Buy Now:", error);
     }
-  }, [selectedVariants, product, productVariants, selectedQuantity, dispatch, userId, navigateTo, track]);
+  }, [
+    selectedVariants,
+    product,
+    productVariants,
+    selectedQuantity,
+    dispatch,
+    userId,
+    navigateTo,
+    track,
+  ]);
 
   const handleQuantityChange = useCallback(
     (operation) => {
@@ -740,9 +777,13 @@ const SingleProduct = () => {
   const handleWhatsAppOrder = useCallback(() => {
     // Check if product has variants and no variants are selected
     if (productVariants && productVariants.length > 0) {
-      const hasSelectedVariants = Object.values(selectedVariants).some(values => values && values.length > 0);
+      const hasSelectedVariants = Object.values(selectedVariants).some(
+        (values) => values && values.length > 0
+      );
       if (!hasSelectedVariants) {
-        toast.error("Please select at least one variant before ordering via WhatsApp!");
+        toast.error(
+          "Please select at least one variant before ordering via WhatsApp!"
+        );
         return;
       }
     }
@@ -768,7 +809,7 @@ const SingleProduct = () => {
       message
     )}`;
     window.open(url, "_blank");
-    
+
     // Facebook Pixel tracking - AddToCart event
     track("startConversation", {
       content_ids: [product._id],
@@ -776,14 +817,21 @@ const SingleProduct = () => {
       value: product.salePrice ? product.salePrice : product.price,
       currency: "PKR",
     });
-    
+
     // WhatsApp tracking for order
     trackWhatsAppOrder({
       _id: product._id,
       title: product.title,
-      price: currentPrice
+      price: currentPrice,
     });
-  }, [product, currentPrice, selectedVariants, productVariants, trackWhatsAppOrder, track]);
+  }, [
+    product,
+    currentPrice,
+    selectedVariants,
+    productVariants,
+    trackWhatsAppOrder,
+    track,
+  ]);
 
   // Memoize schema data to prevent duplicate generation
   const schemaData = useMemo(() => {
@@ -816,13 +864,21 @@ const SingleProduct = () => {
         />
         <meta
           property="og:image"
-          content={product?.images?.[0] || selectedImage || "default-image.jpg"}
+          content={
+            getImageUrl(product?.images?.[0]) ||
+            selectedImage ||
+            "default-image.jpg"
+          }
         />
         <meta property="og:url" content={window.location.href} />
-       
+
         <meta
           name="twitter:image"
-          content={product?.images?.[0] || selectedImage || "default-image.jpg"}
+          content={
+            getImageUrl(product?.images?.[0]) ||
+            selectedImage ||
+            "default-image.jpg"
+          }
         />
         <link rel="canonical" href={window.location.href} />
         <meta name="robots" content="index, follow" />
@@ -876,118 +932,7 @@ const SingleProduct = () => {
                   }}
                 />
               )}
-            </div>
-            {/* Special Offer Section below main image */}
-            {(() => {
-              const now = new Date();
-              // Only check for special offer if it's enabled and has valid dates
-              if (
-                product?.specialOfferEnabled &&
-                product?.specialOfferStart &&
-                product?.specialOfferEnd
-              ) {
-                const start = new Date(product.specialOfferStart);
-                const end = new Date(product.specialOfferEnd);
-
-                // Check if dates are valid
-                if (
-                  !isNaN(start.getTime()) &&
-                  !isNaN(end.getTime()) &&
-                  now >= start &&
-                  now <= end
-                ) {
-                  return (
-                    <div className="w-full flex justify-center mt-3 mb-1">
-                      <div className="flex flex-col w-full max-w-[400px] gap-2">
-                        <div className="flex items-center justify-center w-full bg-green-700 border border-primary shadow-sm px-4 py-2 gap-3">
-                          <span className="px-3 py-1 bg-white text-green-700 font-bold rounded-full text-sm">
-                            Azadi Offer
-                          </span>
-                          <span className="text-base font-semibold text-white">
-                            {offerCountdown}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-              }
-
-              return null;
-            })()}
-
-            {/* Star Rating and Review Count */}
-            <motion.div
-              className="flex items-center gap-2 bg-yellow-50 px-3 py-1 rounded-full w-fit mt-2 mx-auto"
-              variants={itemVariants}
-            >
-              {/* Inline renderStars function */}
-              {(() => {
-                const rating = product?.averageRating || 0;
-                const maxStars = 5;
-                const fullStars = Math.floor(rating);
-                const fractionalPart = rating % 1;
-                const stars = [];
-                for (let i = 1; i <= fullStars; i++) {
-                  stars.push(
-                    <svg
-                      key={`full-${i}`}
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-4 h-4 text-yellow-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
-                    </svg>
-                  );
-                }
-                if (fractionalPart >= 0.5) {
-                  stars.push(
-                    <svg
-                      key="half-star"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-3 h-3 text-yellow-400"
-                      viewBox="0 0 20 20"
-                    >
-                      <defs>
-                        <linearGradient id="half-gradient">
-                          <stop offset="50%" stopColor="#facc15" />
-                          <stop offset="50%" stopColor="#e5e7eb" />
-                        </linearGradient>
-                      </defs>
-                      <path
-                        d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z"
-                        fill="url(#half-gradient)"
-                      />
-                    </svg>
-                  );
-                }
-                const remainingStars =
-                  maxStars - fullStars - (fractionalPart >= 0.5 ? 1 : 0);
-                for (let i = 1; i <= remainingStars; i++) {
-                  stars.push(
-                    <svg
-                      key={`empty-${i}`}
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5 text-gray-300"
-                      fill="none"
-                      viewBox="0 0 20 20"
-                      stroke="currentColor"
-                    >
-                      <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
-                    </svg>
-                  );
-                }
-                return stars;
-              })()}
-              <span className="ml-1 text-base font-semibold text-gray-700">
-                {(product?.averageRating || 0).toFixed(1)}
-              </span>
-              <span className="text-base font-bold text-gray-400">|</span>
-              <span className="text-base font-bold text-gray-700">
-                {product?.reviews?.length || 0} Reviews
-              </span>
-            </motion.div>
+            </div> 
           </div>
 
           {/* Thumbnail List */}
@@ -1004,7 +949,6 @@ const SingleProduct = () => {
             >
               <FaChevronDown strokeWidth={24} />
             </button>
-
             <div
               ref={thumbnailRef}
               className="relative flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto whitespace-nowrap scrollbar-hide max-h-[300px] py-2 lg:py-6 z-10"
@@ -1013,17 +957,19 @@ const SingleProduct = () => {
                 <div
                   key={index}
                   className={`h-16 w-16 bg-slate-200 rounded p-1 cursor-pointer flex-shrink-0 ${
-                    selectedImage === image
+                    selectedImage === getImageUrl(image)
                       ? "border-2 border-primary"
                       : "border-none"
                   }`}
-                  onMouseEnter={() => handleMouseEnterProduct(image)}
+                  onMouseEnter={() =>
+                    handleMouseEnterProduct(getImageUrl(image))
+                  }
                   onClick={() => {
                     console.log("Thumbnail clicked:", image);
                     let isVariantImage = false;
                     for (const variant of product?.variants || []) {
                       const variantValue = variant.values?.find(
-                        (val) => val.image === image
+                        (val) => getImageUrl(val.image) === getImageUrl(image)
                       );
                       if (variantValue) {
                         handleVariantChange(variant.name, variantValue.value);
@@ -1032,12 +978,12 @@ const SingleProduct = () => {
                       }
                     }
                     if (!isVariantImage) {
-                      setSelectedImage(image);
+                      setSelectedImage(getImageUrl(image));
                     }
                   }}
                 >
                   <img
-                    src={image}
+                    src={getImageUrl(image)}
                     className="object-cover w-full h-full rounded"
                     loading="lazy"
                     alt={`Thumbnail ${index}`}
@@ -1047,35 +993,92 @@ const SingleProduct = () => {
                 </div>
               ))}
             </div>
-
-            <button
-              onClick={() => scrollThumbnails("left")}
-              className="absolute left-0 font-semibold transform -translate-y-1/2 lg:hidden top-1/2 bg-none text-secondary "
-            >
-              <FaChevronLeft strokeWidth={24} />
-            </button>
-            <button
-              onClick={() => scrollThumbnails("right")}
-              className="absolute right-0 font-semibold transform -translate-y-1/2 lg:hidden top-1/2 bg-none text-secondary "
-            >
-              <FaChevronRight strokeWidth={24} />
-            </button>
           </div>
-        </div>
-
-        {/* Product Details */}
-        <motion.div
-          className="w-full max-w-screen-xl py-0 ml-0 lg:w-1/2 lg:ml-2 lg:py-4"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
+          </div>
+          {/* Details Column */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
           <motion.h1
             className="text-[20px] md:text-[24px] lg:text-[26px] font-space capitalize font-semibold text-secondary mb-[2px]"
             variants={itemVariants}
           >
             {product?.title || "Product Title"}
           </motion.h1>
+
+          {/* Reviews section after title: stars + average + count */}
+          <motion.div
+            className="flex items-center gap-2 bg-none px-3 py-1 rounded-full w-fit mt-2"
+            variants={itemVariants}
+          >
+            {(() => {
+              const rating = product?.averageRating || 0;
+              const maxStars = 5;
+              const fullStars = Math.floor(rating);
+              const fractionalPart = rating % 1;
+              const stars = [];
+              for (let i = 1; i <= fullStars; i++) {
+                stars.push(
+                  <svg
+                    key={`full-${i}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4 text-yellow-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
+                  </svg>
+                );
+              }
+              if (fractionalPart >= 0.5) {
+                stars.push(
+                  <svg
+                    key="half-star"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-3 h-3 text-yellow-400"
+                    viewBox="0 0 20 20"
+                  >
+                    <defs>
+                      <linearGradient id="half-gradient">
+                        <stop offset="50%" stopColor="#facc15" />
+                        <stop offset="50%" stopColor="#e5e7eb" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z"
+                      fill="url(#half-gradient)"
+                    />
+                  </svg>
+                );
+              }
+              const remainingStars =
+                maxStars - fullStars - (fractionalPart >= 0.5 ? 1 : 0);
+              for (let i = 1; i <= remainingStars; i++) {
+                stars.push(
+                  <svg
+                    key={`empty-${i}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5 text-gray-300"
+                    fill="none"
+                    viewBox="0 0 20 20"
+                    stroke="currentColor"
+                  >
+                    <path d="M10 15l-5.878 3.09 1.125-6.529L.824 6.82l6.58-.953L10 .5l2.516 5.367 6.58.953-4.423 4.74 1.125 6.529L10 15z" />
+                  </svg>
+                );
+              }
+              return stars;
+            })()}
+            <span className="ml-1 text-base font-semibold text-gray-700">
+              {(product?.averageRating || 0).toFixed(1)}
+            </span>
+            <span className="text-base font-bold text-gray-400">|</span>
+            <span className="text-base font-bold text-gray-700">
+              ({product?.reviews?.length || 0})
+            </span>
+          </motion.div>
 
           {/* Mobile Price Block */}
           <motion.div
@@ -1107,7 +1110,7 @@ const SingleProduct = () => {
                 Free Shipping
               </span>
             )}
-            
+
             {percentageOff > 0 && (
               <span className="flex items-center gap-1 px-3 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs md:text-sm font-semibold">
                 <svg
@@ -1128,32 +1131,33 @@ const SingleProduct = () => {
           {productVariants && productVariants.length > 0 && (
             <div className="flex gap-2 overflow-x-auto py-2 mb-1 lg:hidden">
               {productVariants.map((variant, vIdx) =>
-                variant.values.map((val, idx) => (
-                  idx === 0 && (
-                    <div
-                      key={val.value}
-                      className="relative flex flex-col items-center cursor-pointer"
-                      onClick={() => {
-                        setActiveVariant(variant);
-                        setVariantDrawerOpen(true);
-                      }}
-                    >
-                      <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center bg-white">
-                        <img
-                          src={val.image || 'https://via.placeholder.com/50'}
-                          className="w-full h-full object-cover"
-                          alt={val.value}
-                        />
-                      </div>
-                      <span className="mt-2 inline-block bg-primary text-white text-xs px-2 py-0.5 rounded-full">
-                        {variant.name}
-                      </span>
-                      {/* <span className="mt-1 text-xs font-semibold">
+                variant.values.map(
+                  (val, idx) =>
+                    idx === 0 && (
+                      <div
+                        key={val.value}
+                        className="relative flex flex-col items-center cursor-pointer"
+                        onClick={() => {
+                          setActiveVariant(variant);
+                          setVariantDrawerOpen(true);
+                        }}
+                      >
+                        <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center bg-white">
+                          <img
+                            src={val.image || "https://via.placeholder.com/50"}
+                            className="w-full h-full object-cover"
+                            alt={val.value}
+                          />
+                        </div>
+                        <span className="mt-2 inline-block bg-primary text-white text-xs px-2 py-0.5 rounded-full">
+                          {variant.name}
+                        </span>
+                        {/* <span className="mt-1 text-xs font-semibold">
                         Rs. {val.price ?? product.price}
                       </span> */}
-                    </div>
-                  )
-                ))
+                      </div>
+                    )
+                )
               )}
             </div>
           )}
@@ -1196,13 +1200,42 @@ const SingleProduct = () => {
             </motion.div>
           )}
 
-          <motion.p
-            className="pl-2 text-[14px] product-description text-black font-space md:pl-0"
-            dangerouslySetInnerHTML={{
-              __html: replaceBulletsWithCheck(product?.description),
-            }}
-            variants={itemVariants}
-          />
+          {/* Special Offer - Mobile (after quantity selector) */}
+          {(() => {
+            const now = new Date();
+            if (
+              product?.specialOfferEnabled &&
+              product?.specialOfferStart &&
+              product?.specialOfferEnd
+            ) {
+              const start = new Date(product.specialOfferStart);
+              const end = new Date(product.specialOfferEnd);
+              if (
+                !isNaN(start.getTime()) &&
+                !isNaN(end.getTime()) &&
+                now >= start &&
+                now <= end
+              ) {
+                return (
+                  <div className="w-full flex justify-center mt-2 mb-2 lg:hidden">
+                    <div className="flex flex-col w-full max-w-[400px] gap-2">
+                      <div className="flex items-center justify-center w-full bg-green-600 border border-primary shadow-sm px-4 py-2 gap-3 rounded">
+                        <span className="px-3 py-1 bg-white text-green-700 font-bold rounded-full text-sm">
+                          Special Offer
+                        </span>
+                        <span className="text-base font-semibold text-white">
+                          {offerCountdown}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+            }
+            return null;
+          })()}
+
+          
 
           {/* Desktop Price Block */}
           <motion.div
@@ -1234,7 +1267,7 @@ const SingleProduct = () => {
                 Free Shipping
               </span>
             )}
-            
+
             {percentageOff > 0 && (
               <span className="flex items-center gap-1 px-3 py-1 bg-green-100 border border-green-200  text-green-700  rounded-full  text-xs md:text-sm font-semibold">
                 <svg
@@ -1288,6 +1321,39 @@ const SingleProduct = () => {
               </motion.button>
             </motion.div>
           )}
+
+          {/* Special Offer - Desktop (after quantity selector) */}
+          {(() => {
+            const now = new Date();
+            if (
+              product?.specialOfferEnabled &&
+              product?.specialOfferStart &&
+              product?.specialOfferEnd
+            ) {
+              const start = new Date(product.specialOfferStart);
+              const end = new Date(product.specialOfferEnd);
+              if (
+                !isNaN(start.getTime()) &&
+                !isNaN(end.getTime()) &&
+                now >= start &&
+                now <= end
+              ) {
+                return (
+                  <motion.div variants={itemVariants} className="w-full flex justify-start mt-1 mb-2 hidden lg:flex">
+                    <div className="flex items-center font-space text-lg border min-w-[370px] my-4 border-primary shadow-sm px-4 py-2 gap-3">
+                      <span className="px-3  y-1 bg-white text-green-700 font-bold rounded-full ">
+                        Special Offer
+                      </span>
+                      <span className="text-base font-semibold text-green-700">
+                        {offerCountdown}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              }
+            }
+            return null;
+          })()}
 
           {/* Variants */}
           {productVariants && productVariants.length > 0
@@ -1436,14 +1502,11 @@ const SingleProduct = () => {
               <FaWhatsapp className="text-2xl" /> Order via WhatsApp
             </motion.button>
             {product?.category?.name && (
-              <motion.p
-                className="mb-1  capitalize"
-                variants={itemVariants}
-              >
+              <motion.p className="mb-1  capitalize" variants={itemVariants}>
                 <strong></strong>{" "}
                 <Link
                   to={`/category/${product?.category?.slug}`}
-                  className="text-[20px] text-blue-600 font-semibold no-underline hover:underline"
+                  className="text-[20px] text-blue-600 ml-2 md:ml-20 md:text-xl font-space font-semibold no-underline hover:underline"
                 >
                   {product.category.name}
                 </Link>
@@ -1506,7 +1569,7 @@ const SingleProduct = () => {
           <div className="flex gap-2">
             <motion.a
               onClick={handleByNow}
-              className="flex-1 px-4 py-3 text-sm font-bold text-center text-white no-underline bg-primary opacity-70 hover:opacity-90 rounded-lg"
+              className="flex-1 px-4 py-3 text-sm font-bold text-center text-white no-underline bg-primary md:bg-primary/90 hover:bg-primary "
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               href="#"
@@ -1515,7 +1578,7 @@ const SingleProduct = () => {
             </motion.a>
             <motion.a
               onClick={handleAddToCart}
-              className="flex items-center justify-center flex-1 gap-1 px-4 py-3 text-sm font-bold text-primary no-underline bg-secondary/80 hover:bg-secondary/90 rounded-lg"
+              className="flex items-center justify-center flex-1 gap-1 px-4 py-3 text-sm font-bold text-primary no-underline bg-secondary md:bg-secondary/90 hover:bg-secondary "
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               href="#"
@@ -1526,7 +1589,7 @@ const SingleProduct = () => {
           </div>
           <motion.button
             onClick={handleWhatsAppOrder}
-            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-bold text-white bg-[#25CC64] hover:bg-green-800 rounded-lg"
+            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-bold text-white bg-green-600 md:bg-[#25CC64] hover:bg-green-800 "
             whileHover={{ scale: 1.02, backgroundColor: "#218B00" }}
             whileTap={{ scale: 0.98 }}
           >
@@ -1556,18 +1619,21 @@ const SingleProduct = () => {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-secondary font-space text-lg">{activeVariant.name}</span>
+                <span className="font-bold text-secondary font-space text-lg">
+                  {activeVariant.name}
+                </span>
                 <button
                   onClick={() => setVariantDrawerOpen(false)}
                   className="p-2 rounded-full hover:bg-gray-200 transition-colors"
-                  aria-label="Close variant drawer"
                 >
-                  <AiOutlineClose className="w-5 h-5 text-primary font-extrabold" />
+                  <AiOutlineClose className="w-5 h-5" />
                 </button>
               </div>
               <div className="grid grid-cols-4 gap-3 justify-start">
                 {activeVariant.values.map((val, idx) => {
-                  const isSelected = selectedVariants[activeVariant.name]?.includes(val.value);
+                  const isSelected = selectedVariants[
+                    activeVariant.name
+                  ]?.includes(val.value);
                   return (
                     <div
                       key={val.value}
@@ -1581,13 +1647,19 @@ const SingleProduct = () => {
                             handleVariantChange(activeVariant.name, val.value);
                           } else {
                             // Preview and select
-                            setPreviewImage(val.image || 'https://via.placeholder.com/300');
+                            setPreviewImage(
+                              getImageUrl(val.image) ||
+                                "https://via.placeholder.com/300"
+                            );
                             handleVariantChange(activeVariant.name, val.value);
                           }
                         }}
                       >
                         <img
-                          src={val.image || 'https://via.placeholder.com/50'}
+                          src={
+                            getImageUrl(val.image) ||
+                            "https://via.placeholder.com/50"
+                          }
                           className="w-full h-full object-cover"
                           alt={val.value}
                         />
@@ -1598,7 +1670,9 @@ const SingleProduct = () => {
                           </span>
                         )}
                       </div>
-                      <span className="mt-1 text-xs text-center font-medium max-w-full truncate">{val.value}</span>
+                      <span className="mt-1 text-xs text-center font-medium max-w-full truncate">
+                        {val.value}
+                      </span>
                       <span className="text-xs font-semibold text-center">
                         Rs. {val.price ?? product.price}
                       </span>
@@ -1626,8 +1700,8 @@ const SingleProduct = () => {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              onClick={e => e.stopPropagation()}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 onClick={() => setPreviewImage(null)}

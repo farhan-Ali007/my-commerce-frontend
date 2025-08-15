@@ -13,9 +13,21 @@ const cartSlice = createSlice({
             const newItem = action.payload;
             // console.log("Adding to cart with item:", newItem);
 
-            // Check if the item with the same cartItemId already exists
+            // Use a stable computed key to avoid merging unrelated items when cartItemId is missing
+            const computeKey = (item) => {
+                if (item.cartItemId) return item.cartItemId;
+                const base = item.productId;
+                const variantPart = Array.isArray(item.selectedVariants) && item.selectedVariants.length > 0
+                    ? item.selectedVariants
+                        .map(v => `${v.name}:${Array.isArray(v.values) ? v.values.join(',') : v.values || ''}`)
+                        .join('|')
+                    : '';
+                return variantPart ? `${base}|${variantPart}` : `${base}`;
+            };
+
+            const newKey = computeKey(newItem);
             const itemIndex = state.products.findIndex(
-                item => item.cartItemId === newItem.cartItemId
+                item => computeKey(item) === newKey
             );
 
             if (itemIndex >= 0) {
@@ -32,7 +44,7 @@ const cartSlice = createSlice({
 
             // Update cart level freeShipping and deliveryCharges based on products
             state.freeShipping = state.products.every(item => item.freeShipping);
-            state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 200;
+            state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 250;
 
             // Update the cart total
             state.cartTotal = state.products.reduce((total, item) => total + item.price * item.count, 0);
@@ -43,7 +55,17 @@ const cartSlice = createSlice({
         },
 
         updateQuantity: (state, action) => {
-            const itemIndex = state.products.findIndex(item => item.cartItemId === action.payload.id);
+            const computeKey = (item) => {
+                if (item.cartItemId) return item.cartItemId;
+                const base = item.productId;
+                const variantPart = Array.isArray(item.selectedVariants) && item.selectedVariants.length > 0
+                    ? item.selectedVariants
+                        .map(v => `${v.name}:${Array.isArray(v.values) ? v.values.join(',') : v.values || ''}`)
+                        .join('|')
+                    : '';
+                return variantPart ? `${base}|${variantPart}` : `${base}`;
+            };
+            const itemIndex = state.products.findIndex(item => computeKey(item) === action.payload.id);
             if (itemIndex >= 0) {
                 const item = state.products[itemIndex];
                 state.cartTotal += (action.payload.count - item.count) * item.price;
@@ -51,21 +73,31 @@ const cartSlice = createSlice({
                 
                 // Update cart level freeShipping and deliveryCharges
                 state.freeShipping = state.products.every(item => item.freeShipping);
-                state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 200;
+                state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 250;
                 
                 localStorage.setItem('cartproducts', JSON.stringify(state.products));
                 localStorage.setItem('cartTotal', state.cartTotal.toString());
             }
         },
         removeFromCart: (state, action) => {
-            const itemIndex = state.products.findIndex(item => item.cartItemId === action.payload.id);
+            const computeKey = (item) => {
+                if (item.cartItemId) return item.cartItemId;
+                const base = item.productId;
+                const variantPart = Array.isArray(item.selectedVariants) && item.selectedVariants.length > 0
+                    ? item.selectedVariants
+                        .map(v => `${v.name}:${Array.isArray(v.values) ? v.values.join(',') : v.values || ''}`)
+                        .join('|')
+                    : '';
+                return variantPart ? `${base}|${variantPart}` : `${base}`;
+            };
+            const itemIndex = state.products.findIndex(item => computeKey(item) === action.payload.id);
             if (itemIndex >= 0) {
                 state.cartTotal -= state.products[itemIndex].price * state.products[itemIndex].count;
                 state.products.splice(itemIndex, 1);
                 
                 // Update cart level freeShipping and deliveryCharges
                 state.freeShipping = state.products.every(item => item.freeShipping);
-                state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 200;
+                state.deliveryCharges = state.products.every(item => item.freeShipping) ? 0 : 250;
                 
                 localStorage.setItem('cartproducts', JSON.stringify(state.products));
                 localStorage.setItem('cartTotal', state.cartTotal.toString());

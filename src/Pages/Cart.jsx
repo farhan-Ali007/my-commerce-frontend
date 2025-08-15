@@ -28,6 +28,13 @@ const Cart = () => {
   const { track } = useFacebookPixel();
   // console.log("cart items in redux---->", cartItems)
 
+  const getImageUrl = (img) => {
+    if (!img) return '';
+    if (typeof img === 'string') return img;
+    if (typeof img === 'object') return img.url || '';
+    return '';
+  };
+
   useEffect(() => {
     setCartData(cartItems);
   }, [cartItems]);
@@ -104,9 +111,9 @@ const Cart = () => {
     0
   );
 
-  const deliveryCharges = cartData.some((item) => item.deliveryCharges === 200 || item.deliveryCharges === 250)
-    ? 250
-    : 0;
+  const deliveryCharges = cartData.length > 0 && cartData.every((item) => item.freeShipping)
+    ? 0
+    : (cartData.length > 0 ? 250 : 0);
 
   const totalBill = totalPrice + deliveryCharges;
 
@@ -214,7 +221,7 @@ const Cart = () => {
                 {/* Product Image */}
                 <div className="w-24 h-24 overflow-hidden md:w-28 md:h-28 bg-slate-200">
                   <img
-                    src={product.image}
+                    src={getImageUrl(product.image)}
                     className="object-contain w-full h-full mix-blend-multiply"
                     alt={product.title}
                     loading="lazy"

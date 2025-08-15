@@ -409,7 +409,7 @@ const Shop = () => {
                                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-t-primary border-b-4 border-b-secondary opacity-90"></div>
                             </div>
                         ) : products.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {products.map((product) => (
                                     <ShopCard key={product._id} product={product} />
                                 ))}

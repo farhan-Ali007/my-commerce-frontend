@@ -268,10 +268,10 @@ const CategoryPage = () => {
         <meta name="robots" content="index, follow" />
         <script type="application/ld+json">{JSON.stringify(schema)}</script>
       </Helmet>
-      <div className="max-w-screen mx-2 md:mx-5 flex flex-col md:flex-row">
+      <div className="max-w-screen mx-2 md:mx-5 flex flex-col xl:flex-row">
         {/* Mobile Filter Button */}
         <h1 className="hidden text-xl font-semibold">{categoryName}</h1>
-        <div className="md:hidden flex justify-between items-center mb-4">
+        <div className="xl:hidden flex justify-between items-center mb-4">
           {/* Sort Filter Dropdown */}
           <div className="relative flex-1 mt-2 justify-center">
             <button
@@ -348,8 +348,8 @@ const CategoryPage = () => {
           brands={brands}
         />
 
-        {/* Sidebar Filters (Desktop) */}
-        <div className="hidden lg:block lg:w-1/4 p-4 bg-white rounded-lg shadow-md h-fit sticky top-4">
+        {/* Sidebar Filters (Desktop - xl and above) */}
+        <div className="hidden xl:block xl:w-1/4 p-4 bg-white rounded-lg shadow-md h-fit sticky top-4">
           <h3 className="text-xl font-semibold mb-4 text-primary">
             Filter Products
           </h3>
@@ -472,7 +472,7 @@ const CategoryPage = () => {
         </div>
 
         {/* Product Display */}
-        <div className="w-full md:w-[80%] p-1 md:py-4 pl-1 md:pl-8  px-1 md:px-0">
+        <div className="w-full xl:w-3/4 p-1 md:py-4 pl-1 md:pl-8  px-1 md:px-0">
           {loading ? (
             <p className="text-center text-gray-500">Loading...</p>
           ) : (

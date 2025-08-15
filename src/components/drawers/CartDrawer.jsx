@@ -6,10 +6,14 @@ import { truncateTitle } from "../../helpers/truncateTitle";
 import { motion } from "framer-motion";
 import { ImCross } from "react-icons/im";
 import { removeFromCart } from '../../store/cartSlice';
+import { addItemToCart } from '../../functions/cart';
+import { toast } from 'react-hot-toast';
 
 const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.products);
+  const { user } = useSelector((state) => state.auth);
+  const userId = user?._id;
 
   const [delayedOpen, setDelayedOpen] = useState(false);
 
@@ -20,6 +24,47 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
       setDelayedOpen(false);
     }
   }, [isDrawerOpen]);
+
+  const getImageUrl = (img) => {
+    if (!img) return '';
+    if (typeof img === 'string') return img;
+    if (typeof img === 'object') return img.url || '';
+    return '';
+  };
+
+  // Stable key like in cartSlice to uniquely identify items (product + variants)
+  const computeKey = (item) => item.cartItemId || (
+    `${item.productId}` + (
+      Array.isArray(item.selectedVariants) && item.selectedVariants.length > 0
+        ? '|' + item.selectedVariants
+            .map(v => `${v.name}:${Array.isArray(v.values) ? v.values.join(',') : v.values || ''}`)
+            .join('|')
+        : ''
+    )
+  );
+
+  const handleRemove = async (item) => {
+    try {
+      const id = computeKey(item);
+      // Prepare new cart state before dispatch to reuse for backend sync
+      const newCartItems = cartItems.filter(ci => computeKey(ci) !== id);
+      const deliveryCharges = newCartItems.every(i => i.freeShipping) ? 0 : 250;
+
+      dispatch(removeFromCart({ id }));
+
+      // Persist for logged-in users
+      if (userId) {
+        await addItemToCart(userId, {
+          products: newCartItems,
+          deliveryCharges,
+        });
+      }
+    } catch (e) {
+      toast.error('Failed to remove item. Please try again.');
+      // no rethrow; drawer should continue to work for guests
+      console.error('Error removing item from cart:', e);
+    }
+  };
 
   // Calculate cart total from Redux state
   const cartTotal = cartItems?.reduce(
@@ -60,13 +105,13 @@ const CartDrawer = ({ isDrawerOpen, setIsDrawerOpen }) => {
             cartItems.map((item, index) => (
               <div key={index} className="flex items-center gap-1 mb-3">
                 <img
-                  src={item?.image || "https://via.placeholder.com/500"}
+                  src={getImageUrl(item?.image) || "https://via.placeholder.com/500"}
                   alt={truncateTitle(item?.title, 30)}
                   className="w-20 h-20 object-cover aspect-square"
                 />
                 <div className="w-full flex flex-col ml-2 relative">
                   <button
-                    onClick={() => dispatch(removeFromCart({ id: item.productId }))}
+                    onClick={() => handleRemove(item)}
                     aria-label="Remove item from cart"
                     className="absolute top-0 right-0 p-1 text-red-500 hover:text-red-700"
                   >

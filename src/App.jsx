@@ -74,6 +74,14 @@ const App = () => {
   return (
     <>
       <MetaPixelTracker />
+      
+      {/* DEV PREVIEW BANNER - Remove this before production */}
+      {window.location.hostname.includes('dev--') && (
+        <div className="bg-yellow-400 text-black text-center py-2 font-bold">
+          🚧 DEV PREVIEW - Testing Changes 🚧
+        </div>
+      )}
+      
       <div className="flex flex-col">
         {/* Conditionally render Navbar */}
         {!hiddenNavbarRoutes.includes(location.pathname) && <Navbar />}
