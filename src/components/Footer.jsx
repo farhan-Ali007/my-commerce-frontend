@@ -3,6 +3,7 @@ import {
   FaFacebook,
   FaInstagram,
   FaTiktok,
+  FaYoutube,
   FaTwitter,
   FaLinkedin,
 } from "react-icons/fa";
@@ -99,6 +100,13 @@ const getSocialIcon = (icon) => {
           size={24}
         />
       );
+    case "youtube":
+      return (
+        <FaYoutube
+          className="text-white hover:text-secondary transition-colors"
+          size={24}
+        />
+      );
     default:
       return null;
   }
@@ -168,6 +176,7 @@ const Footer = () => {
     { icon: "facebook", url: "https://www.facebook.com/EtimadMart/" },
     { icon: "instagram", url: "https://www.instagram.com/etimad_mart" },
     { icon: "tiktok", url: "https://www.tiktok.com/@etimad_mart" },
+    { icon: "youtube", url: "https://www.youtube.com/channel/UCsvYjwsM1GtRe1aiSHwYGjQ" },
   ];
   const copyright = footerData?.copyright || "© 2025. All Rights Reserved.";
 

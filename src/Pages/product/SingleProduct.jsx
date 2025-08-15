@@ -932,8 +932,7 @@ const SingleProduct = () => {
                   }}
                 />
               )}
-            </div>
-            
+            </div> 
           </div>
 
           {/* Thumbnail List */}
@@ -995,53 +994,13 @@ const SingleProduct = () => {
               ))}
             </div>
           </div>
-
-          {/* Mobile Variant Images Row (after price, before description) */}
-          {productVariants && productVariants.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto py-2 mb-1 lg:hidden">
-              {productVariants.map((variant, vIdx) =>
-                variant.values.map(
-                  (val, idx) =>
-                    idx === 0 && (
-                      <div
-                        key={val.value}
-                        className="relative flex flex-col items-center cursor-pointer"
-                        onClick={() => {
-                          setActiveVariant(variant);
-                          setVariantDrawerOpen(true);
-                        }}
-                      >
-                        <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center bg-white">
-                          <img
-                            src={
-                              getImageUrl(val.image) ||
-                              "https://via.placeholder.com/50"
-                            }
-                            className="w-full h-full object-cover"
-                            alt={val.value}
-                          />
-                        </div>
-                        <span className="mt-2 inline-block bg-primary text-white text-xs px-2 py-0.5 rounded-full">
-                          {variant.name}
-                        </span>
-                        {/* <span className="mt-1 text-xs font-semibold">
-                          Rs. {val.price ?? product.price}
-                        </span> */}
-                      </div>
-                    )
-                )
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Product Details */}
-        <motion.div
-          className="w-full max-w-screen-xl py-0 ml-0 lg:w-1/2 lg:ml-2 lg:py-4"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
+          </div>
+          {/* Details Column */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
           <motion.h1
             className="text-[20px] md:text-[24px] lg:text-[26px] font-space capitalize font-semibold text-secondary mb-[2px]"
             variants={itemVariants}
@@ -1610,7 +1569,7 @@ const SingleProduct = () => {
           <div className="flex gap-2">
             <motion.a
               onClick={handleByNow}
-              className="flex-1 px-4 py-3 text-sm font-bold text-center text-white no-underline bg-primary opacity-70 hover:opacity-90 rounded-lg"
+              className="flex-1 px-4 py-3 text-sm font-bold text-center text-white no-underline bg-primary md:bg-primary/90 hover:bg-primary "
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               href="#"
@@ -1619,7 +1578,7 @@ const SingleProduct = () => {
             </motion.a>
             <motion.a
               onClick={handleAddToCart}
-              className="flex items-center justify-center flex-1 gap-1 px-4 py-3 text-sm font-bold text-primary no-underline bg-secondary/80 hover:bg-secondary/90 rounded-lg"
+              className="flex items-center justify-center flex-1 gap-1 px-4 py-3 text-sm font-bold text-primary no-underline bg-secondary md:bg-secondary/90 hover:bg-secondary "
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               href="#"
@@ -1630,7 +1589,7 @@ const SingleProduct = () => {
           </div>
           <motion.button
             onClick={handleWhatsAppOrder}
-            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-bold text-white bg-[#25CC64] hover:bg-green-800 rounded-lg"
+            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-bold text-white bg-green-600 md:bg-[#25CC64] hover:bg-green-800 "
             whileHover={{ scale: 1.02, backgroundColor: "#218B00" }}
             whileTap={{ scale: 0.98 }}
           >
