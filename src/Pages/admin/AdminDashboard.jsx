@@ -43,6 +43,10 @@ const AdminDashboard = () => {
   const [selectedPage, setSelectedPage] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [newOrdersCount, setNewOrdersCount] = useState(1);
+  // Mobile/tablet collapsible sections
+  const [openSection, setOpenSection] = useState(null);
+  const toggleSection = (name) =>
+    setOpenSection((prev) => (prev === name ? null : name));
 
   useEffect(() => {
     const savedPage = localStorage.getItem("selectedPage");
@@ -189,7 +193,7 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <div
-        className={`w-full lg:w-1/5 bg-gray-800 z-[100] h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${
+        className={`w-full lg:w-1/5 bg-gray-800 z-[100] h-auto lg:h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:transform-none transition-transform duration-200 ease-in-out`}
       >
@@ -209,7 +213,7 @@ const AdminDashboard = () => {
             className={`flex items-center gap-3 py-2 px-4 text-left ${
               selectedPage === "dashboard"
                 ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
+                : "hover:bg-gray-700 rounded-lg"
             }`}
             onClick={() => {
               setSelectedPage("dashboard");
@@ -220,16 +224,86 @@ const AdminDashboard = () => {
             Dashboard
           </button>
 
-          {/* Products group with hover submenu */}
+          {/* Products group with hover submenu (lg+) and collapsible (mobile/tablet) */}
           <div className="relative group">
             <button
-              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-full"}`}
+              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-lg"}`}
+              onClick={() => toggleSection("products")}
             >
               <FaBoxOpen className="text-lg" />
               Products
             </button>
-            <div className="absolute left-full top-0 -ml-2 hidden group-hover:block z-50">
+            {/* Hover submenu for desktop */}
+            <div className="absolute left-full top-0 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allProducts");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaBoxOpen /> All Products
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allUsers");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaUsers /> Users
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allTags");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaTags /> Tags
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allCategories");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <BiSolidCategory /> Categories
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allBrands");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaCrown /> Brands
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allSubs");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <RiMenuUnfoldFill /> Subcategories
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("menuCategories");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <GiVerticalBanner /> Menu Categories
+                </button>
+              </div>
+            </div>
+            {/* Collapsible submenu for mobile/tablet */}
+            <div className={`lg:hidden ${openSection === "products" ? "block" : "hidden"} pl-6 pt-1`}>
+              <div className="flex flex-col gap-1 pb-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
@@ -312,10 +386,11 @@ const AdminDashboard = () => {
             <FaUsers className="text-lg" />
             Users
           </button>
-          {/* Orders group with hover submenu */}
+          {/* Orders group with hover submenu (lg+) and collapsible (mobile/tablet) */}
           <div className="relative group">
             <button
-              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-full"}`}
+              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-lg"}`}
+              onClick={() => toggleSection("orders")}
             >
               <FaShoppingCart className="text-lg" />
               Orders
@@ -325,7 +400,8 @@ const AdminDashboard = () => {
                 </span>
               )}
             </button>
-            <div className="absolute left-full top-0 -ml-2 hidden group-hover:block z-50">
+            {/* Hover submenu for desktop */}
+            <div className="absolute left-full top-0 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[200px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
@@ -352,17 +428,106 @@ const AdminDashboard = () => {
                 </button>
               </div>
             </div>
+            {/* Collapsible submenu for mobile/tablet */}
+            <div className={`lg:hidden ${openSection === "orders" ? "block" : "hidden"} pl-6 pt-1`}>
+              <div className="flex flex-col gap-1 pb-2">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allOrders");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaShoppingCart /> All Orders
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("newOrders");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <MdFiberNew /> New Orders
+                  {newOrdersCount > 0 && (
+                    <span className="ml-auto text-xs bg-red-600 text-white rounded px-1">
+                      {newOrdersCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-          {/* Customization group with hover submenu */}
+          {/* Customization group with hover submenu (lg+) and collapsible (mobile/tablet) */}
           <div className="relative group">
             <button
-              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-full"}`}
+              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-lg"}`}
+              onClick={() => toggleSection("customize")}
             >
               <MdSettings className="text-lg" />
               Customization
             </button>
-            <div className="absolute left-full -top-32 -ml-2 hidden group-hover:block z-50">
+            {/* Hover submenu for desktop */}
+            <div className="absolute left-full -top-32 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("logo");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaRegImage /> Logo
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("topbarText");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <MdCampaign /> Topbar
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("dynamicPages");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaFileAlt /> Pages
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("footer");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <MdOutlineSpaceBar /> Footer
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("colorSettings");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <MdColorLens /> Color Settings
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("popups");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <IoNotifications /> Popup
+                </button>
+              </div>
+            </div>
+            {/* Collapsible submenu for mobile/tablet */}
+            <div className={`lg:hidden ${openSection === "customize" ? "block" : "hidden"} pl-6 pt-1`}>
+              <div className="flex flex-col gap-1 pb-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
