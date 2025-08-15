@@ -1,14 +1,15 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { getAllOrders, updateOrderStatus } from "../../functions/order";
-import { IoMdCall } from "react-icons/io";
-import { GiMoneyStack } from "react-icons/gi";
-import { MdAlternateEmail, MdNotes } from "react-icons/md";
-import { FaMoneyBillTrendUp } from "react-icons/fa6";
+import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { FaEye } from "react-icons/fa";
+import {BsBullseye} from 'react-icons/bs'
+import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { FcViewDetails } from "react-icons/fc";
-import { IoIosPerson } from "react-icons/io";
+import { GiMoneyStack } from "react-icons/gi";
 import { GrStatusGoodSmall } from "react-icons/gr";
-import SimpleBar from "simplebar-react";
+import { IoIosPerson } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
+import { getAllOrders, updateOrderStatus } from "../../functions/order";
+import { truncateTitle } from "../../helpers/truncateTitle";
 import { dateFormatter } from "../../utils/dateFormatter";
 
 const AllOrders = () => {
@@ -21,6 +22,7 @@ const AllOrders = () => {
   const LIMIT = 20;
   const [previewProduct, setPreviewProduct] = useState(null);
   const [previewOrder, setPreviewOrder] = useState(null);
+  const navigate = useNavigate();
 
   const fetchAllOrders = async (pageNum = 1) => {
     try {
@@ -60,7 +62,8 @@ const AllOrders = () => {
   // Pagination controls
   const handlePageChange = useCallback(
     (pageNum) => {
-      if (pageNum < 1 || pageNum > totalPages || pageNum === currentPage) return;
+      if (pageNum < 1 || pageNum > totalPages || pageNum === currentPage)
+        return;
       setCurrentPage(pageNum);
       fetchAllOrders(pageNum);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -90,10 +93,9 @@ const AllOrders = () => {
     return (
       <div className="flex flex-col md:flex-row items-center justify-between gap-3 p-4 border-t">
         <div className="text-sm text-gray-600">
-          Showing <span className="font-semibold">{orders.length}</span> of
-          {" "}
-          <span className="font-semibold">{totalOrders}</span> orders
-          (Page {currentPage} of {totalPages})
+          Showing <span className="font-semibold">{orders.length}</span> of{" "}
+          <span className="font-semibold">{totalOrders}</span> orders (Page{" "}
+          {currentPage} of {totalPages})
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -161,7 +163,7 @@ const AllOrders = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:px-5 md:py-6">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -206,92 +208,138 @@ const AllOrders = () => {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <SimpleBar
-                style={{
-                  maxHeight: "calc(100vh - 300px)",
-                  minHeight: "400px",
-                }}
-                options={{
-                  scrollbarMinSize: 40,
-                  scrollbarMaxSize: 300,
-                  forceVisible: "y",
-                  wheelPropagation: true,
-                  wheelEventTarget: document,
-                  autoHide: false,
-                }}
-              >
-                <table className="min-w-[2000px] w-full border-collapse bg-white">
+            <div>
+              {/* Mobile: Card list */}
+              <div className="md:hidden divide-y">
+                {filteredOrders.map((order) => (
+                  <div key={order._id} className="p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-mono text-[11px] text-gray-600">
+                        {dateFormatter(order.orderedAt)}
+                      </span>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${
+                          order?.source === "web"
+                            ? "bg-blue-100 text-blue-700"
+                            : order?.source === "mobile"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                        title={order?.source || "unknown"}
+                      >
+                        {order?.source || "unknown"}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-900">
+                      <div className="font-semibold truncate">
+                        {order?.orderedBy?.username || order?.shippingAddress?.fullName}
+                      </div>
+                      <div className="text-xs text-gray-600 truncate">
+                        {order?.shippingAddress?.city || "—"}
+                      </div>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-700 truncate">
+                      <span className="font-medium">{order.cartSummary?.length || 0} item(s)</span>
+                      {order.cartSummary && order.cartSummary.length > 0 && (
+                        <span className="block truncate">
+                          {truncateTitle(order.cartSummary[0].title, 40)}
+                          {order.cartSummary.length > 1 ? ` +${order.cartSummary.length - 1} more` : ""}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-xs text-gray-700">Delivery: Rs.{order?.deliveryCharges}</span>
+                      <span className="text-sm font-bold text-green-600">Rs.{order?.totalPrice}</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <select
+                        className="flex-1 py-1 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                        value={order.status || "Pending"}
+                        onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                      >
+                        {Statuses.map((status, index) => (
+                          <option key={index} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className="inline-flex items-center justify-center p-2"
+                        title="View details"
+                        onClick={() =>
+                          navigate(`/admin/orders/${order._id}`, {
+                            state: { order },
+                          })
+                        }
+                      >
+                        <FaEye size={16} className="text-gray-700" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop: Table */}
+              <div className="hidden md:block">
+                <table className="w-full table-fixed border-collapse bg-white">
+                  <colgroup>
+                    <col style={{ width: "7rem" }} />
+                    <col style={{ width: "10rem" }} />
+                    <col style={{ width: "6rem" }} />
+                    <col style={{ width: "7.5rem" }} />
+                    <col style={{ width: "12rem" }} />
+                    <col style={{ width: "6rem" }} />
+                    <col style={{ width: "6rem" }} />
+                    <col className="hidden xl:table-column" />
+                    <col className="hidden lg:table-column" />
+                    <col className="hidden xl:table-column" />
+                    <col className="hidden xl:table-column" />
+                    <col style={{ width: "2.5rem" }} />
+                  </colgroup>
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr className="border-b border-gray-200">
-                      <th className="px-4 py-3 min-w-44 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-2 py-1 w-28 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         Date
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <div className="flex items-center gap-2">
                           <IoIosPerson size={20} className="text-gray-500" />
                           <span>Customer</span>
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <span>Source</span>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <div className="flex items-center gap-2">
-                          <GrStatusGoodSmall
-                            size={20}
-                            className="text-gray-500"
-                          />
+                          <GrStatusGoodSmall size={20} className="text-gray-500" />
                           <span>Status</span>
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200 min-w-[500px]">
+                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200 max-w-[224px]">
                         <div className="flex items-center gap-2">
                           <FcViewDetails size={20} />
                           <span>Products</span>
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <div className="flex items-center gap-2">
-                          <FaMoneyBillTrendUp
-                            size={20}
-                            className="text-gray-500"
-                          />
+                          <FaMoneyBillTrendUp size={20} className="text-gray-500" />
                           <span>Delivery</span>
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <div className="flex items-center gap-2">
                           <GiMoneyStack size={20} className="text-gray-500" />
                           <span>Total</span>
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
-                        <div className="flex items-center gap-1">
-                          <IoMdCall size={20} className="text-gray-500" />
-                          <span>Phone</span>
-                        </div>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs min-w-[200px] font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
-                        <span>City</span>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs min-w-[300px] font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
-                        <span>Address</span>
-                      </th>
-                      {/* <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <MdAlternateEmail
-                            size={20}
-                            className="text-gray-500"
-                          />
-                          <span>Email</span>
-                        </div>
-                      </th> */}
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        <div className="flex items-center gap-2 w-56">
-                          <MdNotes size={18} className="text-gray-500" />
-                          <span>Notes</span>
-                        </div>
+                      <th className="px-1 py-3 w-12 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <span
+                          className="inline-flex items-center justify-center w-full"
+                          title="View"
+                        >
+                          <BsBullseye size={24} className=" font-extrabold text-primary" />
+                        </span>
                       </th>
                     </tr>
                   </thead>
@@ -302,18 +350,18 @@ const AllOrders = () => {
                           key={order._id}
                           className="hover:bg-gray-50 transition-colors duration-150"
                         >
-                          <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
-                            <span className="font-mono text-xs">
+                          <td className="px-2 py-3 text-sm leading-tight text-gray-900 border-r border-gray-200 text-center">
+                            <span className="font-mono flex justify-center text-xs">
                               {dateFormatter(order.orderedAt)}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
+                          <td className="px-3 py-3 text-sm text-gray-900 border-r border-gray-200 truncate">
                             <div className="font-medium">
                               {order?.orderedBy?.username ||
                                 `${order?.shippingAddress?.fullName}`}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
+                          <td className="px-3 py-3 text-sm text-gray-900 border-r border-gray-200">
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
                                 order?.source === "web"
@@ -327,9 +375,9 @@ const AllOrders = () => {
                               {order?.source || "unknown"}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm border-r border-gray-200">
+                          <td className="px-2 py-1 text-sm border-r border-gray-200">
                             <select
-                              className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                              className="py-1 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                               value={order.status || "Pending"}
                               onChange={(e) =>
                                 handleStatusChange(order._id, e.target.value)
@@ -342,130 +390,56 @@ const AllOrders = () => {
                               ))}
                             </select>
                           </td>
-
-                          <td className="px-4 py-3 border-r border-gray-200">
-                            <div className="max-w-[700px]">
-                              <table className="w-full border-collapse">
-                                <thead>
-                                  <tr className="bg-gray-100">
-                                    <th className="px-2 py-1 text-xs font-semibold text-gray-600">
-                                      Image
-                                    </th>
-                                    <th className="px-2 py-1 text-xs font-semibold text-gray-600">
-                                      Product
-                                    </th>
-                                    <th className="px-2 py-1 text-xs font-semibold text-gray-600">
-                                      Price
-                                    </th>
-                                    <th className="px-2 py-1 text-xs font-semibold text-gray-600">
-                                      Qty
-                                    </th>
-                                    <th className="px-2 py-1 text-xs font-semibold text-gray-600">
-                                      Variants
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {order.cartSummary?.map((product, idx) => (
-                                    <tr
-                                      key={idx}
-                                      className="border-b last:border-b-0"
-                                    >
-                                      <td className="px-2 py-1">
-                                        <img
-                                          src={product.image}
-                                          alt={product.title}
-                                          className="w-12 h-12 object-cover rounded border cursor-pointer hover:shadow-lg transition"
-                                          onClick={() => {
-                                            setPreviewProduct(product);
-                                            setPreviewOrder(order);
-                                          }}
-                                        />
-                                      </td>
-                                      <td className="px-2 py-1 text-sm font-medium text-blue-600">
-                                        {product.title}
-                                      </td>
-                                      <td className="px-2 py-1 text-sm font-semibold">
-                                        Rs.{product.price}
-                                      </td>
-                                      <td className="px-2 py-1 text-sm">
-                                        {product.count}
-                                      </td>
-                                      <td className="px-2 py-1 text-xs">
-                                        {product.selectedVariants &&
-                                        product.selectedVariants.length > 0 ? (
-                                          <div className="flex flex-wrap gap-1">
-                                            {product.selectedVariants.map(
-                                              (variant, vIdx) => (
-                                                <span
-                                                  key={vIdx}
-                                                  className="px-2 py-0.5 border border-blue-200 capitalize"
-                                                >
-                                                  {variant.name}:{" "}
-                                                  {variant.values.join(", ")}
-                                                </span>
-                                              )
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <span className="text-gray-400">
-                                            —
-                                          </span>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                          <td className="px-3 py-3 border-r border-gray-200 max-w-[192px]">
+                            <div className="text-sm text-gray-800 truncate">
+                              <span className="font-semibold text-xs">
+                                {order.cartSummary?.length || 0} item(s)
+                              </span>
+                              {order.cartSummary &&
+                                order.cartSummary.length > 0 && (
+                                  <span className="block text-gray-600 text-sm truncate">
+                                    {truncateTitle(
+                                      order.cartSummary[0].title,
+                                      40
+                                    )}
+                                    {order.cartSummary.length > 1
+                                      ? ` +${order.cartSummary.length - 1} more`
+                                      : ""}
+                                  </span>
+                                )}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200">
+                          <td className="px-3 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200">
                             Rs.{order?.deliveryCharges}
                           </td>
-                          <td className="px-4 py-3 text-sm font-bold text-green-600 border-r border-gray-200">
+                          <td className="px-3 py-3 text-sm font-bold text-green-600 border-r border-gray-200">
                             Rs.{order?.totalPrice}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
-                            <span className="font-mono">
-                              {order?.shippingAddress?.mobile}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
-                            {order?.shippingAddress?.city || "—"}
-                          </td>
-                          <td className="px-4 py-3 min-w-96 text-nowrap text-sm text-gray-900 border-r border-gray-200 max-w-lg">
-                            <div
-                              className="truncate"
-                              title={order?.shippingAddress?.streetAddress}
+                          <td className="px-1 py-3 text-center">
+                            <button
+                              className="inline-flex items-center justify-center  p-2 "
+                              title="View details"
+                              onClick={() =>
+                                navigate(`/admin/orders/${order._id}`, {
+                                  state: { order },
+                                })
+                              }
                             >
-                              {order?.shippingAddress?.streetAddress || "—"}
-                            </div>
-                          </td>
-                          {/* <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
-                            <span className="text-blue-600">
-                              {order?.shippingAddress?.email}
-                            </span>
-                          </td> */}
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            <div
-                              className="max-w-[150px] truncate"
-                              title={order?.additionalInstructions}
-                            >
-                              {order?.additionalInstructions || "—"}
-                            </div>
+                              <FaEye size={16} className="text-gray-700" />
+                            </button>
                           </td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
-
-                {renderPagination()}
-              </SimpleBar>
+              </div>
             </div>
           )}
         </div>
       </div>
+      {/* Pagination under the table, always visible without horizontal scroll */}
+      <div className="max-w-7xl mx-auto mt-4">{renderPagination()}</div>
       {previewProduct && previewOrder && (
         <div
           className="fixed inset-0 top-20  z-50 flex items-center justify-center bg-black bg-opacity-70"

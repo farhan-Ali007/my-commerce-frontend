@@ -31,6 +31,7 @@ const CreateProduct = lazy(() => import("./Pages/admin/CreateProduct"));
 const EditProduct = lazy(() => import("./Pages/admin/EditProduct"));
 const AdminUsers = lazy(() => import("./Pages/admin/AdminUsers"));
 const AdminColorSettings = lazy(() => import("./Pages/admin/AdminColorSettings"));
+const OrderDetails = lazy(() => import("./Pages/admin/OrderDetails"));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -116,14 +117,15 @@ const App = () => {
             <Route path="/brand/:brandSlug" element={<ProductsByBrand />} />
 
 
-
             {/* Protected Routes for Admin Only */}
             <Route element={<AdminRoute />}>
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/orders" element={<AdminDashboard />} />
               <Route path="/add-product" element={<CreateProduct />} />
               <Route path="/edit-product/:slug" element={<EditProduct />} />
               <Route path="/admin-users" element={<AdminUsers />} />
               <Route path="/admin-color-settings" element={<AdminColorSettings />} />
+              <Route path="/admin/orders/:orderId" element={<OrderDetails />} />
             </Route>
 
             {/* Direct access to color settings for admins */}

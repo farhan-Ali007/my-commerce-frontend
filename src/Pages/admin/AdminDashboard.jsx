@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { BiSolidCategory } from "react-icons/bi";
 import {
   FaBoxOpen,
@@ -40,6 +41,7 @@ import NewOrders from "./NewOrders";
 import AdminTopbarText from "./TopBar";
 
 const AdminDashboard = () => {
+  const location = useLocation();
   const [selectedPage, setSelectedPage] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [newOrdersCount, setNewOrdersCount] = useState(1);
@@ -71,6 +73,12 @@ const AdminDashboard = () => {
     };
     fetchNewOrdersCount();
   }, []);
+
+  useEffect(() => {
+    if (location?.pathname === "/admin/orders") {
+      setSelectedPage("allOrders");
+    }
+  }, [location?.pathname]);
 
   const renderContent = () => {
     switch (selectedPage) {
@@ -406,15 +414,6 @@ const AdminDashboard = () => {
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
-                    setSelectedPage("allOrders");
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <FaShoppingCart /> All Orders
-                </button>
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
-                  onClick={() => {
                     setSelectedPage("newOrders");
                     setIsSidebarOpen(false);
                   }}
@@ -425,6 +424,15 @@ const AdminDashboard = () => {
                       {newOrdersCount}
                     </span>
                   )}
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("allOrders");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaShoppingCart /> All Orders
                 </button>
               </div>
             </div>
