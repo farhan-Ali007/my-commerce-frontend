@@ -32,6 +32,7 @@ const EditProduct = lazy(() => import("./Pages/admin/EditProduct"));
 const AdminUsers = lazy(() => import("./Pages/admin/AdminUsers"));
 const AdminColorSettings = lazy(() => import("./Pages/admin/AdminColorSettings"));
 const OrderDetails = lazy(() => import("./Pages/admin/OrderDetails"));
+const NewOrders = lazy(() => import("./Pages/admin/NewOrders"));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -121,6 +122,7 @@ const App = () => {
             <Route element={<AdminRoute />}>
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
               <Route path="/admin/orders" element={<AdminDashboard />} />
+              <Route path="/admin/new-orders" element={<AdminDashboard />} />
               <Route path="/add-product" element={<CreateProduct />} />
               <Route path="/edit-product/:slug" element={<EditProduct />} />
               <Route path="/admin-users" element={<AdminUsers />} />

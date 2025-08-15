@@ -7,7 +7,7 @@ import { FcViewDetails } from "react-icons/fc";
 import { GiMoneyStack } from "react-icons/gi";
 import { GrStatusGoodSmall } from "react-icons/gr";
 import { IoIosPerson } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getAllOrders, updateOrderStatus } from "../../functions/order";
 import { truncateTitle } from "../../helpers/truncateTitle";
 import { dateFormatter } from "../../utils/dateFormatter";
@@ -23,6 +23,7 @@ const AllOrders = () => {
   const [previewProduct, setPreviewProduct] = useState(null);
   const [previewOrder, setPreviewOrder] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchAllOrders = async (pageNum = 1) => {
     try {
@@ -268,7 +269,7 @@ const AllOrders = () => {
                         title="View details"
                         onClick={() =>
                           navigate(`/admin/orders/${order._id}`, {
-                            state: { order },
+                            state: { order, from: "/admin/orders" },
                           })
                         }
                       >
@@ -412,16 +413,16 @@ const AllOrders = () => {
                           <td className="px-3 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200">
                             Rs.{order?.deliveryCharges}
                           </td>
-                          <td className="px-3 py-3 text-sm font-bold text-green-600 border-r border-gray-200">
+                          <td className="px-3 py-3 text-sm font-bold text-green-600">
                             Rs.{order?.totalPrice}
                           </td>
                           <td className="px-1 py-3 text-center">
                             <button
-                              className="inline-flex items-center justify-center  p-2 "
+                              className="inline-flex items-center justify-center p-2"
                               title="View details"
                               onClick={() =>
                                 navigate(`/admin/orders/${order._id}`, {
-                                  state: { order },
+                                  state: { order, from: "/admin/orders" },
                                 })
                               }
                             >

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getRecentOrders, updateOrderStatus } from "../../functions/order";
 import { toast } from "react-hot-toast";
 import { FaEye } from "react-icons/fa";
@@ -19,6 +19,7 @@ const NewOrders = () => {
   const [previewProduct, setPreviewProduct] = useState(null);
   const [previewOrder, setPreviewOrder] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchAllOrders = async () => {
     try {
@@ -183,7 +184,7 @@ const NewOrders = () => {
                         title="View details"
                         onClick={() =>
                           navigate(`/admin/orders/${order._id}`, {
-                            state: { order },
+                            state: { order, from: "/admin/new-orders" },
                           })
                         }
                       >
@@ -320,7 +321,7 @@ const NewOrders = () => {
                             title="View details"
                             onClick={() =>
                               navigate(`/admin/orders/${order._id}`, {
-                                state: { order },
+                                state: { order, from: "/admin/new-orders" },
                               })
                             }
                           >

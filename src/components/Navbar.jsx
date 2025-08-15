@@ -77,6 +77,7 @@ const Navbar = React.memo(() => {
       /^\/edit-product\/[^/]+$/.test(location.pathname) ||
       /^\/product\/[^/]+$/.test(location.pathname) ||
       location.pathname.startsWith("/admin/orders/") ||
+      location.pathname.startsWith("/admin/new-orders") ||
       location.pathname.startsWith("/category/"),
     [hideCategoryBarOn, location.pathname]
   );

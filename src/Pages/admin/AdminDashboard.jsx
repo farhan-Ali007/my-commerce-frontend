@@ -77,6 +77,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (location?.pathname === "/admin/orders") {
       setSelectedPage("allOrders");
+    } else if (location?.pathname === "/admin/new-orders") {
+      setSelectedPage("newOrders");
     }
   }, [location?.pathname]);
 

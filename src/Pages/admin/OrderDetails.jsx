@@ -23,7 +23,7 @@ const OrderDetails = () => {
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <button
-            onClick={() => navigate("/admin/orders")}
+            onClick={() => navigate(state?.from || "/admin/orders")}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded border hover:bg-gray-50 text-sm"
           >
             <MdArrowBack /> Back
