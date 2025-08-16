@@ -41,6 +41,7 @@ const Dashboard = () => {
 
   const [range, setRange] = useState('30d'); // '7d' | '30d' | 'all'
   const [chartMode, setChartMode] = useState('line'); // 'line' | 'area'
+  const [rangeSelected, setRangeSelected] = useState(false); // controls KPI behavior
 
   const [series, setSeries] = useState([]); // orders+revenue time series
   const [statusSummary, setStatusSummary] = useState([]);
@@ -150,9 +151,18 @@ const Dashboard = () => {
               >Area</button>
             </div>
             <div className="inline-flex rounded overflow-hidden border">
-              <button className={`px-3 py-1 text-sm ${range === '7d' ? 'bg-gray-800 text-white' : 'bg-white'}`} onClick={() => setRange('7d')}>Last 7d</button>
-              <button className={`px-3 py-1 text-sm ${range === '30d' ? 'bg-gray-800 text-white' : 'bg-white'}`} onClick={() => setRange('30d')}>Last 30d</button>
-              <button className={`px-3 py-1 text-sm ${range === 'all' ? 'bg-gray-800 text-white' : 'bg-white'}`} onClick={() => setRange('all')}>All time</button>
+              <button
+                className={`px-3 py-1 text-sm ${range === '7d' && rangeSelected ? 'bg-gray-800 text-white' : 'bg-white'}`}
+                onClick={() => { setRange('7d'); setRangeSelected(true); }}
+              >Last 7d</button>
+              <button
+                className={`px-3 py-1 text-sm ${range === '30d' && rangeSelected ? 'bg-gray-800 text-white' : 'bg-white'}`}
+                onClick={() => { setRange('30d'); setRangeSelected(true); }}
+              >Last 30d</button>
+              <button
+                className={`px-3 py-1 text-sm ${range === 'all' && rangeSelected ? 'bg-gray-800 text-white' : 'bg-white'}`}
+                onClick={() => { setRange('all'); setRangeSelected(true); }}
+              >All time</button>
             </div>
           </div>
         </div>
@@ -162,12 +172,23 @@ const Dashboard = () => {
 
         {!loading && (
           <>
-            {/* KPI Cards (reflect selected range) */}
+            {/* KPI Cards: show Today by default, switch to range after selection */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <StatCard title={`Orders (${rangeLabel})`} value={rangeTotals.orders} sub={`AOV Rs.${Math.round(rangeTotals.avgOrderValue || 0)}`} />
-              <StatCard title={`Revenue (${rangeLabel})`} value={`Rs.${Math.round(rangeTotals.revenue || 0)}`} sub={`Items ${rangeTotals.itemsSold || 0}`} />
-              <StatCard title="Today Orders" value={kpis?.today?.orders ?? 0} sub={`AOV Rs.${Math.round(kpis?.today?.avgOrderValue || 0)}`} />
-              <StatCard title="All-time Revenue" value={`Rs.${Math.round(kpis?.allTime?.revenue || 0)}`} sub={`Orders ${kpis?.allTime?.orders || 0}`} />
+              {rangeSelected ? (
+                <>
+                  <StatCard title={`Orders (${rangeLabel})`} value={rangeTotals.orders} sub={`AOV Rs.${Math.round(rangeTotals.avgOrderValue || 0)}`} />
+                  <StatCard title={`Revenue (${rangeLabel})`} value={`Rs.${Math.round(rangeTotals.revenue || 0)}`} sub={`Items ${rangeTotals.itemsSold || 0}`} />
+                  <StatCard title="Today Orders" value={kpis?.today?.orders ?? 0} sub={`AOV Rs.${Math.round(kpis?.today?.avgOrderValue || 0)}`} />
+                  <StatCard title="All-time Revenue" value={`Rs.${Math.round(kpis?.allTime?.revenue || 0)}`} sub={`Orders ${kpis?.allTime?.orders || 0}`} />
+                </>
+              ) : (
+                <>
+                  <StatCard title="Today Orders" value={kpis?.today?.orders ?? 0} sub={`AOV Rs.${Math.round(kpis?.today?.avgOrderValue || 0)}`} />
+                  <StatCard title="Today Revenue" value={`Rs.${Math.round(kpis?.today?.revenue || 0)}`} sub={`Items ${kpis?.today?.itemsSold || 0}`} />
+                  <StatCard title="Last 7d Orders" value={kpis?.last7?.orders ?? 0} sub={`Revenue Rs.${Math.round(kpis?.last7?.revenue || 0)}`} />
+                  <StatCard title="All-time Revenue" value={`Rs.${Math.round(kpis?.allTime?.revenue || 0)}`} sub={`Orders ${kpis?.allTime?.orders || 0}`} />
+                </>
+              )}
             </div>
 
             {/* Charts Row: Revenue + Orders */}
