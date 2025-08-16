@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Banner from '../components/Banner';
-import BestSellers from '../components/BestSellers';
-import Marquee from "react-fast-marquee";
-import Categories from '../components/Categories';
-import NewArrivals from '../components/NewArrivals';
-import Brands from '../components/Brands';
 import { FaWhatsapp } from 'react-icons/fa'; 
-import FeaturedProducts from '../components/FeaturedProducts';
-import ShowcaseCategories from '../components/ShowcaseCategories';
 import websiteSchema from '../helpers/getWebsiteSchema';
 import organizationSchema from '../helpers/getOrgSchema';
+
+// Lazy-load below-the-fold sections to improve LCP/TBT
+const Categories = lazy(() => import('../components/Categories'));
+const Brands = lazy(() => import('../components/Brands'));
+const FeaturedProducts = lazy(() => import('../components/FeaturedProducts'));
+const NewArrivals = lazy(() => import('../components/NewArrivals'));
+const BestSellers = lazy(() => import('../components/BestSellers'));
+const ShowcaseCategories = lazy(() => import('../components/ShowcaseCategories'));
+const Marquee = lazy(() => import('react-fast-marquee'));
+
+const SectionSkeleton = ({ className = '' }) => (
+  <div className={`w-full h-40 md:h-60 bg-gray-100 animate-pulse rounded ${className}`} />
+);
 
 const showcaseCategories = [
   {
@@ -46,22 +52,36 @@ const Home = () => {
          Etimad Mart - Best Online Shopping store in Pakistan
       </h1>
       <Banner />
-      <Categories />
-      <Brands />
-      <Marquee speed={50} pauseOnHover direction="left" gradient gradientColor="#FFB727" gradientWidth={50}  className="text-2xl md:text-3xl font-roboto font-semibold md:font-extrabold my-2 md:my-8 text-primary">
-        🔥 Sale 50% Off!    🔥 &nbsp; | &nbsp;  Limited Time Offer!  &nbsp; | &nbsp; New Arrivals Available Now! 🎉
-      </Marquee>
-      <FeaturedProducts />
-      <NewArrivals />
-      <BestSellers />
-      {showcaseCategories.map(cat => (
-        <ShowcaseCategories
-          key={cat.slug}
-          categorySlug={cat.slug}
-          categoryName={cat.name}
-          categoryImage={cat.image}
-        />
-      ))}
+      <Suspense fallback={<SectionSkeleton className="h-24" />}> 
+        <Categories />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton className="h-10" />}> 
+        <Marquee speed={50} pauseOnHover direction="left" gradient={false} className="text-2xl md:text-3xl font-roboto font-semibold md:font-extrabold my-2 md:my-8 text-primary">
+          🔥 Sale 50% Off!    🔥 &nbsp; | &nbsp;  Limited Time Offer!  &nbsp; | &nbsp; New Arrivals Available Now! 🎉
+        </Marquee>
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}> 
+        <Brands />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}> 
+        <FeaturedProducts />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}> 
+        <NewArrivals />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}> 
+        <BestSellers />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}> 
+        {showcaseCategories.map(cat => (
+          <ShowcaseCategories
+            key={cat.slug}
+            categorySlug={cat.slug}
+            categoryName={cat.name}
+            categoryImage={cat.image}
+          />
+        ))}
+      </Suspense>
       {/* WhatsApp Floating Icon */}
       <a
         href="https://wa.me/+923071111832?text=Hello%2C%20I%20have%20a%20question%20regarding%20a%20product%20on%20Etimad%20Mart.%20Can%20you%20please%20assist%20me%3F"

@@ -1,23 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import {
-  ResponsiveContainer,
-  LineChart as RLineChart,
-  Line,
-  AreaChart as RAreaChart,
-  Area,
-  BarChart as RBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  PieChart as RPieChart,
-  Pie,
-  Cell,
-} from 'recharts';
-import {
   getDashboardAnalytics,
   getOrdersAnalytics,
   getOrderStatusSummary,
@@ -38,6 +21,7 @@ const Dashboard = () => {
   const [kpis, setKpis] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
   const [lowStockCount, setLowStockCount] = useState(0);
+  const [RC, setRC] = useState(null); // recharts module when loaded
 
   const [range, setRange] = useState('30d'); // '7d' | '30d' | 'all'
   const [chartMode, setChartMode] = useState('line'); // 'line' | 'area'
@@ -62,6 +46,9 @@ const Dashboard = () => {
 
   // Load static dashboard (KPIs, top products)
   useEffect(() => {
+    // lazy-load recharts on demand (separate chunk)
+    let mounted = true;
+    import('recharts').then((mod) => { if (mounted) setRC(mod); }).catch(() => {});
     const loadDashboard = async () => {
       try {
         setLoading(true);
@@ -77,6 +64,7 @@ const Dashboard = () => {
       }
     };
     loadDashboard();
+    return () => { mounted = false; };
   }, []);
 
   // Load dynamic charts per range
@@ -199,33 +187,37 @@ const Dashboard = () => {
                   <div className="text-xs text-gray-500">{range === 'all' ? 'Monthly' : 'Daily'}</div>
                 </div>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    {chartMode === 'line' ? (
-                      <RLineChart data={formattedSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2} dot={false} />
-                      </RLineChart>
-                    ) : (
-                      <RAreaChart data={formattedSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.6}/>
-                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0.05}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Area type="monotone" dataKey="revenue" stroke="#6366f1" fillOpacity={1} fill="url(#revGrad)" />
-                      </RAreaChart>
-                    )}
-                  </ResponsiveContainer>
+                  {RC ? (
+                    <RC.ResponsiveContainer width="100%" height="100%">
+                      {chartMode === 'line' ? (
+                        <RC.LineChart data={formattedSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                          <RC.CartesianGrid strokeDasharray="3 3" />
+                          <RC.XAxis dataKey="date" />
+                          <RC.YAxis />
+                          <RC.Tooltip />
+                          <RC.Legend />
+                          <RC.Line type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2} dot={false} />
+                        </RC.LineChart>
+                      ) : (
+                        <RC.AreaChart data={formattedSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.6}/>
+                              <stop offset="95%" stopColor="#6366f1" stopOpacity={0.05}/>
+                            </linearGradient>
+                          </defs>
+                          <RC.CartesianGrid strokeDasharray="3 3" />
+                          <RC.XAxis dataKey="date" />
+                          <RC.YAxis />
+                          <RC.Tooltip />
+                          <RC.Legend />
+                          <RC.Area type="monotone" dataKey="revenue" stroke="#6366f1" fillOpacity={1} fill="url(#revGrad)" />
+                        </RC.AreaChart>
+                      )}
+                    </RC.ResponsiveContainer>
+                  ) : (
+                    <div className="w-full h-full animate-pulse bg-gray-100 rounded" />
+                  )}
                 </div>
               </div>
               <div className="p-4 rounded-lg border bg-white shadow-sm">
@@ -234,16 +226,20 @@ const Dashboard = () => {
                   <div className="text-xs text-gray-500">{range === 'all' ? 'Monthly' : 'Daily'}</div>
                 </div>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RBarChart data={formattedSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="orders" fill="#0ea5e9" radius={[4,4,0,0]} />
-                    </RBarChart>
-                  </ResponsiveContainer>
+                  {RC ? (
+                    <RC.ResponsiveContainer width="100%" height="100%">
+                      <RC.BarChart data={formattedSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <RC.CartesianGrid strokeDasharray="3 3" />
+                        <RC.XAxis dataKey="date" />
+                        <RC.YAxis />
+                        <RC.Tooltip />
+                        <RC.Legend />
+                        <RC.Bar dataKey="orders" fill="#0ea5e9" radius={[4,4,0,0]} />
+                      </RC.BarChart>
+                    </RC.ResponsiveContainer>
+                  ) : (
+                    <div className="w-full h-full animate-pulse bg-gray-100 rounded" />
+                  )}
                 </div>
               </div>
             </div>
@@ -254,26 +250,30 @@ const Dashboard = () => {
                 <h2 className="font-semibold text-gray-800 mb-3">Orders by Status</h2>
                 {statusSummary?.length ? (
                   <div className="h-72 flex items-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RPieChart>
-                        <Tooltip />
-                        <Legend />
-                        <Pie
-                          data={statusSummary.map((s) => ({ name: s.status, value: s.count }))}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={90}
-                          innerRadius={40}
-                          label
-                        >
-                          {statusSummary.map((s, idx) => (
-                            <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
-                          ))}
-                        </Pie>
-                      </RPieChart>
-                    </ResponsiveContainer>
+                    {RC ? (
+                      <RC.ResponsiveContainer width="100%" height="100%">
+                        <RC.PieChart>
+                          <RC.Tooltip />
+                          <RC.Legend />
+                          <RC.Pie
+                            data={statusSummary.map((s) => ({ name: s.status, value: s.count }))}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={90}
+                            innerRadius={40}
+                            label
+                          >
+                            {statusSummary.map((s, idx) => (
+                              <RC.Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
+                            ))}
+                          </RC.Pie>
+                        </RC.PieChart>
+                      </RC.ResponsiveContainer>
+                    ) : (
+                      <div className="w-full h-full animate-pulse bg-gray-100 rounded" />
+                    )}
                   </div>
                 ) : (
                   <div className="text-sm text-gray-500">No data</div>
@@ -304,33 +304,37 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  {chartMode === 'line' ? (
-                    <RLineChart data={formattedUsersSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="users" stroke="#10b981" strokeWidth={2} dot={false} />
-                    </RLineChart>
-                  ) : (
-                    <RAreaChart data={formattedUsersSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.05}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Area type="monotone" dataKey="users" stroke="#10b981" fillOpacity={1} fill="url(#userGrad)" />
-                    </RAreaChart>
-                  )}
-                </ResponsiveContainer>
+                {RC ? (
+                  <RC.ResponsiveContainer width="100%" height="100%">
+                    {chartMode === 'line' ? (
+                      <RC.LineChart data={formattedUsersSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <RC.CartesianGrid strokeDasharray="3 3" />
+                        <RC.XAxis dataKey="date" />
+                        <RC.YAxis />
+                        <RC.Tooltip />
+                        <RC.Legend />
+                        <RC.Line type="monotone" dataKey="users" stroke="#10b981" strokeWidth={2} dot={false} />
+                      </RC.LineChart>
+                    ) : (
+                      <RC.AreaChart data={formattedUsersSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/>
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.05}/>
+                          </linearGradient>
+                        </defs>
+                        <RC.CartesianGrid strokeDasharray="3 3" />
+                        <RC.XAxis dataKey="date" />
+                        <RC.YAxis />
+                        <RC.Tooltip />
+                        <RC.Legend />
+                        <RC.Area type="monotone" dataKey="users" stroke="#10b981" fillOpacity={1} fill="url(#userGrad)" />
+                      </RC.AreaChart>
+                    )}
+                  </RC.ResponsiveContainer>
+                ) : (
+                  <div className="w-full h-full animate-pulse bg-gray-100 rounded" />
+                )}
               </div>
             </div>
           </>

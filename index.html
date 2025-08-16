@@ -17,6 +17,13 @@
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Performance: Preconnect to critical origins -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Performance: Preload LCP hero image (first banner) -->
+    <link rel="preload" as="image" href="/customBanner1.webp" imagesrcset="/customBanner1.webp 800w" imagesizes="100vw" />
     <!-- Content Security Policy Meta Tag (Backup for cPanel) -->
     <meta
       http-equiv="Content-Security-Policy"

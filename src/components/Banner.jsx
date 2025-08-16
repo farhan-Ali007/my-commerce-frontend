@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { getBanners } from "../functions/banner";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Banner = React.memo(() => {
@@ -188,7 +187,9 @@ const Banner = React.memo(() => {
                             bannerDimensions.desktop.height
                         )}
                         alt={`Banner ${index + 1}`}
-                        loading={index > 0 ? "eager" : "lazy"}
+                        loading={index === 0 ? "eager" : "lazy"}
+                        decoding="async"
+                        fetchpriority={index === 0 ? 'high' : 'auto'}
                         className="absolute inset-0 object-cover object-center w-full h-full"
                         width={bannerDimensions.desktop.width}
                         height={bannerDimensions.desktop.height}
@@ -250,33 +251,27 @@ const Banner = React.memo(() => {
     //     );
     // }
 
-    return (
-        <div className="relative w-full mx-auto">
-            <div className="relative w-full">
-                <Slider ref={sliderRef} {...settings}>
-                    {staticBanners.map((banner, index) => (
-                        <div key={banner._id} className="w-full">
-                            <a
-                                href={banner.link}
-                                className="block w-full h-full"
-                                target="_self"
-                                rel="noopener noreferrer"
-                            >
-                                <img
-                                    src={banner.image}
-                                    alt={banner.alt}
-                                    className="object-cover object-center w-full h-full"
-                                    style={{ maxHeight: '550px', width: '100%' }}
-                                    loading={index > 0 ? 'lazy' : 'eager'}
-                                />
-                            </a>
-                        </div>
-                    ))}
-                </Slider>
-                {staticBanners.length > 1 && renderDots()}
-            </div>
+return (
+    <div className="relative w-full mx-auto">
+        <div className="relative w-full">
+            <Slider ref={sliderRef} {...settings}>
+                {staticBanners.map((banner, index) => (
+                    <div key={banner._id} className="w-full">
+                        <a
+                            href={banner.link}
+                            className="block w-full h-full"
+                            target="_self"
+                            rel="noopener noreferrer"
+                        >
+                            {renderBannerImage(banner, index)}
+                        </a>
+                    </div>
+                ))}
+            </Slider>
+            {staticBanners.length > 1 && renderDots()}
         </div>
-    );
+    </div>
+);
 });
 
 Banner.displayName = 'Banner';
