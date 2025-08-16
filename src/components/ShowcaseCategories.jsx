@@ -62,6 +62,9 @@ const ShowcaseCategories = ({
             alt={categoryName}
             className="block w-16 h-16 md:w-full md:max-w-[300px] md:h-[380px] object-cover bg-gray-100 self-center rounded shadow-none hover:shadow-md flex-shrink-0"
             loading="lazy"
+            decoding="async"
+            width={300}
+            height={380}
           />
         </div>
         {/* Right: Horizontally Scrollable Products */}

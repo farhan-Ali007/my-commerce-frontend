@@ -19,7 +19,6 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     const off = salePrice && Math.floor(((price - salePrice) / price) * 100);
     const totalReviews = product?.reviews?.length;
     const [isHovered, setIsHovered] = useState(false);
-    const [imgLoaded, setImgLoaded] = useState(false);
     const { track } = useFacebookPixel();
 
     const imageWidth = 180;
@@ -208,7 +207,19 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     };
 
     const getOptimizedImageUrl = (imageUrl) => {
-        return `${imageUrl}?f_auto&q_80&w=${imageWidth}&h=${imageHeight}&c=fill`;
+        if (!imageUrl) return '';
+        // Keep local assets as-is
+        if (typeof imageUrl === 'string' && imageUrl.startsWith('/')) return imageUrl;
+        const sep = imageUrl.includes('?') ? '&' : '?';
+        return `${imageUrl}${sep}f_auto&q_80&w=${imageWidth}&h=${imageHeight}&c=fill`;
+    };
+
+    const getOptimizedSrcSet = (imageUrl) => {
+        if (!imageUrl) return undefined;
+        const base = getImageUrl(imageUrl);
+        const url180 = `${base}${base.includes('?') ? '&' : '?'}f_auto&q_80&w=180&h=180&c=fill`;
+        const url360 = `${base}${base.includes('?') ? '&' : '?'}f_auto&q_80&w=360&h=360&c=fill`;
+        return `${url180} 180w, ${url360} 360w`;
     };
 
     return (
@@ -226,11 +237,9 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 <div className="relative w-full h-full">
                     <motion.img
                         className="absolute top-0 left-0 object-cover w-full h-full"
-                        src={
-                            imgLoaded
-                                ? getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))
-                                : '/loadingCard.png'
-                        }
+                        src={getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
+                        srcSet={getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
+                        sizes="(max-width: 768px) 50vw, 180px"
                         alt={title}
                         loading="lazy"
                         width={imageWidth}
@@ -238,11 +247,11 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                         decoding="async"
                         variants={imageVariants}
                         whileHover="hover"
-                        onLoad={() => setImgLoaded(true)}
-                        onError={() => setImgLoaded(false)}
+                        onError={() => { /* keep silent to avoid state churn */ }}
                     />
                 </div>
             </Link>
+
             <div className="absolute top-[148px] left-0 right-0 flex lg:hidden justify-between">
                 <button onClick={handleAddToCart} className="w-1/2 bg-primary/80 text-white font-semibold py-2 text-[10px] hover:bg-primary transition">
                     Add To Cart

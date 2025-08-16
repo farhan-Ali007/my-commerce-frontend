@@ -114,7 +114,11 @@ const Banner = React.memo(() => {
 
     const getOptimizedImageUrl = useCallback((imageUrl, width, height) => {
         if (!imageUrl) return '';
-        return `${imageUrl}?f_auto&q_80&w=${width}&h=${height}&c=fill`;
+        // If it's a local asset (starts with '/'), return as-is to match preload and avoid cache misses
+        if (imageUrl.startsWith('/')) return imageUrl;
+        // Otherwise (e.g., Cloudinary/remote), append transformation params
+        const sep = imageUrl.includes('?') ? '&' : '?';
+        return `${imageUrl}${sep}f_auto&q_80&w=${width}&h=${height}&c=fill`;
     }, []);
 
     const slideVariants = useMemo(() => ({
