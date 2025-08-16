@@ -60,3 +60,31 @@ export const updateOrderStatus = async (orderId, status) => {
         throw error;
     }
 }
+
+// Admin: search orders with live query and status/sort filters
+export const getOrdersSearch = async (params = {}) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/order/search`, {
+            withCredentials: true,
+            params,
+        })
+        return response?.data
+    } catch (error) {
+        console.log("Error in searching orders", error)
+        throw error
+    }
+}
+
+// Admin: sort orders by status with optional filter and pagination
+export const getOrdersSortedByStatus = async (params = {}) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/order/sort`, {
+            withCredentials: true,
+            params,
+        })
+        return response?.data
+    } catch (error) {
+        console.log("Error in sorting orders by status", error)
+        throw error
+    }
+}

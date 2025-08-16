@@ -225,7 +225,7 @@ const Banner = React.memo(() => {
             {staticBanners.map((_, index) => (
                 <motion.div
                     key={index}
-                    className={`w-2 h-2 md:w-3 md:h-3 rounded-full cursor-pointer mx-1 ${
+                    className={`w-2 h-2 md:w-3 md:h-3 rounded-full cursor-pointer mx-[2px] ${
                         index === currentSlide ? "bg-secondary" : "bg-primary"
                     }`}
                     onClick={() => handleDotClick(index)}

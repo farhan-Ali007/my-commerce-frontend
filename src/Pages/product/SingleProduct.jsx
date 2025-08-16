@@ -674,7 +674,7 @@ const SingleProduct = () => {
       const variant = productVariants.find((v) => v.name === variantName);
       values.forEach((value) => {
         let price = product.salePrice ?? product.price;
-        let image = product?.images?.[0];
+        let image = getImageUrl(product?.images?.[0]);
         let variantValue;
         if (variant) {
           variantValue = variant.values.find((v) => v.value === value);
@@ -682,7 +682,7 @@ const SingleProduct = () => {
             price = variantValue.price;
           }
           if (variantValue && variantValue.image) {
-            image = variantValue.image;
+            image = getImageUrl(variantValue.image);
           }
         }
         // Generate unique cartItemId
@@ -708,7 +708,7 @@ const SingleProduct = () => {
         productId: product?._id,
         title: product?.title,
         price: product.salePrice ?? product.price,
-        image: product?.images?.[0],
+        image: getImageUrl(product?.images?.[0]),
         count: selectedQuantity,
         selectedVariants: [],
         freeShipping: product?.freeShipping,
@@ -790,7 +790,7 @@ const SingleProduct = () => {
 
     const phoneNumber = "923071111832";
     const productLink = window.location.href;
-    const imageLink = product?.images?.[0];
+    const imageLink = getImageUrl(product?.images?.[0]);
 
     // Format selected variants
     let variantsText = "";

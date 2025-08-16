@@ -12,6 +12,13 @@ const Row = ({ label, children }) => (
   </div>
 );
 
+const getImageUrl = (img) => {
+  if (!img) return "";
+  if (typeof img === "string") return img;
+  if (typeof img === "object") return img.url || "";
+  return "";
+};
+
 const OrderDetails = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -114,7 +121,15 @@ const OrderDetails = () => {
                     {order.cartSummary?.map((p, idx) => (
                       <tr key={idx}>
                         <td className="px-3 py-2">
-                          <img src={p.image} alt={p.title} className="w-12 h-12 rounded object-cover border" />
+                          <img
+                            src={getImageUrl(p.image)}
+                            alt={p.title}
+                            className="w-12 h-12 rounded object-cover border bg-gray-100"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = "/auth-bg.jpg";
+                            }}
+                          />
                         </td>
                         <td className="px-3 py-2 text-sm text-blue-700">{p.title}</td>
                         <td className="px-3 py-2 text-sm font-semibold">Rs.{p.price}</td>

@@ -1,14 +1,18 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaEye } from "react-icons/fa";
-import {BsBullseye} from 'react-icons/bs'
+import { BsBullseye } from "react-icons/bs";
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { FcViewDetails } from "react-icons/fc";
 import { GiMoneyStack } from "react-icons/gi";
 import { GrStatusGoodSmall } from "react-icons/gr";
 import { IoIosPerson } from "react-icons/io";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getAllOrders, updateOrderStatus } from "../../functions/order";
+import {
+  getAllOrders,
+  updateOrderStatus,
+  getOrdersSearch,
+} from "../../functions/order";
 import { truncateTitle } from "../../helpers/truncateTitle";
 import { dateFormatter } from "../../utils/dateFormatter";
 
@@ -16,19 +20,31 @@ const AllOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
   const LIMIT = 20;
   const [previewProduct, setPreviewProduct] = useState(null);
   const [previewOrder, setPreviewOrder] = useState(null);
+  const [statusFilter, setStatusFilter] = useState(""); // '', Pending, Shipped, Delivered, Cancelled
+  const [sortBy, setSortBy] = useState("orderedAt"); // 'orderedAt' | 'status'
+  const [sortOrder, setSortOrder] = useState("desc"); // 'asc' | 'desc'
   const navigate = useNavigate();
   const location = useLocation();
 
-  const fetchAllOrders = async (pageNum = 1) => {
+  const fetchOrders = async (pageNum = 1) => {
     try {
       setLoading(true);
-      const response = await getAllOrders(pageNum, LIMIT);
+      // Always use server search endpoint to keep logic centralized
+      const response = await getOrdersSearch({
+        q: debouncedQuery || undefined,
+        status: statusFilter || undefined,
+        sortBy,
+        sortOrder,
+        page: pageNum,
+        limit: LIMIT,
+      });
       setTotalOrders(response?.total || 0);
       setTotalPages(response?.totalPages || 1);
       setOrders(response?.orders || []);
@@ -43,9 +59,21 @@ const AllOrders = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-    fetchAllOrders(1);
+    fetchOrders(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  // Debounce search input
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 400);
+    return () => clearTimeout(id);
+  }, [searchQuery]);
+
+  // Refetch when filters/sort change
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchOrders(1);
+  }, [debouncedQuery, statusFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -66,7 +94,7 @@ const AllOrders = () => {
       if (pageNum < 1 || pageNum > totalPages || pageNum === currentPage)
         return;
       setCurrentPage(pageNum);
-      fetchAllOrders(pageNum);
+      fetchOrders(pageNum);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
     [currentPage, totalPages]
@@ -137,9 +165,7 @@ const AllOrders = () => {
     );
   }, [orders.length, totalOrders, currentPage, totalPages, handlePageChange]);
 
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
+  const handleSearchChange = (e) => setSearchQuery(e.target.value);
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
@@ -158,10 +184,8 @@ const AllOrders = () => {
     }
   };
 
-  // Filter orders by search query (order ID)
-  const filteredOrders = orders.filter((order) =>
-    order._id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Server-side filtering used; show orders directly
+  const filteredOrders = orders;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:px-5 md:py-6">
@@ -175,16 +199,65 @@ const AllOrders = () => {
             </span>
           </h1>
 
-          {/* Search Bar */}
-          {/* <div className="max-w-md">
-            <input
-              type="text"
-              placeholder="Search Orders by Order ID..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            />
-          </div> */}
+          {/* Filters: Search, Status, Sort */}
+          <div className="flex flex-col md:flex-row gap-3 md:gap-6 md:items-end">
+            <div className="max-w-md w-full">
+              <label className="block text-sm text-gray-600 mb-1">
+                Search by name or mobile
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Ali or 03xxxxxxxxx"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full md:w-auto md:flex md:flex-row md:gap-4 md:items-end">
+              <div className="w-full">
+                <label className="block text-sm text-gray-600 mb-1">
+                  Status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg"
+                >
+                  <option value="">All</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Shipped">Shipped</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div className="w-full">
+                <label className="block text-sm text-gray-600 mb-1">
+                  Sort by
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg"
+                >
+                  <option value="orderedAt">Date</option>
+                  <option value="status">Status</option>
+                </select>
+              </div>
+              <div className="w-full">
+                <label className="block text-sm text-gray-600 mb-1">
+                  Order
+                </label>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg"
+                >
+                  <option value="desc">Desc</option>
+                  <option value="asc">Asc</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Orders Table Container */}
@@ -233,30 +306,41 @@ const AllOrders = () => {
                     </div>
                     <div className="text-sm text-gray-900">
                       <div className="font-semibold truncate">
-                        {order?.orderedBy?.username || order?.shippingAddress?.fullName}
+                        {order?.orderedBy?.username ||
+                          order?.shippingAddress?.fullName}
                       </div>
                       <div className="text-xs text-gray-600 truncate">
                         {order?.shippingAddress?.city || "—"}
                       </div>
                     </div>
                     <div className="mt-1 text-xs text-gray-700 truncate">
-                      <span className="font-medium">{order.cartSummary?.length || 0} item(s)</span>
+                      <span className="font-medium">
+                        {order.cartSummary?.length || 0} item(s)
+                      </span>
                       {order.cartSummary && order.cartSummary.length > 0 && (
                         <span className="block truncate">
                           {truncateTitle(order.cartSummary[0].title, 40)}
-                          {order.cartSummary.length > 1 ? ` +${order.cartSummary.length - 1} more` : ""}
+                          {order.cartSummary.length > 1
+                            ? ` +${order.cartSummary.length - 1} more`
+                            : ""}
                         </span>
                       )}
                     </div>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-xs text-gray-700">Delivery: Rs.{order?.deliveryCharges}</span>
-                      <span className="text-sm font-bold text-green-600">Rs.{order?.totalPrice}</span>
+                      <span className="text-xs text-gray-700">
+                        Delivery: Rs.{order?.deliveryCharges}
+                      </span>
+                      <span className="text-sm font-bold text-green-600">
+                        Rs.{order?.totalPrice}
+                      </span>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                       <select
                         className="flex-1 py-1 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                         value={order.status || "Pending"}
-                        onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                        onChange={(e) =>
+                          handleStatusChange(order._id, e.target.value)
+                        }
                       >
                         {Statuses.map((status, index) => (
                           <option key={index} value={status}>
@@ -312,7 +396,10 @@ const AllOrders = () => {
                       </th>
                       <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <div className="flex items-center gap-2">
-                          <GrStatusGoodSmall size={20} className="text-gray-500" />
+                          <GrStatusGoodSmall
+                            size={20}
+                            className="text-gray-500"
+                          />
                           <span>Status</span>
                         </div>
                       </th>
@@ -324,7 +411,10 @@ const AllOrders = () => {
                       </th>
                       <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                         <div className="flex items-center gap-2">
-                          <FaMoneyBillTrendUp size={20} className="text-gray-500" />
+                          <FaMoneyBillTrendUp
+                            size={20}
+                            className="text-gray-500"
+                          />
                           <span>Delivery</span>
                         </div>
                       </th>
@@ -339,7 +429,10 @@ const AllOrders = () => {
                           className="inline-flex items-center justify-center w-full"
                           title="View"
                         >
-                          <BsBullseye size={24} className=" font-extrabold text-primary" />
+                          <BsBullseye
+                            size={24}
+                            className=" font-extrabold text-primary"
+                          />
                         </span>
                       </th>
                     </tr>

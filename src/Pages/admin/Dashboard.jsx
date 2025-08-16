@@ -21,6 +21,7 @@ import {
   getDashboardAnalytics,
   getOrdersAnalytics,
   getOrderStatusSummary,
+  getUsersAnalytics,
 } from '../../functions/analytics';
 
 const StatCard = ({ title, value, sub }) => (
@@ -43,6 +44,7 @@ const Dashboard = () => {
 
   const [series, setSeries] = useState([]); // orders+revenue time series
   const [statusSummary, setStatusSummary] = useState([]);
+  const [usersSeries, setUsersSeries] = useState([]);
   const colors = ["#0ea5e9","#10b981","#f59e0b","#ef4444","#6366f1","#14b8a6"];
 
   const computeRange = (key) => {
@@ -85,10 +87,13 @@ const Dashboard = () => {
         setSeries(orders?.data || orders?.timeSeries || []);
         const status = await getOrderStatusSummary({ from: from.toISOString(), to: to.toISOString() });
         setStatusSummary(status?.summary || []);
+        const users = await getUsersAnalytics({ from: from.toISOString(), to: to.toISOString(), interval });
+        setUsersSeries(users?.data || []);
       } catch (e) {
         // fallback
         setSeries([]);
         setStatusSummary([]);
+        setUsersSeries([]);
       }
     };
     loadRange();
@@ -103,11 +108,36 @@ const Dashboard = () => {
     }))
   ), [series, range]);
 
+  const formattedUsersSeries = useMemo(() => (
+    usersSeries.map(d => ({
+      date: range === 'all' ? dayjs(d.date).format('MMM YYYY') : dayjs(d.date).format('DD MMM'),
+      users: d.users,
+    }))
+  ), [usersSeries, range]);
+
+  // Aggregate KPIs for the selected range from the series
+  const rangeTotals = useMemo(() => {
+    const totals = series.reduce((acc, d) => {
+      acc.orders += d.orders || 0;
+      acc.revenue += d.revenue || 0;
+      acc.itemsSold += d.itemsSold || 0;
+      return acc;
+    }, { orders: 0, revenue: 0, itemsSold: 0 });
+    return {
+      ...totals,
+      avgOrderValue: totals.orders ? totals.revenue / totals.orders : 0,
+    };
+  }, [series]);
+
+  const rangeLabel = useMemo(() => (
+    range === '7d' ? 'Last 7 days' : range === '30d' ? 'Last 30 days' : 'All time'
+  ), [range]);
+
   return (
     <div className="min-h-screen p-3 md:p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 ">Analytics</h1>
           <div className="flex items-center gap-2">
             <div className="inline-flex rounded overflow-hidden border">
               <button
@@ -132,11 +162,11 @@ const Dashboard = () => {
 
         {!loading && (
           <>
-            {/* KPI Cards */}
+            {/* KPI Cards (reflect selected range) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <StatCard title={`Orders (${rangeLabel})`} value={rangeTotals.orders} sub={`AOV Rs.${Math.round(rangeTotals.avgOrderValue || 0)}`} />
+              <StatCard title={`Revenue (${rangeLabel})`} value={`Rs.${Math.round(rangeTotals.revenue || 0)}`} sub={`Items ${rangeTotals.itemsSold || 0}`} />
               <StatCard title="Today Orders" value={kpis?.today?.orders ?? 0} sub={`AOV Rs.${Math.round(kpis?.today?.avgOrderValue || 0)}`} />
-              <StatCard title="Today Revenue" value={`Rs.${Math.round(kpis?.today?.revenue || 0)}`} sub={`Items ${kpis?.today?.itemsSold || 0}`} />
-              <StatCard title="Last 7d Orders" value={kpis?.last7?.orders ?? 0} sub={`Revenue Rs.${Math.round(kpis?.last7?.revenue || 0)}`} />
               <StatCard title="All-time Revenue" value={`Rs.${Math.round(kpis?.allTime?.revenue || 0)}`} sub={`Orders ${kpis?.allTime?.orders || 0}`} />
             </div>
 
@@ -239,6 +269,47 @@ const Dashboard = () => {
                   )) : <li className="text-sm text-gray-500">No products</li>}
                 </ul>
                 <div className="mt-3 text-xs text-gray-600">Low stock items: {lowStockCount}</div>
+              </div>
+            </div>
+            {/* Users Chart (end section) */}
+            <div className="p-4 rounded-lg border bg-white shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h2 className="font-semibold text-gray-800">New Users ({range === 'all' ? 'Last 12m' : rangeLabel})</h2>
+                  <div className="text-xs text-gray-500">{range === 'all' ? 'Monthly' : 'Daily'} signups</div>
+                </div>
+                <span className="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Total: {usersSeries.reduce((sum, d) => sum + (d.users || 0), 0)}
+                </span>
+              </div>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  {chartMode === 'line' ? (
+                    <RLineChart data={formattedUsersSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="users" stroke="#10b981" strokeWidth={2} dot={false} />
+                    </RLineChart>
+                  ) : (
+                    <RAreaChart data={formattedUsersSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.05}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Area type="monotone" dataKey="users" stroke="#10b981" fillOpacity={1} fill="url(#userGrad)" />
+                    </RAreaChart>
+                  )}
+                </ResponsiveContainer>
               </div>
             </div>
           </>
