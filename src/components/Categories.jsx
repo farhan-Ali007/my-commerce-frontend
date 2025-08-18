@@ -57,11 +57,10 @@ const Categories = React.memo(() => {
         return categories?.slice(0, 14).map((category, index) => (
             <div
                 key={category._id || index}
-                className="flex flex-col items-center transform transition-transform duration-300 ease-out motion-safe:md:hover:-translate-y-1"
-                style={{ contentVisibility: 'auto', containIntrinsicSize: '144px 184px' }}
+                className="flex flex-col items-center overflow-visible transform transition-transform duration-300 ease-out motion-safe:md:hover:-translate-y-1"
             >
                 <Link to={`/category/${category.slug}`} className="relative w-full cursor-pointer group">
-                    <div className="relative w-20 h-20 overflow-hidden rounded-lg shadow-md md:h-24 md:w-24 lg:h-36 lg:w-36 transition-shadow duration-300 ease-out md:group-hover:shadow-lg">
+                    <div className="relative w-20 h-20 overflow-hidden rounded-lg shadow-sm md:h-24 md:w-24 lg:h-36 lg:w-36 transition-shadow duration-300 ease-out md:group-hover:shadow-[0_0_28px_rgba(17,24,39,0.22)]">
                         <img
                             src={getOptimizedImageUrl(category?.Image, 144, 144)}
                             srcSet={[
@@ -71,29 +70,17 @@ const Categories = React.memo(() => {
                             ].join(', ')}
                             sizes="(min-width: 1024px) 144px, (min-width: 768px) 96px, 80px"
                             alt={category?.name}
-                            className="object-cover w-full h-full transform transition-transform duration-300 ease-in-out motion-safe:md:group-hover:scale-105 md:group-hover:brightness-105"
+                            className="object-cover w-full h-full transform transition-transform duration-300 ease-in-out motion-safe:md:group-hover:scale-105"
                             loading="lazy"
                             decoding="async"
                             fetchpriority="low"
                             width={144}
                             height={144}
                         />
-                        {/* Gradient moving border on hover (desktop only) */}
-                        <div
-                            className="pointer-events-none absolute inset-0 rounded-lg p-[2px] opacity-0 md:group-hover:opacity-100 transition-opacity duration-300"
-                            style={{
-                                background: 'conic-gradient(from 270deg, var(--color-primary, #5a67d8), var(--color-secondary, #3182ce), var(--color-primary, #5a67d8))',
-                                WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
-                                WebkitMaskComposite: 'xor',
-                                maskComposite: 'exclude'
-                            }}
-                        >
-                            <div className="w-full h-full rounded-[8px] bg-transparent md:group-hover:animate-[spin_2s_linear_infinite]" />
-                        </div>
                     </div>
                 </Link>
 
-                <span className="mt-2 text-sm font-medium text-center capitalize font-poppins md:block transition-all duration-300 ease-out md:group-hover:opacity-90">
+                <span className="mt-2 text-sm font-medium text-center capitalize font-poppins md:block transition-colors duration-200 ease-out md:group-hover:text-gray-800">
                     {category?.name}
                 </span>
             </div>
@@ -101,7 +88,7 @@ const Categories = React.memo(() => {
     }, [categories, loading, error, getOptimizedImageUrl]);
 
     return (
-        <div className="max-w-screen-xl px-6 py-2 mx-auto overflow-hidden md:py-4 md:px-14">
+        <div className="max-w-screen-xl px-6 py-2 mx-auto overflow-visible md:py-4 md:px-12 lg:px-14">
             <h2
                 className="mb-5 text-2xl font-extrabold text-center md:text-4xl font-space text-secondary"
             >
@@ -109,7 +96,7 @@ const Categories = React.memo(() => {
             </h2>
 
             <div
-                className="grid grid-cols-4 gap-4 md:gap-3 lg:gap-5 xl:gap-6 md:grid-cols-7 lg:grid-cols-7"
+                className="grid grid-cols-4 gap-4 md:gap-5 lg:gap-5 xl:gap-6 md:grid-cols-7 lg:grid-cols-7 overflow-visible"
             >
                 {renderCategories}
             </div>

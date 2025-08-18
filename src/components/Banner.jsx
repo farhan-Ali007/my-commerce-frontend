@@ -128,7 +128,7 @@ const Banner = React.memo(() => {
                         loading={index === 0 ? "eager" : "lazy"}
                         decoding="async"
                         fetchpriority={index === 0 ? 'high' : 'auto'}
-                        className="absolute inset-0 object-cover object-center w-full h-full"
+                        className="absolute inset-0 object-cover object-center w-full h-full transform transition-transform duration-300 ease-out motion-safe:md:group-hover:scale-105"
                         width={bannerDimensions.desktop.width}
                         height={bannerDimensions.desktop.height}
                         onError={(e) => {
@@ -148,9 +148,9 @@ const Banner = React.memo(() => {
             {resolvedBanners.map((_, index) => (
                 <div
                     key={index}
-                    className={`w-2 h-2 md:w-3 md:h-3 rounded-full cursor-pointer mx-[2px] ${
-                        index === currentSlide ? "bg-secondary" : "bg-primary"
-                    }`}
+                    className={`w-2 h-2 md:w-3 md:h-3 rounded-full cursor-pointer mx-[2px] transition-transform duration-200 ease-out ${
+                        index === currentSlide ? "bg-secondary md:scale-110" : "bg-primary"
+                    } md:hover:scale-125`}
                     onClick={() => handleDotClick(index)}
                     aria-label={`Go to slide ${index + 1}`}
                     role="button"
@@ -176,7 +176,7 @@ const Banner = React.memo(() => {
                         <div key={banner._id} className="w-full">
                             <a
                                 href={banner.link}
-                                className="block w-full h-full"
+                                className="block w-full h-full group"
                                 target="_self"
                                 rel="noopener noreferrer"
                             >
