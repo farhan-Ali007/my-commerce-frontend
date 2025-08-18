@@ -225,7 +225,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
     return (
         <motion.div
-            className="max-w-sm bg-white min-h-[330px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="max-w-sm bg-white h-[320px]  overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
@@ -237,7 +237,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             <Link to={`/product/${slug}`} className="w-full mb-4 overflow-hidden" style={{ height: `${imageHeight}px` }}>
                 <div className="relative w-full h-full">
                     <motion.img
-                        className="absolute top-0 left-0 object-cover w-full h-full"
+                        className="absolute top-0 left-0 object-contain w-full h-full"
                         src={getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
                         srcSet={getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
                         sizes="(max-width: 768px) 50vw, 180px"

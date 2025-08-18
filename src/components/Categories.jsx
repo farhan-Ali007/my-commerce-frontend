@@ -88,7 +88,7 @@ const Categories = React.memo(() => {
     }, [categories, loading, error, getOptimizedImageUrl]);
 
     return (
-        <div className="max-w-screen-xl px-6 py-2 mx-auto overflow-visible md:py-4 md:px-12 lg:px-14">
+        <div className="max-w-screen-xl px-4 py-2 mx-auto overflow-visible md:py-4 md:px-12 lg:px-14">
             <h2
                 className="mb-5 text-2xl font-extrabold text-center md:text-4xl font-space text-secondary"
             >
@@ -96,7 +96,7 @@ const Categories = React.memo(() => {
             </h2>
 
             <div
-                className="grid grid-cols-4 gap-4 md:gap-5 lg:gap-5 xl:gap-6 md:grid-cols-7 lg:grid-cols-7 overflow-visible"
+                className="grid grid-cols-4 gap-4 sm:gap2 md:gap-5 lg:gap-5 xl:gap-6 md:grid-cols-7 lg:grid-cols-7 overflow-visible"
             >
                 {renderCategories}
             </div>

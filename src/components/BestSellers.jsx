@@ -79,7 +79,7 @@ const BestSellers = React.memo(() => {
 
     const renderProducts = useMemo(() => (
         <motion.div
-            className="grid grid-cols-2 gap-3 mx-0 md:grid-cols-3 lg:grid-cols-5 md:gap-6 lg:gap-7 md:mx-4 lg:mx-4"
+            className="grid grid-cols-2 gap-2 mx-0 md:grid-cols-3 lg:grid-cols-5 md:gap-6 lg:gap-7 md:mx-4 lg:mx-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}

@@ -223,7 +223,7 @@ const NewArrivals = React.memo(() => {
                 <div className="relative overflow-x-auto scrollbar-hide">
                     <Slider {...settings} ref={sliderRef} className="flex">
                         {products.map((product) => (
-                            <div key={product._id} className="px-2 py-2 md:px-3">
+                            <div key={product._id} className="px-1 py-2 md:px-3">
                                 <ProductCard product={product} />
                             </div>
                         ))}
