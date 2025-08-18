@@ -146,7 +146,7 @@ const ReviewForm = ({ slug, product }) => {
   const ratingSummary = calculateRatingSummary();
 
   return (
-    <div className="max-w-screen-xl px-4 py-4 mx-auto md:px-6 lg:px-16 md:py-6 lg:py-2">
+    <div className="max-w-screen-xl px-4 py-4 mx-auto md:px-6 lg:px-16 md:py-6 lg:py-10 xl:py-14">
       {/* Tab Navigation */}
       <div className="flex gap-3 md:gap-7 mb-6">
         <button

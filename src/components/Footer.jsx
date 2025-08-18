@@ -292,7 +292,7 @@ const Footer = () => {
                 >
                   <a
                     href={`mailto:${contactInfo.email}`}
-                    className="flex items-center space-x-2 no-underline text-white hover:text-white transition-colors"
+                    className="flex items-center space-x-2 no-underline text-white transition-colors"
                   >
                     <MdMail className="text-secondary" size={18} />
                     <span>{contactInfo.email}</span>
@@ -365,7 +365,7 @@ const Footer = () => {
                   >
                     <a
                       href={link.url}
-                      className="text-gray-300 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors"
+                      className="text-gray-200 hover:text-white text-[1rem] md:text-xl font-medium no-underline transition-colors"
                     >
                       {link.label}
                     </a>
@@ -408,7 +408,7 @@ const Footer = () => {
                     className="flex items-center no-underline space-x-2 hover:text-main transition-colors"
                   >
                     <FaWhatsapp className="text-secondary" size={22} />
-                    <span className="text-gray-300 hover:text-white">
+                    <span className="text-gray-200 hover:text-white">
                       {contactInfo.whatsapp}
                     </span>
                   </a>
@@ -422,7 +422,7 @@ const Footer = () => {
                     className="flex items-center no-underline space-x-2 hover:text-main transition-colors"
                   >
                     <MdPhone className="text-secondary" size={22} />
-                    <span className="text-gray-300 hover:text-white">
+                    <span className="text-gray-200 hover:text-white">
                       {contactInfo.phone}
                     </span>
                   </a>
@@ -436,7 +436,7 @@ const Footer = () => {
                     className="flex items-center space-x-2 no-underline hover:text-main transition-colors"
                   >
                     <MdMail className="text-secondary" size={22} />
-                    <span className="text-gray-300 hover:text-white">
+                    <span className="text-gray-200 hover:text-white">
                       {contactInfo.email}
                     </span>
                   </a>

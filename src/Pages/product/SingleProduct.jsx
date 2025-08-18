@@ -845,7 +845,7 @@ const SingleProduct = () => {
   if (!schemaData) return null;
 
   return (
-    <div className="px-4 pt-1 max-w-screen md:px-8 lg:px-12 md:pt-3">
+    <div className="px-4 pt-1 max-w-screen md:px-8 lg:px-8 md:pt-3">
       <Helmet>
         <title>
           {product.title
@@ -891,7 +891,7 @@ const SingleProduct = () => {
           {/* Main Image */}
           <div className="relative flex-1 order-1 mt-4 lg:order-2 lg:mt-3 ">
             <div
-              className="overflow-hidden aspect-square h-[350px] md:h-[400px] lg:w-[400px] w-[350px] border border-red-100 mx-auto relative"
+              className="overflow-hidden aspect-square w-full max-w-[340px] md:max-w-[400px] border border-red-100 mx-0 md:mx-auto lg:mx-9 xl:mx-auto relative"
               onMouseMove={isLargeScreen ? handleMouseMove : undefined}
               onMouseLeave={isLargeScreen ? handleMouseLeave : undefined}
             >
@@ -899,8 +899,8 @@ const SingleProduct = () => {
                 ref={imageRef}
                 src={selectedImage || "https://via.placeholder.com/500"}
                 alt={product?.title || "Product Image"}
-                width="350"
-                height="350"
+                width="1000"
+                height="1000"
                 className={`w-full h-full object-cover cursor-pointer transition-opacity duration-300 ${
                   loadedImages.has(selectedImage) ? "opacity-100" : "opacity-0"
                 }`}
@@ -965,7 +965,7 @@ const SingleProduct = () => {
                     handleMouseEnterProduct(getImageUrl(image))
                   }
                   onClick={() => {
-                    console.log("Thumbnail clicked:", image);
+                    // console.log("Thumbnail clicked:", image);
                     let isVariantImage = false;
                     for (const variant of product?.variants || []) {
                       const variantValue = variant.values?.find(
@@ -1002,7 +1002,7 @@ const SingleProduct = () => {
             animate="visible"
           >
           <motion.h1
-            className="text-[20px] md:text-[24px] lg:text-[26px] font-space capitalize font-semibold text-secondary mb-[2px]"
+            className="text-[20px] md:text-[24px]  font-space mt-2 md:mt-4 font-semibold text-secondary capitalize mb-[2px] w-[320px] md:w-[720px] lg:w-[630px] break-words whitespace-normal"
             variants={itemVariants}
           >
             {product?.title || "Product Title"}

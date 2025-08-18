@@ -49,6 +49,7 @@ const AdminTags = () => {
 
     const handleDeleteTag = async (id) => {
         try {
+            window.confirm("Are you sure you want to delete this tag?")
             const response = await deleteTag(id);
             if (response?.success) {
                 setTags(tags.filter(tag => tag._id !== id));
