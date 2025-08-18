@@ -217,14 +217,15 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     const getOptimizedSrcSet = (imageUrl) => {
         if (!imageUrl) return undefined;
         const base = getImageUrl(imageUrl);
-        const url180 = `${base}${base.includes('?') ? '&' : '?'}f_auto&q_80&w=180&h=180&c=fill`;
-        const url360 = `${base}${base.includes('?') ? '&' : '?'}f_auto&q_80&w=360&h=360&c=fill`;
+        const sep = base.includes('?') ? '&' : '?';
+        const url180 = `${base}${sep}f_auto&q_80&w=180&h=180&c=fill`;
+        const url360 = `${base}${sep}f_auto&q_80&w=360&h=360&c=fill`;
         return `${url180} 180w, ${url360} 360w`;
     };
 
     return (
         <motion.div
-            className="max-w-sm bg-white h-[330px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="max-w-sm bg-white min-h-[330px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
             variants={cardVariants}
             initial="hidden"
             whileInView="visible"
@@ -252,11 +253,12 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 </div>
             </Link>
 
-            <div className="absolute top-[148px] left-0 right-0 flex lg:hidden justify-between">
-                <button onClick={handleAddToCart} className="w-1/2 bg-primary/80 text-white font-semibold py-2 text-[10px] hover:bg-primary transition">
+            {/* Mobile action buttons in normal flow to avoid overlap */}
+            <div className="-mt-4 mb-2 flex  lg:hidden">
+                <button onClick={handleAddToCart} className="flex-1 bg-primary/90 text-white font-semibold py-1 md:py-2  text-[12px]  hover:bg-primary transition">
                     Add To Cart
                 </button>
-                <button onClick={handleByNow} className="w-1/2 bg-secondary/80 text-white font-semibold py-2 text-[10px] hover:bg-secondary transition">
+                <button onClick={handleByNow} className="flex-1 bg-secondary/90 text-white font-semibold py-1 md:py-2 text-[12px]  hover:bg-secondary transition">
                     Buy Now
                 </button>
             </div>
@@ -298,7 +300,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 )}
             </AnimatePresence>
 
-            <div className="justify-start mx-2  md:mt-0 mb-4 font-roboto">
+            <div className="justify-start mx-2 md:mt-0 mb-4 font-roboto">
                 <Link to={`/product/${slug}`} className='text-black no-underline'>
                     <h2
                         onMouseEnter={() => setIsHovered(true)}
@@ -312,17 +314,17 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                         {totalReviews > 0 && <span className="ml-2 text-sm font-bold text-primary">({totalReviews})</span>}
                     </div>
                 </div>
-                <div className="flex items-center justify-between gap-x-2 flex-nowrap">
-                    <p className="flex flex-col text-sm font-semibold text-primary/90">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <p className="flex flex-col text-sm font-semibold text-primary/90 leading-snug">
                         {salePrice ? (
                             <span className="text-sm text-gray-400 line-through">Rs. {price}</span>
                         ) : (
                             <span>Rs. {price}</span>
                         )}{' '}
-                        Rs.{salePrice}
+                        Rs.{salePrice ?? price}
                     </p>
                     {off && (
-                        <span className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs font-semibold">
+                        <span className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs font-semibold whitespace-nowrap">
                             <svg
                                 className="w-3 h-3 text-green-500"
                                 fill="none"

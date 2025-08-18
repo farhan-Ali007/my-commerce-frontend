@@ -554,6 +554,12 @@ const Navbar = React.memo(() => {
               initial="hidden"
               animate="visible"
             >
+              {user?.role === "admin" && (
+                <Link to="/admin-dashboard" className="relative group">
+                  <FaUserShield className="text-2xl text-secondary" />
+                </Link>
+              )}
+              {user?.role === "admin" && <NotificationBell />}
               <Link to="/shop" className="relative z-20 cursor-pointer group">
                 <AiOutlineShopping className="text-2xl text-secondary" />
               </Link>

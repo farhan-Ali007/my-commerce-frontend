@@ -243,7 +243,7 @@ const FeaturedProducts = React.memo(() => {
         viewport={{ once: true, amount: 0.5 }}
       >
         <div className="flex-grow h-[0.5px] mr-4 bg-primary"></div>
-        <h2 className="text-3xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
+        <h2 className="text-2xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
           Trending Products
         </h2>
         <div className="flex-grow h-[0.5px] ml-4 bg-primary"></div>
