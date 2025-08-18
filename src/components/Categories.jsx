@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllCategories } from '../functions/categories';
 import CategorySkeleton from './skeletons/CategorySkeleton';
-import { motion } from 'framer-motion';
 
 const Categories = React.memo(() => {
     const [categories, setCategories] = useState([]);
@@ -27,26 +26,13 @@ const Categories = React.memo(() => {
         fetchAllCategories();
     }, [fetchAllCategories]);
 
-    // Optimized animation variants - Keeping only hover animations and removing others
-
-    const imageHoverVariants = useMemo(() => ({
-        hover: {
-            scale: 1.1,
-            rotate: [0, -2, 2, -2, 0],
-            transition: {
-                scale: {
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 20
-                },
-                rotate: {
-                    duration: 0.5,
-                    ease: "easeInOut"
-                }
-            }
-        }
-    }), []);
-
+    // Helper to generate optimized image URLs when remote (e.g., Cloudinary); local paths unchanged
+    const getOptimizedImageUrl = useCallback((imageUrl, width, height) => {
+        if (!imageUrl) return '';
+        if (typeof imageUrl === 'string' && imageUrl.startsWith('/')) return imageUrl;
+        const sep = (typeof imageUrl === 'string' && imageUrl.includes('?')) ? '&' : '?';
+        return `${imageUrl}${sep}f_auto&q_80&w=${width}&h=${height}&c=fill`;
+    }, []);
 
     // Memoize the category list rendering
     const renderCategories = useMemo(() => {
@@ -69,40 +55,50 @@ const Categories = React.memo(() => {
         }
 
         return categories?.slice(0, 14).map((category, index) => (
-            <motion.div
+            <div
                 key={category._id || index}
-                className="flex flex-col items-center"
-                whileHover={{ scale: 1.05 }} // Simple scale hover for item
-
+                className="flex flex-col items-center transform transition-transform duration-300 ease-out motion-safe:md:hover:-translate-y-1"
+                style={{ contentVisibility: 'auto', containIntrinsicSize: '144px 184px' }}
             >
                 <Link to={`/category/${category.slug}`} className="relative w-full cursor-pointer group">
-                    <motion.div
-                        className="w-20 h-20 overflow-hidden rounded-lg shadow-md md:h-24 md:w-24 lg:h-36 lg:w-36"
-                        variants={imageHoverVariants}
-                        whileHover="hover"
-                    >
-                        <motion.img
-                            src={category?.Image}
+                    <div className="relative w-20 h-20 overflow-hidden rounded-lg shadow-md md:h-24 md:w-24 lg:h-36 lg:w-36 transition-shadow duration-300 ease-out md:group-hover:shadow-lg">
+                        <img
+                            src={getOptimizedImageUrl(category?.Image, 144, 144)}
+                            srcSet={[
+                                `${getOptimizedImageUrl(category?.Image, 80, 80)} 80w`,
+                                `${getOptimizedImageUrl(category?.Image, 96, 96)} 96w`,
+                                `${getOptimizedImageUrl(category?.Image, 144, 144)} 144w`,
+                            ].join(', ')}
+                            sizes="(min-width: 1024px) 144px, (min-width: 768px) 96px, 80px"
                             alt={category?.name}
-                            className="object-cover w-full h-full"
+                            className="object-cover w-full h-full transform transition-transform duration-300 ease-in-out motion-safe:md:group-hover:scale-105 md:group-hover:brightness-105"
                             loading="lazy"
+                            decoding="async"
+                            fetchpriority="low"
                             width={144}
                             height={144}
-                            whileHover={{ scale: 1.2 }} // Existing image scale hover
-                            transition={{ duration: 0.3 }} // Existing image transition
                         />
-                    </motion.div>
+                        {/* Gradient moving border on hover (desktop only) */}
+                        <div
+                            className="pointer-events-none absolute inset-0 rounded-lg p-[2px] opacity-0 md:group-hover:opacity-100 transition-opacity duration-300"
+                            style={{
+                                background: 'conic-gradient(from 270deg, var(--color-primary, #5a67d8), var(--color-secondary, #3182ce), var(--color-primary, #5a67d8))',
+                                WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+                                WebkitMaskComposite: 'xor',
+                                maskComposite: 'exclude'
+                            }}
+                        >
+                            <div className="w-full h-full rounded-[8px] bg-transparent md:group-hover:animate-[spin_2s_linear_infinite]" />
+                        </div>
+                    </div>
                 </Link>
 
-                <motion.span
-                    className="mt-2 text-sm font-medium text-center capitalize font-poppins md:block"
-                    whileHover={{ opacity: 1, y: -3 }} // Simple opacity and slight y hover for text
-                >
+                <span className="mt-2 text-sm font-medium text-center capitalize font-poppins md:block transition-all duration-300 ease-out md:group-hover:opacity-90">
                     {category?.name}
-                </motion.span>
-            </motion.div>
+                </span>
+            </div>
         ));
-    }, [categories, loading, error, imageHoverVariants]); // Removed other variant dependencies
+    }, [categories, loading, error, getOptimizedImageUrl]);
 
     return (
         <div className="max-w-screen-xl px-6 py-2 mx-auto overflow-hidden md:py-4 md:px-14">
@@ -113,7 +109,7 @@ const Categories = React.memo(() => {
             </h2>
 
             <div
-                className="grid grid-cols-4 gap-4 md:gap-2 md:grid-cols-7 lg:grid-cols-7"
+                className="grid grid-cols-4 gap-4 md:gap-3 lg:gap-5 xl:gap-6 md:grid-cols-7 lg:grid-cols-7"
             >
                 {renderCategories}
             </div>

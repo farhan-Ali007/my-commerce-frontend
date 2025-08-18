@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { motion, AnimatePresence } from "framer-motion";
+import { getBanners } from "../functions/banner";
 
 const Banner = React.memo(() => {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -36,64 +36,34 @@ const Banner = React.memo(() => {
         },
     ];
 
-    // Remove dynamic fetching and use static banners
-    // const [banners, setBanners] = useState([]);
-    // const [loading, setLoading] = useState(true);
-    // const [error, setError] = useState(null);
-    // const sliderRef = useRef(null);
-    // const mounted = useRef(false);
+    // Dynamic banners (PI) with safe fallback to staticBanners
+    const [banners, setBanners] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const mounted = useRef(false);
 
-    // const bannerDimensions = useMemo(() => ({
-    //     desktop: { width: 1920, height: 550 },
-    //     tablet: { width: 1200, height: 400 },
-    //     mobile: { width: 800, height: 250 }
-    // }), []);
+    const fetchBanners = useCallback(async () => {
+        if (!mounted.current) return;
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getBanners();
+            const list = Array.isArray(response) ? response : (response?.banners || response?.data || []);
+            setBanners(Array.isArray(list) ? list : []);
+        } catch (e) {
+            console.error("Banner fetch failed", e);
+            setError("Failed to load banners");
+            setBanners([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-
-    // const aspectRatio = useMemo(() => 
-    //     bannerDimensions.desktop.width / bannerDimensions.desktop.height,
-    //     [bannerDimensions]
-    // );
-
-    // const fetchBanners = useCallback(async () => {
-    //     if (!mounted.current) return;
-        
-    //     try {
-    //         setLoading(true);
-    //         setError(null);
-    //         const response = await getBanners();
-    //         console.log("Banner response:", response);
-    //         if (!response) {
-    //             throw new Error("No response from server");
-    //         }
-    //         // console.log("Setting banners with data:", response);
-    //         setBanners(response || []);
-            
-    //         // Preload the first banner image
-    //         if (response?.length > 0) {
-    //             // console.log("Preloading first banner image:", response[0].image);
-    //             const img = new Image();
-    //             img.src = getOptimizedImageUrl(
-    //                 response[0].image,
-    //                 bannerDimensions.desktop.width,
-    //                 bannerDimensions.desktop.height
-    //             );
-    //         }
-    //     } catch (error) {
-    //         console.error("Error in fetching banners ", error);
-    //         setError("Failed to load banners. Please try again later.");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }, []);
-
-    // useEffect(() => {
-    //     mounted.current = true;
-    //     fetchBanners();
-    //     return () => {
-    //         mounted.current = false;
-    //     };
-    // }, [fetchBanners]);
+    useEffect(() => {
+        mounted.current = true;
+        fetchBanners();
+        return () => { mounted.current = false; };
+    }, [fetchBanners]);
 
     const settings = useMemo(() => ({
         dots: false,
@@ -121,43 +91,7 @@ const Banner = React.memo(() => {
         return `${imageUrl}${sep}f_auto&q_80&w=${width}&h=${height}&c=fill`;
     }, []);
 
-    const slideVariants = useMemo(() => ({
-        enter: (direction) => ({
-            x: direction > 0 ? 1000 : -1000,
-            opacity: 0
-        }),
-        center: {
-            zIndex: 1,
-            x: 0,
-            opacity: 1
-        },
-        exit: (direction) => ({
-            zIndex: 0,
-            x: direction < 0 ? 1000 : -1000,
-            opacity: 0
-        })
-    }), []);
-
-    const dotVariants = useMemo(() => ({
-        initial: { scale: 1 },
-        hover: { 
-            scale: 1.2,
-            transition: {
-                type: "spring",
-                stiffness: 400,
-                damping: 10
-            }
-        },
-        active: {
-            scale: 1.3,
-            backgroundColor: "#4B5563",
-            transition: {
-                type: "spring",
-                stiffness: 400,
-                damping: 10
-            }
-        }
-    }), []);
+    // Removed Framer Motion variants to reduce JS overhead; layout preserved
 
     const renderBannerImage = useCallback((banner, index) => {
         if (!banner?.image) return null;
@@ -184,7 +118,7 @@ const Banner = React.memo(() => {
                             bannerDimensions.tablet.height
                         )}
                     />
-                    <motion.img
+                    <img
                         src={getOptimizedImageUrl(
                             banner.image, 
                             bannerDimensions.desktop.width, 
@@ -197,19 +131,6 @@ const Banner = React.memo(() => {
                         className="absolute inset-0 object-cover object-center w-full h-full"
                         width={bannerDimensions.desktop.width}
                         height={bannerDimensions.desktop.height}
-                        initial={{ scale: 1.05 }}
-                        animate={{ scale: 1 }}
-                        transition={{ 
-                            duration: 0.8,
-                            ease: [0.4, 0, 0.2, 1]
-                        }}
-                        whileHover={{
-                            scale: 1.1, // Slightly zoom in
-                            transition: {
-                                duration: 0.3, // Smooth transition
-                                ease: "easeInOut"
-                            }
-                        }}
                         onError={(e) => {
                             console.error("Error loading banner image:", e);
                             e.target.style.display = 'none';
@@ -220,15 +141,12 @@ const Banner = React.memo(() => {
         );
     }, [bannerDimensions, getOptimizedImageUrl]);
 
+    const resolvedBanners = banners.length ? banners : staticBanners;
+
     const renderDots = useCallback(() => (
-        <motion.div 
-            className="flex justify-center my-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-        >
-            {staticBanners.map((_, index) => (
-                <motion.div
+        <div className="flex justify-center my-2">
+            {resolvedBanners.map((_, index) => (
+                <div
                     key={index}
                     className={`w-2 h-2 md:w-3 md:h-3 rounded-full cursor-pointer mx-[2px] ${
                         index === currentSlide ? "bg-secondary" : "bg-primary"
@@ -237,15 +155,10 @@ const Banner = React.memo(() => {
                     aria-label={`Go to slide ${index + 1}`}
                     role="button"
                     tabIndex={0}
-                    variants={dotVariants}
-                    initial="initial"
-                    animate={index === currentSlide ? "active" : "initial"}
-                    whileHover="hover"
-                    whileTap={{ scale: 0.9 }}
                 />
             ))}
-        </motion.div>
-    ), [staticBanners, currentSlide, dotVariants, handleDotClick]);
+        </div>
+    ), [resolvedBanners, currentSlide, handleDotClick]);
 
     // if (error) {
     //     return (
@@ -255,27 +168,27 @@ const Banner = React.memo(() => {
     //     );
     // }
 
-return (
-    <div className="relative w-full mx-auto">
-        <div className="relative w-full">
-            <Slider ref={sliderRef} {...settings}>
-                {staticBanners.map((banner, index) => (
-                    <div key={banner._id} className="w-full">
-                        <a
-                            href={banner.link}
-                            className="block w-full h-full"
-                            target="_self"
-                            rel="noopener noreferrer"
-                        >
-                            {renderBannerImage(banner, index)}
-                        </a>
-                    </div>
-                ))}
-            </Slider>
-            {staticBanners.length > 1 && renderDots()}
+    return (
+        <div className="relative w-full mx-auto">
+            <div className="relative w-full">
+                <Slider ref={sliderRef} {...settings}>
+                    {resolvedBanners.map((banner, index) => (
+                        <div key={banner._id} className="w-full">
+                            <a
+                                href={banner.link}
+                                className="block w-full h-full"
+                                target="_self"
+                                rel="noopener noreferrer"
+                            >
+                                {renderBannerImage(banner, index)}
+                            </a>
+                        </div>
+                    ))}
+                </Slider>
+                {resolvedBanners.length > 1 && renderDots()}
+            </div>
         </div>
-    </div>
-);
+    );
 });
 
 Banner.displayName = 'Banner';
