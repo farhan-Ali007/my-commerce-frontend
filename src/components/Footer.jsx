@@ -1,15 +1,15 @@
+import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import {
   FaFacebook,
   FaInstagram,
-  FaTiktok,
-  FaYoutube,
-  FaTwitter,
   FaLinkedin,
+  FaTiktok,
+  FaTwitter,
+  FaYoutube,
 } from "react-icons/fa";
 import { FaWhatsapp } from "react-icons/fa6";
-import { MdLocationOn, MdPhone, MdMail } from "react-icons/md";
-import { motion } from "framer-motion";
+import { MdLocationOn, MdMail } from "react-icons/md";
 import { getFooter } from "../functions/footer";
 
 // Animation variants
@@ -279,18 +279,6 @@ const Footer = () => {
                   whileHover={{ x: 5 }}
                 >
                   <a
-                    href={`tel:${contactInfo.phone}`}
-                    className="flex items-center space-x-2 no-underline text-white hover:text-white transition-colors"
-                  >
-                    <MdPhone className="text-secondary" size={18} />
-                    <span>{contactInfo.phone}</span>
-                  </a>
-                </motion.div>
-                <motion.div
-                  className="flex justify-center items-center space-x-2"
-                  whileHover={{ x: 5 }}
-                >
-                  <a
                     href={`mailto:${contactInfo.email}`}
                     className="flex items-center space-x-2 no-underline text-white transition-colors"
                   >
@@ -413,20 +401,6 @@ const Footer = () => {
                     </span>
                   </a>
                 </motion.div>
-                {/* <motion.div
-                  className="flex justify-center md:justify-start items-center space-x-2"
-                  whileHover={{ x: 5 }}
-                >
-                  <a
-                    href={`tel:${contactInfo.phone}`}
-                    className="flex items-center no-underline space-x-2 hover:text-main transition-colors"
-                  >
-                    <MdPhone className="text-secondary" size={22} />
-                    <span className="text-gray-200 hover:text-white">
-                      {contactInfo.phone}
-                    </span>
-                  </a>
-                </motion.div> */}
                 <motion.div
                   className="flex justify-center md:justify-start items-center space-x-2"
                   whileHover={{ x: 5 }}
