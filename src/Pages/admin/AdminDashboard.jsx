@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import { BiSolidCategory } from "react-icons/bi";
 import {
   FaBoxOpen,
@@ -12,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { GiVerticalBanner } from "react-icons/gi";
 import { IoNotifications } from "react-icons/io5";
+import { LuChartColumnDecreasing } from "react-icons/lu";
 import {
   MdCampaign,
   MdColorLens,
@@ -20,7 +20,7 @@ import {
   MdSettings,
 } from "react-icons/md";
 import { RiMenuUnfoldFill } from "react-icons/ri";
-import { SiSimpleanalytics } from "react-icons/si";
+import { useLocation } from "react-router-dom";
 import { getRecentOrders } from "../../functions/order";
 import AdminBanner from "./AdminBanner";
 import AdminBrands from "./AdminBrands";
@@ -230,7 +230,7 @@ const AdminDashboard = () => {
               setIsSidebarOpen(false);
             }}
           >
-            <SiSimpleanalytics className="text-lg" />
+            <LuChartColumnDecreasing className="text-lg" />
             Dashboard
           </button>
 

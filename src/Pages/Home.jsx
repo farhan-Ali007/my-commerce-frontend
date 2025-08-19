@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from 'react';
+
 import { Helmet } from 'react-helmet-async';
 import Banner from '../components/Banner';
 import { FaWhatsapp } from 'react-icons/fa'; 
@@ -52,40 +53,58 @@ const Home = () => {
          Etimad Mart - Best Online Shopping store in Pakistan
       </h1>
       <Banner />
-      <Suspense fallback={<SectionSkeleton className="h-24" />}> 
-        <Categories />
-      </Suspense>
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: '480px' }}>
+        <Suspense fallback={<SectionSkeleton className="h-24" />}> 
+          <Categories />
+        </Suspense>
+      </div>
+
       <Suspense fallback={<SectionSkeleton className="h-10" />}> 
         <Marquee speed={50} pauseOnHover direction="left" gradient={false} className="text-2xl md:text-3xl font-roboto font-semibold md:font-extrabold my-2 md:my-8 text-primary">
           🔥 Sale 50% Off!    🔥 &nbsp; | &nbsp;  Limited Time Offer!  &nbsp; | &nbsp; New Arrivals Available Now! 🎉
         </Marquee>
       </Suspense>
-      <Suspense fallback={<SectionSkeleton />}> 
-        <Brands />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}> 
-        <FeaturedProducts />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}> 
-        <NewArrivals />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}> 
-        <BestSellers />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}> 
-        {showcaseCategories.map(cat => (
-          <ShowcaseCategories
-            key={cat.slug}
-            categorySlug={cat.slug}
-            categoryName={cat.name}
-            categoryImage={cat.image}
-          />
-        ))}
-      </Suspense>
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: '480px' }}>
+        <Suspense fallback={<SectionSkeleton />}> 
+          <Brands />
+        </Suspense>
+      </div>
+
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: '640px' }}>
+        <Suspense fallback={<SectionSkeleton />}> 
+          <FeaturedProducts />
+        </Suspense>
+      </div>
+
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: '640px' }}>
+        <Suspense fallback={<SectionSkeleton />}> 
+          <NewArrivals />
+        </Suspense>
+      </div>
+
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: '800px' }}>
+        <Suspense fallback={<SectionSkeleton />}> 
+          <BestSellers />
+        </Suspense>
+      </div>
+
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: '600px' }}>
+        <Suspense fallback={<SectionSkeleton />}> 
+          {showcaseCategories.map(cat => (
+            <ShowcaseCategories
+              key={cat.slug}
+              categorySlug={cat.slug}
+              categoryName={cat.name}
+              categoryImage={cat.image}
+            />
+          ))}
+        </Suspense>
+      </div>
+
       {/* WhatsApp Floating Icon */}
       <a
         href="https://wa.me/+923071111832?text=Hello%2C%20I%20have%20a%20question%20regarding%20a%20product%20on%20Etimad%20Mart.%20Can%20you%20please%20assist%20me%3F"
-        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-green-500 text-white rounded-full w-14 h-14 md:h-16 md:w-16 flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors duration-300 z-50"
+        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-green-600 text-white rounded-full w-14 h-14 md:h-16 md:w-16 flex items-center justify-center shadow-lg hover:bg-green-800 transition-colors duration-300 z-50"
         target="_blank"
         rel="noopener noreferrer"
       >

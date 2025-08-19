@@ -1,5 +1,6 @@
+import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { FaAngleDown } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -10,6 +11,18 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
 
     const categoryRefs = useRef({});
     const modalRef = useRef(null);
+
+    // Respect reduced-motion and pointer coarse (touch) to limit animation work
+    const [allowMotion, setAllowMotion] = useState(true);
+    useEffect(() => {
+        try {
+            const reduceMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const isCoarse = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+            setAllowMotion(!(reduceMotion || isCoarse));
+        } catch (_) {
+            setAllowMotion(true);
+        }
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -30,7 +43,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
         return path.startsWith(`/category/${category.slug}`);
     };
 
-    const handleCategoryHover = (category, event) => {
+    const handleCategoryHover = useCallback((category, event) => {
         if (category.subcategories.length > 0) {
             if (modalState.selectedCategory?._id === category._id) {
                 setModalState({ isOpen: false, selectedCategory: null });
@@ -46,12 +59,11 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                 setModalState({ isOpen: true, selectedCategory: category });
             }
         }
-    };
+    }, [modalState.selectedCategory, setModalPosition, setModalState]);
 
-    const handleSubcategoryClick = (subcategory) => {
+    const handleSubcategoryClick = useCallback((subcategory) => {
         const categorySlug = modalState.selectedCategory.slug;
         const subcategorySlug = subcategory.slug;
-
 
         if (!categorySlug || !subcategorySlug) {
             console.error("Category or Subcategory slug is missing!");
@@ -62,9 +74,9 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
         console.log("Navigating to:", `/category/${categorySlug}/subcategory/${subcategorySlug}`);
 
         setModalState({ isOpen: false, selectedCategory: null });
-    };
+    }, [modalState.selectedCategory, navigateTo, setModalState]);
 
-    const handleCategoryClick = (category, event) => {
+    const handleCategoryClick = useCallback((category, event) => {
         if (category.subcategories.length > 0) {
             if (modalState.selectedCategory?._id === category._id) {
                 setModalState({ isOpen: false, selectedCategory: null });
@@ -87,9 +99,9 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                 console.warn("Category slug is undefined or empty");
             }
         }
-    };
+    }, [modalState.selectedCategory, navigateTo, setModalPosition, setModalState]);
 
-    const modalVariants = {
+    const modalVariants = useMemo(() => allowMotion ? ({
         hidden: { 
             opacity: 0,
             y: -10,
@@ -120,30 +132,29 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                 ease: "easeInOut"
             }
         }
-    };
+    }) : ({
+        hidden: { opacity: 1 },
+        visible: { opacity: 1 },
+        exit: { opacity: 1 }
+    }), [allowMotion]);
 
-    const subcategoryVariants = {
-        hidden: { 
-            opacity: 0, 
-            x: -10,
-            scale: 0.9
-        },
+    const subcategoryVariants = useMemo(() => allowMotion ? ({
+        hidden: { opacity: 0, x: -10, scale: 0.9 },
         visible: (i) => ({
             opacity: 1,
             x: 0,
             scale: 1,
-            transition: {
-                delay: i * 0.03, // Faster stagger
-                duration: 0.2,
-                ease: [0.25, 0.1, 0.25, 1] // Custom easing
-            }
+            transition: { delay: i * 0.03, duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }
         })
-    };
+    }) : ({
+        hidden: { opacity: 1 },
+        visible: () => ({ opacity: 1 })
+    }), [allowMotion]);
 
     return (
         <>
             {categories && categories.length > 0 && (
-                <div className="hidden py-4 md:block bg-primary">
+                <div className="hidden py-4 md:block bg-primary" style={{ contentVisibility: 'auto', containIntrinsicSize: '56px' }}>
                     <div className="container flex flex-wrap justify-center gap-6 px-2 mx-auto">
                         {categories.map((category) => (
                             <div
@@ -169,7 +180,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                                         {category.name}
                                     </div>
                                     {category?.subcategories?.length > 0 && (
-                                        <motion.div
+                                        (allowMotion ? <motion.div
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleCategoryClick(category, e);
@@ -178,7 +189,9 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                                             transition={{ duration: 0.2 }}
                                         >
                                             <FaAngleDown className="font-extrabold text-gray-200 cursor-pointer" />
-                                        </motion.div>
+                                        </motion.div> : <div onClick={(e) => { e.stopPropagation(); handleCategoryClick(category, e); }}>
+                                            <FaAngleDown className="font-extrabold text-gray-200 cursor-pointer" />
+                                        </div>)
                                     )}
                                 </div>
                             </div>
@@ -188,6 +201,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
             )}
 
             {/* Enhanced Modal for Subcategories */}
+            {allowMotion ? (
             <AnimatePresence>
                 {modalState.isOpen && (
                     <motion.div
@@ -252,8 +266,47 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                     </motion.div>
                 )}
             </AnimatePresence>
+            ) : (
+                modalState.isOpen && (
+                    <div
+                        key="modal"
+                        style={{
+                            position: 'absolute',
+                            top: `${modalPosition.top}px`,
+                            left: `${modalPosition.left}px`,
+                            borderRadius: "8px",
+                            background: 'white',
+                            padding: '15px',
+                            border: 'none',
+                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                            maxWidth: '500px',
+                            maxHeight: '400px',
+                            zIndex: 40,
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        }}
+                        ref={modalRef}
+                        onMouseEnter={() => setIsMouseOverModal(true)}
+                        onMouseLeave={() => {
+                            setIsMouseOverModal(false);
+                            setModalState({ isOpen: false, selectedCategory: null });
+                        }}
+                    >
+                        <div className="flex flex-col flex-wrap gap-2">
+                            {modalState.selectedCategory?.subcategories.map((subcategory) => (
+                                <div
+                                    key={subcategory._id}
+                                    className="p-3 transition-all duration-200 bg-white rounded-lg cursor-pointer hover:border-l-4 border-secondary"
+                                    onClick={() => handleSubcategoryClick(subcategory)}
+                                >
+                                    <span className="font-semibold capitalize text-primary text-[15px]">{subcategory.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )
+            )}
         </>
     );
 };
 
-export default CategoryBar;
+export default React.memo(CategoryBar);

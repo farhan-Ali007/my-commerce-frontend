@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { TbTruckDelivery } from 'react-icons/tb';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,15 +16,25 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     const currentCartItems = useSelector((state) => state.cart.products);
     const userId = user?._id;
     const { images, title, averageRating, price, salePrice, slug, freeShipping } = product;
-    const off = salePrice && Math.floor(((price - salePrice) / price) * 100);
-    const totalReviews = product?.reviews?.length;
+    const off = useMemo(() => (
+        salePrice && price ? Math.floor(((price - salePrice) / price) * 100) : 0
+    ), [price, salePrice]);
+    const totalReviews = useMemo(() => (
+        Array.isArray(product?.reviews) ? product.reviews.length : 0
+    ), [product?.reviews]);
     const [isHovered, setIsHovered] = useState(false);
     const { track } = useFacebookPixel();
 
     const imageWidth = 180;
     const imageHeight = 180;
 
-    const hasVariants = Array.isArray(product?.variants) && product.variants.length > 0;
+    // Motion gating: disable heavy animations/hover on touch devices or when user prefers reduced motion
+    const allowMotion = useMemo(() => {
+        if (typeof window === 'undefined') return true;
+        const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        return !(prefersReduced || isCoarse);
+    }, []);
 
     const handleAddToCart = useCallback(async () => {
         // If product has variants, require selection on PDP
@@ -116,34 +126,34 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
         }
     }, [product, dispatch, userId, navigateTo, currentCartItems, track]);
 
-    const cardVariants = {
+    const cardVariants = useMemo(() => allowMotion ? ({
         hidden: { opacity: 0, y: 20 },
-        visible: { 
-            opacity: 1, 
-            y: 0, 
-            transition: { 
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
                 duration: 0.3,
                 ease: "easeOut"
-            } 
+            }
         },
-        hover: { 
-            scale: 1.02, 
-            transition: { 
+        hover: {
+            scale: 1.02,
+            transition: {
                 duration: 0.2,
                 ease: "easeOut"
-            } 
+            }
         },
-    };
+    }) : ({ hidden: { opacity: 1 }, visible: { opacity: 1 } }), [allowMotion]);
 
-    const imageVariants = {
-        hover: { 
-            scale: 1.05, 
-            transition: { 
+    const imageVariants = useMemo(() => allowMotion ? ({
+        hover: {
+            scale: 1.05,
+            transition: {
                 duration: 0.2,
                 ease: "easeOut"
-            } 
+            }
         },
-    };
+    }) : undefined, [allowMotion]);
 
     const renderStars = (rating) => {
         const stars = [];
@@ -199,6 +209,9 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
         return stars;
     };
 
+    // Memoize stars for given rating to avoid re-compute on unrelated re-renders
+    const memoizedStars = useMemo(() => renderStars(averageRating || 0), [averageRating]);
+
     const getImageUrl = (img) => {
         if (!img) return '';
         if (typeof img === 'string') return img;
@@ -211,28 +224,39 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
         // Keep local assets as-is
         if (typeof imageUrl === 'string' && imageUrl.startsWith('/')) return imageUrl;
         const sep = imageUrl.includes('?') ? '&' : '?';
-        return `${imageUrl}${sep}f_auto&q_80&w=${imageWidth}&h=${imageHeight}&c=fill`;
+        return `${imageUrl}${sep}f_auto&q_auto&dpr=auto&w=${imageWidth}&h=${imageHeight}&c=fill`;
     };
 
     const getOptimizedSrcSet = (imageUrl) => {
         if (!imageUrl) return undefined;
         const base = getImageUrl(imageUrl);
         const sep = base.includes('?') ? '&' : '?';
-        const url180 = `${base}${sep}f_auto&q_80&w=180&h=180&c=fill`;
-        const url360 = `${base}${sep}f_auto&q_80&w=360&h=360&c=fill`;
-        return `${url180} 180w, ${url360} 360w`;
+        const url1x = `${base}${sep}f_auto&q_auto&dpr=auto&w=${imageWidth}&h=${imageHeight}&c=fill`;
+        const url2x = `${base}${sep}f_auto&q_auto&dpr=auto&w=${imageWidth * 2}&h=${imageHeight * 2}&c=fill`;
+        return `${url1x} ${imageWidth}w, ${url2x} ${imageWidth * 2}w`;
     };
+
+    // Prefetch the hover image to make swap instant only when allowing motion (avoid bandwidth on touch)
+    useEffect(() => {
+        if (!allowMotion) return;
+        if (Array.isArray(images) && images[1]) {
+            const img = new Image();
+            const url = getOptimizedImageUrl(getImageUrl(images[1]));
+            img.src = url;
+        }
+    }, [images, allowMotion]);
 
     return (
         <motion.div
             className="max-w-sm bg-white h-[320px]  overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
+            style={{ contentVisibility: 'auto', containIntrinsicSize: '320px 320px' }}
             variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            whileHover="hover"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            initial={allowMotion ? "hidden" : false}
+            whileInView={allowMotion ? "visible" : undefined}
+            viewport={allowMotion ? { once: true, amount: 0.2 } : undefined}
+            whileHover={allowMotion ? "hover" : undefined}
+            onMouseEnter={allowMotion ? () => setIsHovered(true) : undefined}
+            onMouseLeave={allowMotion ? () => setIsHovered(false) : undefined}
         >
             <Link to={`/product/${slug}`} className="w-full mb-4 overflow-hidden" style={{ height: `${imageHeight}px` }}>
                 <div className="relative w-full h-full">
@@ -240,14 +264,14 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                         className="absolute top-0 left-0 object-contain w-full h-full"
                         src={getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
                         srcSet={getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
-                        sizes="(max-width: 768px) 50vw, 180px"
+                        sizes={`(max-width: 768px) 50vw, ${imageWidth}px`}
                         alt={title}
                         loading="lazy"
                         width={imageWidth}
                         height={imageHeight}
                         decoding="async"
                         variants={imageVariants}
-                        whileHover="hover"
+                        whileHover={allowMotion ? "hover" : undefined}
                         onError={() => { /* keep silent to avoid state churn */ }}
                     />
                 </div>
@@ -275,6 +299,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 </motion.span>
             )}
 
+            {allowMotion && (
             <AnimatePresence>
                 {isHovered && (
                     <motion.div
@@ -299,6 +324,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            )}
 
             <div className="justify-start mx-2 md:mt-0 mb-4 font-roboto">
                 <Link to={`/product/${slug}`} className='text-black no-underline'>
@@ -310,7 +336,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 </Link>
                 <div className="flex items-center gap-1 mb-1">
                     <div className="flex items-center gap-1">
-                        {renderStars(averageRating || 0)}
+                        {memoizedStars}
                         {totalReviews > 0 && <span className="ml-2 text-sm font-bold text-primary">({totalReviews})</span>}
                     </div>
                 </div>
@@ -343,4 +369,4 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     );
 };
 
-export default ProductCard;
+export default React.memo(ProductCard);

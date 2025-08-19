@@ -5,7 +5,6 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import DynamicPage from './Pages/DynamicPage';
 import NotFound from "./Pages/NotFound";
 import AdminRoute from "./components/AdminRoute";
-import Footer from "./components/Footer";
 import MetaPixelTracker from './components/MetaPixelTracker';
 import Navbar from "./components/Navbar";
 import Popup from "./components/Popup";
@@ -33,6 +32,7 @@ const AdminUsers = lazy(() => import("./Pages/admin/AdminUsers"));
 const AdminColorSettings = lazy(() => import("./Pages/admin/AdminColorSettings"));
 const OrderDetails = lazy(() => import("./Pages/admin/OrderDetails"));
 const NewOrders = lazy(() => import("./Pages/admin/NewOrders"));
+const Footer = lazy(() => import("./components/Footer"));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -139,7 +139,9 @@ const App = () => {
         </Suspense>
         <Toaster position="top-center" />
       </div>
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </>
   );
 };

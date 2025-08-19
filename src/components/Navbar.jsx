@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import React, {
   useCallback,
   useEffect,
@@ -7,24 +8,23 @@ import React, {
 } from "react";
 import Marquee from "react-fast-marquee";
 import toast from "react-hot-toast";
-import { AiOutlineShopping } from "react-icons/ai";
 import { CgMenu } from "react-icons/cg";
-import { FaUserShield, FaMobileAlt } from "react-icons/fa";
-import { FiSearch } from "react-icons/fi";
-import { IoCartOutline } from "react-icons/io5";
+import { CiMobile3 } from "react-icons/ci";
+import { FaUserShield } from "react-icons/fa";
+import { FiSearch ,  } from "react-icons/fi";
+import { HiOutlineShoppingBag, HiOutlineShoppingCart } from "react-icons/hi2";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { truncateTitle } from "../helpers/truncateTitle";
 import { logoutAPI } from "../functions/auth";
+import { menuCategories } from "../functions/categories";
+import { getUserLogo } from "../functions/logo";
+import { getActiveBars } from "../functions/topbar";
+import { truncateTitle } from "../helpers/truncateTitle";
 import { setUser } from "../store/authSlice";
 import { fetchSearchResults, setSearchQuery } from "../store/searchSlice";
 import CategoryBar from "./CategoryBar";
 import NavDrawer from "./drawers/NavDrawer";
-import { menuCategories } from "../functions/categories";
-import { motion, AnimatePresence } from "framer-motion";
-import { getActiveBars } from "../functions/topbar";
 import NotificationBell from "./NotificationBell";
-import { getUserLogo } from "../functions/logo";
 const Navbar = React.memo(() => {
   const hideCategoryBarOn = useMemo(
     () => [
@@ -38,7 +38,7 @@ const Navbar = React.memo(() => {
       "*",
       "/pages/",
       "/category/",
-      "/admin/orders"
+      "/admin/orders",
     ],
     []
   );
@@ -486,7 +486,7 @@ const Navbar = React.memo(() => {
               {/* Support Info - Hidden on mobile, shown on medium+ screens */}
               <div className="items-center hidden gap-2 text-base font-bold text-secondary md:flex">
                 <span className="text-xl font-semibold">
-                  <FaMobileAlt
+                  <CiMobile3
                     size={28}
                     className="md:w-7 md:h-7 lg:w-8 lg:h-8"
                   />
@@ -513,11 +513,11 @@ const Navbar = React.memo(() => {
                 )}
                 {user?.role === "admin" && <NotificationBell />}
                 <Link to="/shop" className="relative z-20 cursor-pointer group">
-                  <AiOutlineShopping className="text-2xl lg:text-3xl text-secondary" />
+                  <HiOutlineShoppingBag className="text-2xl lg:text-3xl text-secondary" />
                 </Link>
 
                 <Link to="/cart" className="relative z-20 cursor-pointer group">
-                  <IoCartOutline className="text-2xl lg:text-3xl text-secondary" />
+                  <HiOutlineShoppingCart className="text-2xl lg:text-3xl text-secondary" />
                   <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-primary bg-opacity-90">
                     {cart.products?.length || 0}
                   </span>
@@ -561,11 +561,11 @@ const Navbar = React.memo(() => {
               )}
               {user?.role === "admin" && <NotificationBell />}
               <Link to="/shop" className="relative z-20 cursor-pointer group">
-                <AiOutlineShopping className="text-2xl text-secondary" />
+                <HiOutlineShoppingBag className="text-2xl text-secondary" />
               </Link>
 
               <Link to="/cart" className="relative z-20 cursor-pointer group">
-                <IoCartOutline className="text-2xl text-secondary" />
+                <HiOutlineShoppingCart className="text-2xl text-secondary" />
                 <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-primary bg-opacity-90">
                   {cart.products?.length || 0}
                 </span>

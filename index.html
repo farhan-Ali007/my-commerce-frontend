@@ -19,11 +19,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Performance: Preconnect to critical origins -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+    <link rel="preconnect" href="https://etimadmart.com" crossorigin>
+    <link rel="preconnect" href="https://etimadmart.up.railway.app" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Performance: Preload LCP hero image (first banner) -->
-    <link rel="preload" as="image" href="/customBanner1.webp" imagesrcset="/customBanner1.webp 800w" imagesizes="100vw" />
+    <link
+      rel="preload"
+      as="image"
+      href="/customBanner1.webp"
+      imagesrcset="/customBanner1.webp 800w, /customBanner1.webp 1200w, /customBanner1.webp 1920w"
+      imagesizes="100vw"
+    />
     <!-- Content Security Policy Meta Tag (Backup for cPanel) -->
     <meta
       http-equiv="Content-Security-Policy"
@@ -66,21 +74,19 @@
     ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-E9DQ6Y0HFP");
+      function gtag(){ dataLayer.push(arguments); }
+      // Defer GA initialization to idle to avoid competing with rendering
+      (window.requestIdleCallback || function(cb){ return setTimeout(cb, 0); })(function(){
+        gtag('js', new Date());
+        gtag('config', 'G-E9DQ6Y0HFP');
+      });
     </script>
     <!-- Meta Pixel Code -->
     <script>
       !(function (f, b, e, v, n, t, s) {
         if (f.fbq) return;
         n = f.fbq = function () {
-          n.callMethod
-            ? n.callMethod.apply(n, arguments)
-            : n.queue.push(arguments);
+          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
         };
         if (!f._fbq) f._fbq = n;
         n.push = n;
@@ -92,14 +98,12 @@
         t.src = v;
         s = b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t, s);
-      })(
-        window,
-        document,
-        "script",
-        "https://connect.facebook.net/en_US/fbevents.js"
-      );
-      fbq("init", "2204362540002843");
-      fbq("track", "PageView");
+      })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+      // Defer Pixel init/track to idle (or next tick fallback)
+      (window.requestIdleCallback || function(cb){ return setTimeout(cb, 0); })(function(){
+        fbq("init", "2204362540002843");
+        fbq("track", "PageView");
+      });
     </script>
     <!-- End Meta Pixel Code -->
   </head>
