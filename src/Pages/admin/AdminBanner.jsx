@@ -170,7 +170,7 @@ const AdminBanner = () => {
 
                 <button
                     type="submit"
-                    className="w-full bg-main bg-opacity-70 hover:bg-opacity-90 text-white py-2 rounded-lg transition"
+                    className="w-full bg-secondary/80  hover:bg-secondary text-primary py-2 rounded-lg transition"
                     disabled={loading}
                 >
                     {editMode ? "Update Banner (1920x550)" : "Add Banner (1920x550)"}

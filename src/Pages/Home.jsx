@@ -5,6 +5,8 @@ import Banner from '../components/Banner';
 import { FaWhatsapp } from 'react-icons/fa'; 
 import websiteSchema from '../helpers/getWebsiteSchema';
 import organizationSchema from '../helpers/getOrgSchema';
+// import SectionRenderer from '../components/sections/SectionRenderer';
+// import homeLayout from '../config/sections/home.json';
 
 // Lazy-load below-the-fold sections to improve LCP/TBT
 const Categories = lazy(() => import('../components/Categories'));
@@ -49,6 +51,8 @@ const Home = () => {
         <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
       </Helmet>
+      {/* Config-driven sections rendered via SectionRenderer (temporarily disabled during development) */}
+      {/** <SectionRenderer layout={homeLayout} /> **/}
       <h1 className=" hidden text-3xl font-bold text-center mt-6 mb-4">
          Etimad Mart - Best Online Shopping store in Pakistan
       </h1>

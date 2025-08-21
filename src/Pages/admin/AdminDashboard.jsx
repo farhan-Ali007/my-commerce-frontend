@@ -8,6 +8,7 @@ import {
   FaShoppingCart,
   FaTags,
   FaUsers,
+  FaPuzzlePiece,
 } from "react-icons/fa";
 import { GiVerticalBanner } from "react-icons/gi";
 import { IoNotifications } from "react-icons/io5";
@@ -20,7 +21,7 @@ import {
   MdSettings,
 } from "react-icons/md";
 import { RiMenuUnfoldFill } from "react-icons/ri";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getRecentOrders } from "../../functions/order";
 import AdminBanner from "./AdminBanner";
 import AdminBrands from "./AdminBrands";
@@ -42,6 +43,7 @@ import AdminTopbarText from "./TopBar";
 
 const AdminDashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [selectedPage, setSelectedPage] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [newOrdersCount, setNewOrdersCount] = useState(1);
@@ -255,7 +257,7 @@ const AdminDashboard = () => {
                 >
                   <FaBoxOpen /> All Products
                 </button>
-                <button
+                {/* <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
                     setSelectedPage("allUsers");
@@ -263,7 +265,7 @@ const AdminDashboard = () => {
                   }}
                 >
                   <FaUsers /> Users
-                </button>
+                </button> */}
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
@@ -323,7 +325,7 @@ const AdminDashboard = () => {
                 >
                   <FaBoxOpen /> All Products
                 </button>
-                <button
+                {/* <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
                     setSelectedPage("allUsers");
@@ -331,7 +333,7 @@ const AdminDashboard = () => {
                   }}
                 >
                   <FaUsers /> Users
-                </button>
+                </button> */}
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
@@ -509,6 +511,24 @@ const AdminDashboard = () => {
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
+                    setSelectedPage("adminBanner");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <GiVerticalBanner /> Banner
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    navigate("/admin/sections");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaPuzzlePiece /> Sections Editor
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
                     setSelectedPage("footer");
                     setIsSidebarOpen(false);
                   }}
@@ -564,6 +584,24 @@ const AdminDashboard = () => {
                   }}
                 >
                   <FaFileAlt /> Pages
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("adminBanner");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <GiVerticalBanner /> Banner
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    navigate("/admin/sections");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaPuzzlePiece /> Sections Editor
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"

@@ -191,9 +191,16 @@ const Checkout = () => {
         mobile: "",
         additionalInstructions: "",
       });
-      toast.success(response?.data?.message || "Order placed successfully!");
-      navigateTo("/order-history", {
-        state: { orderId: response?.order?._id },
+      toast.success(response?.data?.message || "Your order has been placed successfully!" , {
+        duration: 10000,
+      });
+      try { sessionStorage.setItem('fromCheckout', '1'); } catch {}
+      try { localStorage.setItem('fromCheckout', '1'); } catch {}
+      try { localStorage.setItem('lastOrderTs', String(Date.now())); } catch {}
+      const oid = response?.order?._id;
+      const dest = oid ? `/order-history?from=checkout&orderId=${encodeURIComponent(oid)}` : "/order-history?from=checkout";
+      navigateTo(dest, {
+        state: { orderId: response?.order?._id, fromCheckout: true },
       });
     } catch (error) {
       console.error("Order placement error:", error);
