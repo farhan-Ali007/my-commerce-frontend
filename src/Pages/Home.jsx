@@ -82,9 +82,9 @@ const Home = () => {
        ) : (
          <SectionRenderer layout={serverLayout || homeLayout} />
        )} */}
-       {layoutError ? (
+       {/* {layoutError ? (
          <div className="text-center text-red-600 text-sm my-2">{layoutError}</div>
-       ) : null}
+       ) : null} */}
       <h1 className=" hidden text-3xl font-bold text-center mt-6 mb-4">
          Etimad Mart - Best Online Shopping store in Pakistan
       </h1>
