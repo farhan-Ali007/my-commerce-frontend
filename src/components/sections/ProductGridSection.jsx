@@ -26,7 +26,22 @@ const ProductGridSection = ({ settings = {} }) => {
     source = "featured", // featured | new-arrivals | best-sellers | all
     limit = 8,
     page = 1,
+    columns = 4, // Default to 4 columns
+    rows = 2,    // Default to 2 rows
   } = settings;
+
+  // Calculate grid columns based on the columns prop
+  const gridCols = {
+    sm: Math.min(2, columns), // 1-2 columns on mobile
+    md: Math.min(3, columns), // 1-3 columns on tablets
+    lg: Math.min(8, Math.max(1, columns)), // 1-8 columns on desktop
+  };
+  
+  // Calculate the actual number of products to show (rows × columns, max 8)
+  const productsToShow = Math.min(8, rows * columns);
+  
+  // Calculate the actual limit to request from the API
+  const apiLimit = Math.min(limit, productsToShow);
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,10 +51,17 @@ const ProductGridSection = ({ settings = {} }) => {
     (async () => {
       try {
         setLoading(true);
-        const data = await fetchBySource(source, page, limit);
-        const list = data?.products || data?.data || data?.items || [];
+        const response = await fetchBySource(source, page, apiLimit);
+        // Handle different response formats
+        let list = [];
+        if (Array.isArray(response)) {
+          list = response;
+        } else if (response && typeof response === 'object') {
+          list = response.products || response.data || response.items || [];
+        }
         if (mounted) setItems(list);
       } catch (e) {
+        console.error('Error loading products:', e);
         if (mounted) setItems([]);
       } finally {
         if (mounted) setLoading(false);
@@ -48,14 +70,14 @@ const ProductGridSection = ({ settings = {} }) => {
     return () => {
       mounted = false;
     };
-  }, [source, page, limit]);
+  }, [source, page, apiLimit]);
 
   if (loading) {
     return (
       <section className="container mx-auto px-4 my-6">
         <div className="h-8 w-40 bg-gray-100 animate-pulse rounded mb-4" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          {Array.from({ length: Math.min(8, limit) }).map((_, i) => (
+        <div className={`grid grid-cols-${gridCols.sm} md:grid-cols-${gridCols.md} lg:grid-cols-${gridCols.lg} gap-3 md:gap-4`}>
+          {Array.from({ length: productsToShow }).map((_, i) => (
             <div key={i} className="h-40 md:h-56 bg-gray-100 animate-pulse rounded" />
           ))}
         </div>
@@ -68,7 +90,7 @@ const ProductGridSection = ({ settings = {} }) => {
   return (
     <section className="container mx-auto px-4 my-6">
       {title && <h2 className="text-xl md:text-2xl font-bold text-primary mb-3">{title}</h2>}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div className={`grid grid-cols-${gridCols.sm} md:grid-cols-${gridCols.md} lg:grid-cols-${gridCols.lg} gap-3 md:gap-4`}>
         {items.map((p) => (
           <Link
             to={`/product/${p.slug}`}

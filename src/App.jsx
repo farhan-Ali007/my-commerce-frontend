@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import Popup from "./components/Popup";
 import { getUserAPI } from "./functions/auth";
 import { setUser } from "./store/authSlice";
+import { recordVisit } from "./functions/traffic";
 
 
 
@@ -62,6 +63,12 @@ const App = () => {
   }, [dispatch, navigateTo]);
 
 
+
+  // Record visit on route changes (immediate)
+  useEffect(() => {
+    const path = location.pathname + (location.search || "");
+    recordVisit({ path });
+  }, [location.pathname, location.search]);
 
   if (loading) {
     return (

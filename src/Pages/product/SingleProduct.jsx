@@ -28,6 +28,7 @@ import { addItemToCart } from "../../functions/cart";
 import useFacebookPixel from "../../hooks/useFacebookPixel";
 import useWhatsAppTracking from "../../hooks/useWhatsAppTracking";
 import { AiOutlineClose } from "react-icons/ai";
+import { recordProductView } from "../../functions/traffic";
 
 const LazyRelatedProducts = lazy(() =>
   import("../../components/RelatedProducts")
@@ -137,6 +138,8 @@ const SingleProduct = () => {
         value: product.salePrice ? product.salePrice : product.price,
         currency: "PKR",
       });
+      // Record product view for analytics
+      recordProductView(product._id);
     }
   }, [product]);
   const currentPrice = useMemo(() => {

@@ -1,12 +1,13 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 
 import { Helmet } from 'react-helmet-async';
 import Banner from '../components/Banner';
 import { FaWhatsapp } from 'react-icons/fa'; 
 import websiteSchema from '../helpers/getWebsiteSchema';
 import organizationSchema from '../helpers/getOrgSchema';
-// import SectionRenderer from '../components/sections/SectionRenderer';
-// import homeLayout from '../config/sections/home.json';
+import SectionRenderer from '../components/sections/SectionRenderer';
+import homeLayout from '../config/sections/home.json';
+import { getPublishedBySlug } from '../functions/pageLayout';
 
 // Lazy-load below-the-fold sections to improve LCP/TBT
 const Categories = lazy(() => import('../components/Categories'));
@@ -41,7 +42,31 @@ const showcaseCategories = [
 ];
 
 const Home = () => {
-  
+  // Load the published layout from backend, fallback to static JSON
+  const [serverLayout, setServerLayout] = useState(null);
+  const [layoutLoading, setLayoutLoading] = useState(true);
+  const [layoutError, setLayoutError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLayoutLoading(true);
+        const data = await getPublishedBySlug('home');
+        // Be flexible with backend response shape
+        const resolved = data?.publishedLayout || data?.layout || data;
+        if (mounted) setServerLayout(resolved);
+      } catch (e) {
+        if (mounted) setLayoutError(e?.message || 'Failed to load layout');
+      } finally {
+        if (mounted) setLayoutLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <>
       <Helmet>
@@ -52,7 +77,14 @@ const Home = () => {
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
       </Helmet>
       {/* Config-driven sections rendered via SectionRenderer (temporarily disabled during development) */}
-      {/** <SectionRenderer layout={homeLayout} /> **/}
+       {/* {layoutLoading ? (
+         <SectionSkeleton className="h-40" />
+       ) : (
+         <SectionRenderer layout={serverLayout || homeLayout} />
+       )} */}
+       {layoutError ? (
+         <div className="text-center text-red-600 text-sm my-2">{layoutError}</div>
+       ) : null}
       <h1 className=" hidden text-3xl font-bold text-center mt-6 mb-4">
          Etimad Mart - Best Online Shopping store in Pakistan
       </h1>

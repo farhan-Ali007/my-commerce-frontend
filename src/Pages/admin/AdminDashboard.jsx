@@ -20,7 +20,7 @@ import {
   MdOutlineSpaceBar,
   MdSettings,
 } from "react-icons/md";
-import { RiMenuUnfoldFill } from "react-icons/ri";
+import { RiMenuUnfoldFill, RiMenuFoldFill } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getRecentOrders } from "../../functions/order";
 import AdminBanner from "./AdminBanner";
@@ -46,6 +46,15 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [selectedPage, setSelectedPage] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Large screens: collapse/expand sidebar
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      const stored = localStorage.getItem("adminSidebarCollapsed");
+      return stored ? stored === "true" : true; // default collapsed
+    } catch {
+      return true; // default collapsed if storage fails
+    }
+  });
   const [newOrdersCount, setNewOrdersCount] = useState(1);
   // Mobile/tablet collapsible sections
   const [openSection, setOpenSection] = useState(null);
@@ -59,6 +68,12 @@ const AdminDashboard = () => {
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("adminSidebarCollapsed", String(isSidebarCollapsed));
+    } catch {}
+  }, [isSidebarCollapsed]);
 
   useEffect(() => {
     localStorage.setItem("selectedPage", selectedPage);
@@ -205,19 +220,35 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <div
-        className={`w-full lg:w-1/5 bg-gray-800 z-[100] h-auto lg:h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${
+        className={`w-full ${
+          isSidebarCollapsed ? "lg:w-16" : "lg:w-64"
+        } bg-gray-800 z-[100] h-auto lg:h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:transform-none transition-transform duration-200 ease-in-out`}
       >
         <div className="flex items-center justify-between p-4">
-          <h2 className="text-2xl font-bold">Admin Panel</h2>
-          <button
-            onClick={() => setSelectedPage("colorSettings")}
-            className="lg:hidden p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
-            title="Color Settings"
-          >
-            <MdColorLens className="text-lg" />
-          </button>
+          <h2 className={`text-2xl font-bold ${isSidebarCollapsed ? "lg:hidden" : ""}`}>Admin Panel</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedPage("colorSettings")}
+              className="lg:hidden p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
+              title="Color Settings"
+            >
+              <MdColorLens className="text-lg" />
+            </button>
+            {/* Collapse toggle (large screens) */}
+            <button
+              onClick={() => setIsSidebarCollapsed((v) => !v)}
+              className="hidden lg:flex p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
+              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {isSidebarCollapsed ? (
+                <RiMenuUnfoldFill className="text-lg" />
+              ) : (
+                <RiMenuFoldFill className="text-lg" />
+              )}
+            </button>
+          </div>
         </div>
         <nav className="flex flex-col gap-2 text-white">
           {/* Dashboard */}
@@ -233,7 +264,7 @@ const AdminDashboard = () => {
             }}
           >
             <LuChartColumnDecreasing className="text-lg" />
-            Dashboard
+            <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Dashboard</span>
           </button>
 
           {/* Products group with hover submenu (lg+) and collapsible (mobile/tablet) */}
@@ -243,10 +274,10 @@ const AdminDashboard = () => {
               onClick={() => toggleSection("products")}
             >
               <FaBoxOpen className="text-lg" />
-              Products
+              <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Products</span>
             </button>
             {/* Hover submenu for desktop */}
-            <div className="absolute left-full top-0 -ml-2 hidden lg:group-hover:block z-50">
+            <div className="absolute left-full -top-14 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
@@ -396,7 +427,7 @@ const AdminDashboard = () => {
             }}
           >
             <FaUsers className="text-lg" />
-            Users
+            <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Users</span>
           </button>
           {/* Orders group with hover submenu (lg+) and collapsible (mobile/tablet) */}
           <div className="relative group">
@@ -405,9 +436,9 @@ const AdminDashboard = () => {
               onClick={() => toggleSection("orders")}
             >
               <FaShoppingCart className="text-lg" />
-              Orders
+              <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Orders</span>
               {newOrdersCount > 0 && (
-                <span className="ml-auto bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+                <span className={`ml-auto bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ${isSidebarCollapsed ? "lg:hidden" : ""}`}>
                   {newOrdersCount}
                 </span>
               )}
@@ -476,10 +507,10 @@ const AdminDashboard = () => {
               onClick={() => toggleSection("customize")}
             >
               <MdSettings className="text-lg" />
-              Customization
+              <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Customization</span>
             </button>
             {/* Hover submenu for desktop */}
-            <div className="absolute left-full -top-32 -ml-2 hidden lg:group-hover:block z-50">
+            <div className="absolute left-full -top-40 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
@@ -637,7 +668,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="w-full lg:w-4/5 p-2 lg:p-8 lg:pt-0 bg-gray-100 overflow-y-auto">
+      <div className="w-full flex-1 p-2 lg:p-8 lg:pt-0 bg-gray-100 overflow-y-auto">
         {renderContent()}
       </div>
     </div>

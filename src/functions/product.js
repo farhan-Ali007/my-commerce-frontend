@@ -25,14 +25,15 @@ export const getMyProducts = async (page = 1, limit = 8) => {
 }
 
 export const getAllProducts = async (page = 1, limit = 16) => {
-    // console.log("Page in get all products", page)
     try {
-        const response = await axios.get(`${BASE_URL}/product/getAll?page=${page}&limit=${limit}`,
-            { withCredentials: true })
-        // console.log("Response from get all products api--------->", response)
-        return response?.data
+        const response = await axios.get(`${BASE_URL}/product/getAll`, {
+            params: { page, limit },
+            withCredentials: true
+        });
+        return response?.data;
     } catch (error) {
-        console.log("Error in getting all products", error)
+        console.log("Error in getting all products", error);
+        throw error;
     }
 }
 
@@ -106,10 +107,14 @@ export const getRelatedProducts = async (categoryId, excludeProductId) => {
 
 export const getBestSellers = async (page = 1, limit = 6) => {
     try {
-        const response = await axios.get(`${BASE_URL}/product/best-sellers?page=${page}&limit=${limit}`);
+        const response = await axios.get(`${BASE_URL}/product/best-sellers`, {
+            params: { page, limit },
+            withCredentials: true
+        });
         return response?.data;
     } catch (error) {
-        console.log("Error in getting best sellers", error)
+        console.log("Error in getting best sellers", error);
+        throw error;
     }
 }
 
@@ -145,19 +150,27 @@ export const getProductsByBrand = async (brand, page = 1, limit = 10) => {
 
 export const getFeaturedProducts = async (page = 1, limit = 8) => {
     try {
-        const response = await axios.get(`${BASE_URL}/product/featured?page=${page}&limit=${limit}`)
+        const response = await axios.get(`${BASE_URL}/product/featured`, {
+            params: { page, limit },
+            withCredentials: true
+        });
         return response?.data;
     } catch (error) {
-        console.log("Error in getting featured products", error)
+        console.log("Error in getting featured products", error);
+        throw error;
     }
 }
 
 export const getNewArrivals = async (page = 1, limit = 8) => {
     try {
-        const response = await axios.get(`${BASE_URL}/product/new-arrivals?page=${page}&limit=${limit}`)
+        const response = await axios.get(`${BASE_URL}/product/new-arrivals`, {
+            params: { page, limit },
+            withCredentials: true
+        });
         return response?.data;
     } catch (error) {
-        console.log("Error in getting new arrivals", error)
+        console.log("Error in getting new arrivals", error);
+        throw error;
     }
 }
 

@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import { CgMenu } from "react-icons/cg";
 import { CiMobile3 } from "react-icons/ci";
 import { FaUserShield } from "react-icons/fa";
-import { FiSearch ,  } from "react-icons/fi";
+import { FiSearch   } from "react-icons/fi";
 import { HiOutlineShoppingBag, HiOutlineShoppingCart } from "react-icons/hi2";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -39,6 +39,7 @@ const Navbar = React.memo(() => {
       "/pages/",
       "/category/",
       "/admin/orders",
+      "/admin/sections",
     ],
     []
   );
@@ -428,7 +429,7 @@ const Navbar = React.memo(() => {
       <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0">
         <div className="container mx-auto px-4 py-2">
           {/* Desktop Layout */}
-          <div className="hidden md:flex items-center justify-between">
+          <div className="hidden md:grid md:grid-cols-[auto,1fr,auto] items-center gap-4 lg:gap-6">
             {/* Left Section - Logo */}
             <div className="flex-shrink-0">
               <motion.a
@@ -448,8 +449,8 @@ const Navbar = React.memo(() => {
             </div>
 
             {/* Center Section - Search Bar */}
-            <div className="flex-1 flex justify-center items-center">
-              <div className="w-full max-w-md  lg:max-w-lg xl:max-w-[30rem] ml-0 lg:ml-10 ">
+            <div className="flex justify-center items-center">
+              <div className="w-full max-w-md lg:max-w-lg xl:max-w-[32rem]">
                 <motion.div
                   className="relative flex items-center bg-gray-50 rounded-full border border-secondary shadow-md w-full"
                   variants={inputVariants}
@@ -458,7 +459,7 @@ const Navbar = React.memo(() => {
                   <input
                     type="text"
                     placeholder="Search product here..."
-                    className="w-full bg-transparent outline-none px-3 py-2 lg:px-4 lg:py-2.5 rounded-l-full placeholder-primary/70 text-sm"
+                    className="w-full bg-transparent outline-none px-3 py-2 lg:px-4 lg:py-3 rounded-l-full placeholder-primary/70 text-sm"
                     value={search}
                     onKeyDown={handleSearchKeyDown}
                     onChange={handleSearchChange}
