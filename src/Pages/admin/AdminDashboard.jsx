@@ -62,9 +62,23 @@ const AdminDashboard = () => {
     setOpenSection((prev) => (prev === name ? null : name));
 
   useEffect(() => {
-    const savedPage = localStorage.getItem("selectedPage");
-    if (savedPage) {
-      setSelectedPage(savedPage);
+    // Priority: navigation state > URL query > localStorage
+    const stateTab = location?.state?.tab;
+    if (stateTab) {
+      setSelectedPage(stateTab);
+      try { localStorage.setItem('selectedPage', stateTab); } catch {}
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const params = new URLSearchParams(location.search);
+    const queryTab = params.get('tab');
+    if (queryTab) {
+      setSelectedPage(queryTab);
+      try { localStorage.setItem('selectedPage', queryTab); } catch {}
+    } else {
+      const savedPage = localStorage.getItem("selectedPage");
+      if (savedPage) setSelectedPage(savedPage);
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);

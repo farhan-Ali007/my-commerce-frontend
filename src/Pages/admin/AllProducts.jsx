@@ -12,9 +12,8 @@ const AllProducts = () => {
   // State for paginated products
   const [products, setProducts] = useState([]);
   const [totalProducts, setTotalProducts] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false); // used for search loading only
   const [deletingProductId, setDeletingProductId] = useState(null);
 
   // State for search
@@ -23,27 +22,12 @@ const AllProducts = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchTotal, setSearchTotal] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
+  // Pagination state must be declared before effects that depend on it
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch paginated products
-  const fetchMyProducts = async (page) => {
-    try {
-      setIsPageLoading(true);
-      const response = await getAllProducts(page);
-      if (response?.products?.length > 0) {
-        setProducts((prevProducts) => [...prevProducts, ...response.products]);
-        setHasMore(response.products.length === PAGE_SIZE);
-        if (response.totalProducts !== undefined) {
-          setTotalProducts(response.totalProducts);
-        }
-      } else {
-        setHasMore(false);
-      }
-    } catch (error) {
-      toast.error("Failed to load products");
-    } finally {
-      setIsPageLoading(false);
-    }
-  };
+  // Removed duplicate fetchMyProducts; using fetchProducts below
+  const didInitialFetch = useRef(false);
 
   // Debounce search input
   useEffect(() => {
@@ -56,11 +40,17 @@ const AllProducts = () => {
   // Fetch products on page change (only if not searching)
   useEffect(() => {
     if (!isSearching) {
-      fetchMyProducts(currentPage);
+      // Guard against double-invocation in React StrictMode for initial page
+      if (page === 1 && didInitialFetch.current) {
+        // no-op, already fetched
+      } else {
+        fetchProducts(page);
+        if (page === 1) didInitialFetch.current = true;
+      }
     }
     // eslint-disable-next-line
     window.scrollTo(0, 0);
-  }, [currentPage, isSearching]);
+  }, [page, isSearching]);
 
   // Search effect
   useEffect(() => {
@@ -69,7 +59,7 @@ const AllProducts = () => {
         setIsSearching(false);
         setSearchResults([]);
         setSearchTotal(0);
-        setCurrentPage(1);
+        setPage(1);
         return;
       }
       setIsSearching(true);
@@ -92,15 +82,26 @@ const AllProducts = () => {
   // Delete handler
   const handleDelete = async (id) => {
     try {
-      setDeletingProductId(id);
+      // normalize to string to avoid strict equality mismatches
+      setDeletingProductId(String(id));
       const response = await deleteProduct(id);
       toast.success(response?.message);
       setProducts((prevProducts) => prevProducts.filter((product) => product._id !== id));
       setSearchResults((prevResults) => prevResults.filter((product) => product._id !== id));
+      // Hard refresh as a fallback to ensure UI state is fully reset
+      setTimeout(() => {
+        try {
+          window.location.reload();
+        } catch {}
+      }, 0);
     } catch (error) {
       toast.error("Failed to delete product.");
     } finally {
-      setDeletingProductId(null);
+      // small delay to ensure UI updates before clearing
+      setTimeout(() => setDeletingProductId(null), 50);
+      // Ensure no loaders remain stuck after delete
+      setIsPageLoading(false);
+      setLoading(false);
     }
   };
 
@@ -115,8 +116,6 @@ const AllProducts = () => {
   const productsToShow = isSearching ? searchResults : products;
   const totalToShow = isSearching ? searchTotal : totalProducts;
 
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
 
   const getImageUrl = (img) => {
     if (!img) return '';
@@ -127,20 +126,22 @@ const AllProducts = () => {
 
   const fetchProducts = async (pageNum) => {
     setLoading(true);
-    console.log('Fetching products for page:', pageNum);
-    const response = await getAllProducts(pageNum);
-    setProducts(prev => {
-      const existingIds = new Set(prev.map(p => p._id));
-      const newProducts = response.products.filter(p => !existingIds.has(p._id));
-      return [...prev, ...newProducts];
-    });
-    setHasMore(response.products.length > 0);
-    setLoading(false);
+    try {
+      const response = await getAllProducts(pageNum);
+      setProducts(prev => {
+        const key = (p) => `${String(p?._id ?? p?.id ?? '')}|${String(p?.slug ?? '')}`;
+        const existingKeys = new Set(prev.map(key));
+        const incoming = Array.isArray(response?.products) ? response.products : [];
+        const newProducts = incoming.filter(p => !existingKeys.has(key(p)));
+        return [...prev, ...newProducts];
+      });
+      if (typeof response?.totalProducts === 'number') setTotalProducts(response.totalProducts);
+      setHasMore((response?.products || []).length > 0);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  useEffect(() => {
-    fetchProducts(page);
-  }, [page]);
+  // initial load handled by the combined effect above
 
   return (
     <div className="max-w-screen-lg mx-auto bg-gray-100 px-1 md:px-4 py-6">
@@ -180,7 +181,7 @@ const AllProducts = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {isPageLoading && productsToShow.length === 0 ? (
+            {(isSearching ? isPageLoading : loading) && productsToShow.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-8 text-center text-main font-semibold">
                   Loading products...
@@ -192,7 +193,7 @@ const AllProducts = () => {
                   <td className="py-2 px-2 font-bold text-secondary text-center">
                     {isSearching
                       ? idx + 1
-                      : (currentPage - 1) * PAGE_SIZE + idx + 1}
+                      : (page - 1) * PAGE_SIZE + idx + 1}
                   </td>
                   <td className="py-2 px-2">
                     <img
@@ -230,10 +231,10 @@ const AllProducts = () => {
                     <button
                       className="text-red-600 hover:text-red-800 text-xl"
                       onClick={() => handleDeleteClick(product?._id)}
-                      disabled={deletingProductId === product._id}
+                      disabled={deletingProductId !== null && String(deletingProductId) === String(product._id)}
                       title="Delete"
                     >
-                      {deletingProductId === product._id ? (
+                      {deletingProductId !== null && String(deletingProductId) === String(product._id) ? (
                         <span className="animate-spin h-5 w-5 border-2 border-red-600 border-opacity-90 border-t-transparent rounded-full inline-block"></span>
                       ) : (
                         <CiTrash />

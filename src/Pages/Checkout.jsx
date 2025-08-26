@@ -45,15 +45,17 @@ const Checkout = () => {
 
     if (isLoggedIn) {
       // For logged-in users: flatten product structure
+      // IMPORTANT: Prefer cart item's overridden price/image (e.g., tier price) over product defaults
       return {
         ...data,
         products: data.products.map((item) => ({
           ...item,
           title: item.product?.title || item.title,
           image:
-            getImageUrl((item.product?.images && item.product.images[0])) ||
-            getImageUrl(item.image),
-          price: item.product?.salePrice || item.price,
+            getImageUrl(item.image) ||
+            getImageUrl(item.product?.images && item.product.images[0]),
+          price:
+            (item.price != null ? item.price : (item.product?.salePrice ?? item.product?.price ?? 0)),
           productId: item.product?._id || item.productId,
         })),
         deliveryCharges: data.deliveryCharges || 0,
@@ -89,6 +91,19 @@ const Checkout = () => {
           cartData = normalizeCartData(cartState, false);
         }
 
+        // Debug: Inspect normalized cart data
+        try {
+          console.log("[Checkout] Normalized cart data:", {
+            products: cartData?.products?.map(p => ({
+              productId: p.productId,
+              title: p.title,
+              price: p.price,
+              count: p.count,
+              image: p.image,
+            })),
+            deliveryCharges: cartData?.deliveryCharges,
+          });
+        } catch {}
         setCartItems(cartData);
       } catch (error) {
         if (error.response && error.response.status === 404) {

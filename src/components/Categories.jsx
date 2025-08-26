@@ -37,13 +37,10 @@ const Categories = React.memo(() => {
     // Memoize the category list rendering
     const renderCategories = useMemo(() => {
         if (loading) {
-            return (
-                <div className="grid grid-cols-4 md:grid-cols-7 lg:grid-cols-7 gap-4 md:gap-2">
-                    {Array.from({ length: 8 }).map((_, idx) => (
-                        <CategorySkeleton key={idx} />
-                    ))}
-                </div>
-            );
+            // Return tiles directly so they use the same outer grid container
+            return Array.from({ length: 14 }).map((_, idx) => (
+                <CategorySkeleton key={idx} />
+            ));
         }
 
         if (error) {

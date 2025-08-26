@@ -35,6 +35,7 @@ const Dashboard = () => {
   const [trafficTotals, setTrafficTotals] = useState({ visitors: 0, productViews: 0 });
   const [trafficBuckets, setTrafficBuckets] = useState(null);
   const [topViewedProducts, setTopViewedProducts] = useState([]);
+  const [topProductsRange, setTopProductsRange] = useState('30d');
   const colors = ["#0ea5e9","#10b981","#f59e0b","#ef4444","#6366f1","#14b8a6"];
 
   const computeRange = (key) => {
@@ -91,7 +92,7 @@ const Dashboard = () => {
         const productViewsTotal = traffic?.productViewsTotal ?? traffic?.totals?.productViews ?? traffic?.totalProductViews ?? 0;
         setTrafficTotals({ visitors: visitorsTotal, productViews: productViewsTotal });
         setTrafficBuckets(traffic?.buckets || null);
-        setTopViewedProducts(Array.isArray(traffic?.topViewedProducts) ? traffic.topViewedProducts : []);
+        // Top viewed products are now controlled by topProductsRange effect
 
         // Merge visitorsSeries and productViewsSeries by date
         const vs = Array.isArray(traffic?.visitorsSeries) ? traffic.visitorsSeries : [];
@@ -117,7 +118,7 @@ const Dashboard = () => {
         setTrafficSeries([]);
         setTrafficTotals({ visitors: 0, productViews: 0 });
         setTrafficBuckets(null);
-        setTopViewedProducts([]);
+        // Leave topViewedProducts unchanged here; controlled by topProductsRange effect
       }
     };
     loadRange();
@@ -161,6 +162,22 @@ const Dashboard = () => {
     tick();
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [range]);
+  // Load Top Viewed Products based on its own range selector
+  useEffect(() => {
+    let cancelled = false;
+    const loadTopViewed = async () => {
+      try {
+        const { from, to, interval } = computeRange(topProductsRange);
+        const data = await getTrafficSummary({ from: from.toISOString(), to: to.toISOString(), interval });
+        if (cancelled) return;
+        setTopViewedProducts(Array.isArray(data?.topViewedProducts) ? data.topViewedProducts : []);
+      } catch (_) {
+        if (!cancelled) setTopViewedProducts([]);
+      }
+    };
+    loadTopViewed();
+    return () => { cancelled = true; };
+  }, [topProductsRange]);
 
   const formattedSeries = useMemo(() => (
     series.map(d => ({
@@ -273,9 +290,25 @@ const Dashboard = () => {
               </div>
             )}
 
-            {/* Top Viewed Products (current range) */}
+            {/* Top Viewed Products (independent range) */}
             <div className="p-4 rounded-lg border bg-white shadow-sm">
-              <h2 className="font-semibold text-gray-800 mb-2">Top Viewed Products ({range === 'all' ? 'Last 12m' : rangeLabel})</h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="font-semibold text-gray-800">Top Viewed Products ({topProductsRange === 'all' ? 'Last 12m' : topProductsRange === '7d' ? 'Last 7 days' : 'Last 30 days'})</h2>
+                <div className="inline-flex rounded overflow-hidden border">
+                  <button
+                    className={`px-3 py-1 text-xs ${topProductsRange === '7d' ? 'bg-gray-800 text-white' : 'bg-white'}`}
+                    onClick={() => setTopProductsRange('7d')}
+                  >Last 7d</button>
+                  <button
+                    className={`px-3 py-1 text-xs ${topProductsRange === '30d' ? 'bg-gray-800 text-white' : 'bg-white'}`}
+                    onClick={() => setTopProductsRange('30d')}
+                  >Last 30d</button>
+                  <button
+                    className={`px-3 py-1 text-xs ${topProductsRange === 'all' ? 'bg-gray-800 text-white' : 'bg-white'}`}
+                    onClick={() => setTopProductsRange('all')}
+                  >All time</button>
+                </div>
+              </div>
               <ul className="divide-y">
                 {topViewedProducts?.length ? topViewedProducts.map((item) => (
                   <li key={String(item.productId)} className="py-2 flex items-center justify-between">
@@ -377,7 +410,16 @@ const Dashboard = () => {
                             label
                           >
                             {statusSummary.map((s, idx) => (
-                              <RC.Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
+                              <RC.Cell
+                                key={`cell-${idx}`}
+                                fill={
+                                  String(s.status).toLowerCase().includes('cancel')
+                                    ? '#9CA3AF' // gray for cancelled
+                                    : String(s.status).toLowerCase().includes('ship')
+                                      ? '#0ea5e9' // blue for shipped
+                                      : colors[idx % colors.length]
+                                }
+                              />
                             ))}
                           </RC.Pie>
                         </RC.PieChart>

@@ -95,7 +95,8 @@ const CreateProduct = () => {
       console.log("Response of createProduct----->", response);
       setLoading(false);
       toast.success(response?.message || "Product created successfully");
-      navigateTo('/admin-dashboard')
+      try { localStorage.setItem('selectedPage', 'allProducts'); } catch {}
+      navigateTo('/admin-dashboard?tab=allProducts')
       if (createProductFormRef.current) {
         createProductFormRef.current.resetForm();
       }

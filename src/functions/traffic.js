@@ -3,6 +3,7 @@ import { BASE_URL } from '../config/baseURL';
 
 // Persisted visitor identifier for accurate dedupe (privacy-safe hash on server)
 const VISITOR_KEY = 'em_visitor_id';
+const LAST_VISIT_KEY = 'em_last_visit_day'; // YYYY-MM-DD to throttle client calls
 const getVisitorId = () => {
   try {
     let id = localStorage.getItem(VISITOR_KEY);
@@ -24,6 +25,15 @@ const getVisitorId = () => {
 
 export const recordVisit = async ({ path, referer } = {}) => {
   try {
+    // Client-side throttle: only once per day per device
+    const todayKey = new Date().toISOString().slice(0, 10);
+    try {
+      const last = localStorage.getItem(LAST_VISIT_KEY);
+      if (last === todayKey) {
+        return { success: true, skipped: 'already-recorded-today' };
+      }
+    } catch (_) {}
+
     const payload = {
       path: path || window.location.pathname,
       referer: referer || document.referrer || '',
@@ -34,6 +44,8 @@ export const recordVisit = async ({ path, referer } = {}) => {
       withCredentials: true,
       headers: { 'Content-Type': 'application/json' },
     });
+    // Mark as recorded for today
+    try { localStorage.setItem(LAST_VISIT_KEY, todayKey); } catch (_) {}
     return res?.data;
   } catch (err) {
     // Silently ignore tracking errors

@@ -45,12 +45,19 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
         }
         const variantsForBackend = [];
 
+        // If volume tiers exist, default to the first tier
+        const firstTier = (product?.volumeTierEnabled && Array.isArray(product?.volumeTiers) && product.volumeTiers.length > 0)
+            ? product.volumeTiers[0]
+            : null;
+        const priceToUse = (typeof firstTier?.price === 'number') ? firstTier.price : (product?.salePrice ? product?.salePrice : product?.price);
+        const imageToUse = firstTier?.image ? getImageUrl(firstTier.image) : getImageUrl(product?.images && product?.images[0]);
+
         const cartItem = {
             cartItemId: product?._id,
             productId: product?._id,
             title: product?.title,
-            price: product?.salePrice ? product?.salePrice : product?.price,
-            image: getImageUrl(product?.images && product?.images[0]),
+            price: priceToUse,
+            image: imageToUse,
             count: 1,
             selectedVariants: variantsForBackend,
             freeShipping: product?.freeShipping,
@@ -81,12 +88,19 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             return;
         }
         const variantsForBackend = [];
+        // If volume tiers exist, default to the first tier
+        const firstTier = (product?.volumeTierEnabled && Array.isArray(product?.volumeTiers) && product.volumeTiers.length > 0)
+            ? product.volumeTiers[0]
+            : null;
+        const priceToUse = (typeof firstTier?.price === 'number') ? firstTier.price : (product?.salePrice ? product?.salePrice : product?.price);
+        const imageToUse = firstTier?.image ? getImageUrl(firstTier.image) : getImageUrl(product?.images && product?.images[0]);
+
         const cartItem = {
             cartItemId: product?._id,
             productId: product?._id,
             title: product?.title,
-            price: product?.salePrice ? product?.salePrice : product?.price,
-            image: getImageUrl(product?.images && product?.images[0]),
+            price: priceToUse,
+            image: imageToUse,
             count: 1,
             selectedVariants: variantsForBackend,
             freeShipping: product?.freeShipping,

@@ -25,6 +25,8 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         tags: [],
         variants: [{ name: "", values: [{ value: "", image: "", price: "" }] }],
         metaDescription: "",
+        volumeTierEnabled: false,
+        volumeTiers: [{ quantity: "", price: "", image: null }],
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [freeShipping, setFreeShipping] = useState(false);
@@ -58,6 +60,27 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    // Volume tiers handlers
+    const handleTierChange = (index, field, value) => {
+        const updated = [...formData.volumeTiers];
+        updated[index] = { ...updated[index], [field]: value };
+        setFormData(prev => ({ ...prev, volumeTiers: updated }));
+    };
+
+    const handleTierImageChange = (index, file) => {
+        const updated = [...formData.volumeTiers];
+        updated[index] = { ...updated[index], image: file };
+        setFormData(prev => ({ ...prev, volumeTiers: updated }));
+    };
+
+    const addTier = () => {
+        setFormData(prev => ({ ...prev, volumeTiers: [...prev.volumeTiers, { quantity: "", price: "", image: null }] }));
+    };
+
+    const removeTier = (index) => {
+        setFormData(prev => ({ ...prev, volumeTiers: prev.volumeTiers.filter((_, i) => i !== index) }));
     };
 
     const handleImageChange = (e) => {
@@ -216,6 +239,22 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             submissionData.append("slug", formData.slug);
         }
 
+        // Volume tiers payload
+        submissionData.append("volumeTierEnabled", formData.volumeTierEnabled);
+        let tierImageCounter = 0;
+        const tiersPayload = (formData.volumeTiers || [])
+            .filter(t => t.quantity && t.price)
+            .map((t) => {
+                const tier = { quantity: Number(t.quantity), price: Number(t.price) };
+                if (t.image && t.image instanceof File) {
+                    submissionData.append('volumeTierImages', t.image);
+                    tier.imageIndex = tierImageCounter;
+                    tierImageCounter += 1;
+                }
+                return tier;
+            });
+        submissionData.append('volumeTiers', JSON.stringify(tiersPayload));
+
         // Handle variants
         const validVariants = formData.variants
             .filter(variant => variant.name && variant.values.length > 0)
@@ -327,6 +366,72 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                     onChange={handleChange}
                     className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
                 />
+            </div>
+
+            {/* Volume Price Tiers */}
+            <div className="mb-6">
+                <label className="block font-medium mb-2 text-primaryondary">
+                    <input
+                        type="checkbox"
+                        checked={formData.volumeTierEnabled}
+                        onChange={(e) => setFormData(prev => ({ ...prev, volumeTierEnabled: e.target.checked }))}
+                        className="mr-2"
+                    />
+                    Enable Volume Price Tiers
+                </label>
+
+                {formData.volumeTierEnabled && (
+                    <div className="space-y-4">
+                        {formData.volumeTiers.map((tier, idx) => (
+                            <div key={idx} className="border border-gray-200 p-4 rounded-md">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        placeholder="Quantity"
+                                        value={tier.quantity}
+                                        onChange={(e) => handleTierChange(idx, 'quantity', e.target.value)}
+                                        className="w-full border px-4 py-2 rounded-md"
+                                    />
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Tier Price"
+                                        value={tier.price}
+                                        onChange={(e) => handleTierChange(idx, 'price', e.target.value)}
+                                        className="w-full border px-4 py-2 rounded-md"
+                                    />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) handleTierImageChange(idx, file);
+                                        }}
+                                        className="w-full border px-4 py-2 rounded-md"
+                                    />
+                                </div>
+                                {tier.image && (
+                                    <div className="mt-2">
+                                        <img
+                                            src={tier.image instanceof File ? URL.createObjectURL(tier.image) : tier.image}
+                                            alt="Tier Preview"
+                                            className="w-20 h-20 object-cover rounded-md"
+                                        />
+                                    </div>
+                                )}
+                                <div className="mt-2 flex justify-end">
+                                    <button type="button" onClick={() => removeTier(idx)} className="text-red-600 flex items-center gap-1">
+                                        <IoTrash /> Remove Tier
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        <button type="button" onClick={addTier} className="flex items-center gap-1 bg-blue-500 text-white px-4 py-2 rounded-md">
+                            <IoAddCircle /> Add Tier
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Slug */}
