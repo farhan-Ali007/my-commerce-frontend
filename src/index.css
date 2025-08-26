@@ -111,3 +111,27 @@ body {
   background: #F0AD26 !important;
   border: 2px solid #F0AD26 !important;
 }
+
+/* Utility: force visible draggable scrollbar for specific elements */
+.scrollbar-default {
+  /* IE and Edge */
+  -ms-overflow-style: auto;
+  /* Firefox */
+  scrollbar-width: thin;
+}
+.scrollbar-default::-webkit-scrollbar {
+  display: block; /* override global hide */
+  width: 8px;
+  height: 8px;
+}
+.scrollbar-default::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-default::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.4);
+  border-radius: 8px;
+  border: 2px solid transparent;
+}
+.scrollbar-default:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.6);
+}

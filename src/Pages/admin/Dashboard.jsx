@@ -172,7 +172,9 @@ const Dashboard = () => {
         if (cancelled) return;
         setTopViewedProducts(Array.isArray(data?.topViewedProducts) ? data.topViewedProducts : []);
       } catch (_) {
-        if (!cancelled) setTopViewedProducts([]);
+        if (!cancelled) {
+          setTopViewedProducts([]);
+        }
       }
     };
     loadTopViewed();
@@ -309,18 +311,22 @@ const Dashboard = () => {
                   >All time</button>
                 </div>
               </div>
-              <ul className="divide-y">
-                {topViewedProducts?.length ? topViewedProducts.map((item) => (
-                  <li key={String(item.productId)} className="py-2 flex items-center justify-between">
-                    <span className="text-sm text-gray-800 line-clamp-1">
-                      {item?.product?.title || `#${String(item.productId).slice(-6)}`}
-                    </span>
-                    <span className="text-xs text-gray-500">Views: {item.views ?? 0}</span>
-                  </li>
-                )) : (
-                  <li className="text-sm text-gray-500">No data</li>
-                )}
-              </ul>
+              <div className="max-h-24 overflow-auto pr-1 scrollbar-default">
+                <ul className="divide-y">
+                  {topViewedProducts?.length ? (
+                    topViewedProducts.map((item) => (
+                      <li key={String(item.productId)} className="py-2 flex items-center justify-between">
+                        <span className="text-sm text-gray-800 line-clamp-1">
+                          {item?.product?.title || `#${String(item.productId).slice(-6)}`}
+                        </span>
+                        <span className="text-xs text-gray-500">Views: {item.views ?? 0}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-sm text-gray-500">No data</li>
+                  )}
+                </ul>
+              </div>
             </div>
 
             {/* Charts Row: Revenue + Orders */}
