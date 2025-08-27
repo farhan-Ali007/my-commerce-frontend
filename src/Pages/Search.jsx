@@ -421,7 +421,7 @@ const Search = () => {
 
           {/* Rating Filter */}
           <div className="mb-2">
-            <h4 className="text-lg font-medium font-space text-primary">Filter By Rating</h4>
+            <h4 className="text-lg font-medium font-space text-secondary">Filter By Rating</h4>
             {[5, 4, 3, 2, 1].map((rating) => (
               <label key={rating} className="flex items-center mb-1">
                 <input

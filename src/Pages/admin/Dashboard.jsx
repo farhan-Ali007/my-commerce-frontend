@@ -311,7 +311,7 @@ const Dashboard = () => {
                   >All time</button>
                 </div>
               </div>
-              <div className="max-h-24 overflow-auto pr-1 scrollbar-default">
+              <div className="max-h-72 overflow-auto pr-1 scrollbar-default">
                 <ul className="divide-y">
                   {topViewedProducts?.length ? (
                     topViewedProducts.map((item) => (

@@ -30,3 +30,12 @@ export const deleteTag = async (id) => {
         console.log("Error in deleting category")
     }
 }
+
+export const updateTag = async (id, data) => {
+    try {
+        const response = await axios.put(`${BASE_URL}/tag/${id}`, data, { withCredentials: true })
+        return response?.data
+    } catch (error) {
+        throw error;
+    }
+}

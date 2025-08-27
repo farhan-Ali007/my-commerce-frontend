@@ -262,7 +262,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
     return (
         <motion.div
-            className="max-w-sm bg-white h-[320px]  overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="group max-w-sm bg-white h-[320px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col items-stretch relative"
             style={{ contentVisibility: 'auto', containIntrinsicSize: '320px 320px' }}
             variants={cardVariants}
             initial={allowMotion ? "hidden" : false}
@@ -314,30 +314,30 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             )}
 
             {allowMotion && (
-            <AnimatePresence>
-                {isHovered && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute top-[162px] left-0 right-0 hidden lg:flex justify-between will-change-transform"
-                    >
-                        <button
-                            onClick={handleAddToCart}
-                            className="w-1/2 bg-primary/80 text-white font-semibold py-1 text-[12px] hover:bg-primary transition-colors duration-200"
+                <AnimatePresence>
+                    {isHovered && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="absolute top-[162px] left-0 right-0 hidden lg:flex justify-between will-change-transform"
                         >
-                            Add To Cart
-                        </button>
-                        <button
-                            onClick={handleByNow}
-                            className="w-1/2 bg-secondary/80 text-white font-semibold py-1 text-[12px] hover:bg-secondary transition-colors duration-200"
-                        >
-                            Buy Now
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            <button
+                                onClick={handleAddToCart}
+                                className="w-1/2 bg-primary/80 text-white font-semibold py-1 text-[12px] hover:bg-primary transition-colors duration-200"
+                            >
+                                Add To Cart
+                            </button>
+                            <button
+                                onClick={handleByNow}
+                                className="w-1/2 bg-secondary/80 text-white font-semibold py-1 text-[12px] hover:bg-secondary transition-colors duration-200"
+                            >
+                                Buy Now
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             )}
 
             <div className="justify-start mx-2 md:mt-0 mb-4 font-roboto">
@@ -379,6 +379,8 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                     )}
                 </div>
             </div>
+            {/* Gradient underline on hover */}
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
         </motion.div>
     );
 };
