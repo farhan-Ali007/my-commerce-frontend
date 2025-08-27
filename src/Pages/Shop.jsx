@@ -232,7 +232,7 @@ const Shop = () => {
                 <meta name="robots" content="index, follow" />
                 <script type="application/ld+json">{JSON.stringify(shopSchema)}</script>
             </Helmet>
-            <div className="container mx-auto p-4">
+            <div className="container mx-auto px-2 py-2 md:px-4 md:py-4">
                 {/* Mobile Filter Button */}
                 <div className="lg:hidden flex justify-between items-center mb-4">
                     {/* Sort Filter Dropdown */}
@@ -409,7 +409,7 @@ const Shop = () => {
                                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-t-primary border-b-4 border-b-secondary opacity-90"></div>
                             </div>
                         ) : products.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
                                 {products.map((product) => (
                                     <ShopCard key={product._id} product={product} />
                                 ))}
