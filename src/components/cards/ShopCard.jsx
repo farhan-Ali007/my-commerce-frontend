@@ -8,7 +8,7 @@ import { truncateTitle } from "../../helpers/truncateTitle";
 import { addToCart } from "../../store/cartSlice";
 import { addItemToCart } from "../../functions/cart";
 import { AiOutlineLoading } from "react-icons/ai";
-import useFacebookPixel from '../../hooks/useFacebookPixel';
+import useFacebookPixel from "../../hooks/useFacebookPixel";
 
 const ShopCard = ({ product }) => {
   const dispatch = useDispatch();
@@ -33,10 +33,10 @@ const ShopCard = ({ product }) => {
   const { track } = useFacebookPixel();
 
   const getImageUrl = (img) => {
-    if (!img) return '';
-    if (typeof img === 'string') return img;
-    if (typeof img === 'object') return img.url || '';
-    return '';
+    if (!img) return "";
+    if (typeof img === "string") return img;
+    if (typeof img === "object") return img.url || "";
+    return "";
   };
 
   const renderStars = (rating) => {
@@ -61,7 +61,7 @@ const ShopCard = ({ product }) => {
 
     if (fractionalPart >= 0.5) {
       stars.push(
-        <div key="half-star" className="relative w-4 h-4">
+        <div key="half-star" className="relative w-3 md:w-4 h-3 md:h-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="w-4 h-4 text-yellow-500"
@@ -113,11 +113,21 @@ const ShopCard = ({ product }) => {
       return;
     }
     // If volume tiers exist, default to the first tier
-    const firstTier = (product?.volumeTierEnabled && Array.isArray(product?.volumeTiers) && product.volumeTiers.length > 0)
-      ? product.volumeTiers[0]
-      : null;
-    const priceToUse = (typeof firstTier?.price === 'number') ? firstTier.price : (salePrice ? salePrice : price);
-    const imageToUse = firstTier?.image ? getImageUrl(firstTier.image) : getImageUrl(product?.images && product.images[0]);
+    const firstTier =
+      product?.volumeTierEnabled &&
+      Array.isArray(product?.volumeTiers) &&
+      product.volumeTiers.length > 0
+        ? product.volumeTiers[0]
+        : null;
+    const priceToUse =
+      typeof firstTier?.price === "number"
+        ? firstTier.price
+        : salePrice
+        ? salePrice
+        : price;
+    const imageToUse = firstTier?.image
+      ? getImageUrl(firstTier.image)
+      : getImageUrl(product?.images && product.images[0]);
 
     const cartItem = {
       cartItemId: id,
@@ -145,11 +155,11 @@ const ShopCard = ({ product }) => {
       setLoading(false);
       toast.success("Item added to cart.");
       // Meta Pixel AddToCart event
-      track('AddToCart', {
+      track("AddToCart", {
         content_ids: [product._id],
         content_name: product.title,
         value: product.salePrice ? product.salePrice : product.price,
-        currency: 'PKR'
+        currency: "PKR",
       });
     } catch (error) {
       setLoading(false);
@@ -160,7 +170,6 @@ const ShopCard = ({ product }) => {
 
   // console.log("Current Cart Items:", currentCartItems);
   const handleByNow = useCallback(async () => {
-
     if (Array.isArray(product?.variants) && product.variants.length > 0) {
       toast.error("Please select product options first.");
       navigateTo(`/product/${product?.slug}`);
@@ -168,11 +177,21 @@ const ShopCard = ({ product }) => {
     }
     const variantsForBackend = [];
     // If volume tiers exist, default to the first tier
-    const firstTier = (product?.volumeTierEnabled && Array.isArray(product?.volumeTiers) && product.volumeTiers.length > 0)
-      ? product.volumeTiers[0]
-      : null;
-    const priceToUse = (typeof firstTier?.price === 'number') ? firstTier.price : (product.salePrice ? product.salePrice : product.price);
-    const imageToUse = firstTier?.image ? getImageUrl(firstTier.image) : getImageUrl(product?.images && product.images[0]);
+    const firstTier =
+      product?.volumeTierEnabled &&
+      Array.isArray(product?.volumeTiers) &&
+      product.volumeTiers.length > 0
+        ? product.volumeTiers[0]
+        : null;
+    const priceToUse =
+      typeof firstTier?.price === "number"
+        ? firstTier.price
+        : product.salePrice
+        ? product.salePrice
+        : product.price;
+    const imageToUse = firstTier?.image
+      ? getImageUrl(firstTier.image)
+      : getImageUrl(product?.images && product.images[0]);
 
     const cartItem = {
       cartItemId: product._id,
@@ -190,12 +209,36 @@ const ShopCard = ({ product }) => {
     try {
       setLoading(true);
       // Combine with Redux cart and sync for logged-in users
-      const computeKey = (item) => item.cartItemId || `${item.productId}${Array.isArray(item.selectedVariants) && item.selectedVariants.length>0 ? '|' + item.selectedVariants.map(v => `${v.name}:${Array.isArray(v.values)?v.values.join(','):v.values||''}`).join('|') : ''}`;
-      const existingItems = Array.isArray(currentCartItems) ? currentCartItems : [];
+      const computeKey = (item) =>
+        item.cartItemId ||
+        `${item.productId}${
+          Array.isArray(item.selectedVariants) &&
+          item.selectedVariants.length > 0
+            ? "|" +
+              item.selectedVariants
+                .map(
+                  (v) =>
+                    `${v.name}:${
+                      Array.isArray(v.values)
+                        ? v.values.join(",")
+                        : v.values || ""
+                    }`
+                )
+                .join("|")
+            : ""
+        }`;
+      const existingItems = Array.isArray(currentCartItems)
+        ? currentCartItems
+        : [];
       const combined = [...existingItems];
-      const idx = combined.findIndex(i => computeKey(i) === computeKey(cartItem));
+      const idx = combined.findIndex(
+        (i) => computeKey(i) === computeKey(cartItem)
+      );
       if (idx >= 0) {
-        combined[idx] = { ...combined[idx], count: combined[idx].count + cartItem.count };
+        combined[idx] = {
+          ...combined[idx],
+          count: combined[idx].count + cartItem.count,
+        };
       } else {
         combined.push(cartItem);
       }
@@ -204,17 +247,17 @@ const ShopCard = ({ product }) => {
       if (userId) {
         const cartPayload = {
           products: combined,
-          deliveryCharges: combined.every(i => i.freeShipping) ? 0 : 250,
+          deliveryCharges: combined.every((i) => i.freeShipping) ? 0 : 250,
         };
         await addItemToCart(userId, cartPayload);
       }
       setLoading(false);
       // Meta Pixel InitiateCheckout event
-      track('InitiateCheckout', {
+      track("InitiateCheckout", {
         content_ids: [product._id],
         content_name: product.title,
         value: product.salePrice ? product.salePrice : product.price,
-        currency: 'PKR'
+        currency: "PKR",
       });
       navigateTo("/cart/checkout");
       toast.success("Proceeding to checkout!");
@@ -244,8 +287,10 @@ const ShopCard = ({ product }) => {
             className="absolute top-0 left-0 object-contain w-full h-full"
             src={
               imgLoaded
-                ? (isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))
-                : '/loadingCard.png'
+                ? isHovered && images[1]
+                  ? getImageUrl(images[1])
+                  : getImageUrl(images[0])
+                : "/loadingCard.png"
             }
             alt={title}
             loading="lazy"
@@ -258,12 +303,18 @@ const ShopCard = ({ product }) => {
           />
         </div>
       </Link>
-      {/* Mobile action buttons in normal flow (same as ProductCard) */}
-      <div className="-mt-4 mb-2 flex lg:hidden">
-        <button onClick={handleAddToCart} className="flex-1 bg-primary/90 text-white font-semibold py-1 md:py-2  text-[12px]  hover:bg-primary transition">
+      {/* Mobile action buttons in normal flow to avoid overlap */}
+      <div className="-mt-4 mb-2 flex  lg:hidden">
+        <button
+          onClick={handleAddToCart}
+          className="flex-1 bg-primary/90 text-white font-semibold py-1 md:py-2  text-[12px]  hover:bg-primary transition"
+        >
           Add To Cart
         </button>
-        <button onClick={handleByNow} className="flex-1 bg-secondary/90 text-white font-semibold py-1 md:py-2 text-[12px]  hover:bg-secondary transition">
+        <button
+          onClick={handleByNow}
+          className="flex-1 bg-secondary/90 text-white font-semibold py-1 md:py-2 text-[12px]  hover:bg-secondary transition"
+        >
           Buy Now
         </button>
       </div>

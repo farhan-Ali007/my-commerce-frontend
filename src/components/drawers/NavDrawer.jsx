@@ -48,7 +48,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                 </div>
                 {categories.map((category) => (
                     <div key={category._id} className="mb-2">
-                        <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleCategoryExpansion(category._id)}>
+                        <div className="flex items-center mt-4 justify-between cursor-pointer" onClick={() => toggleCategoryExpansion(category._id)}>
                             <Link to={`/category/${category.slug}`} className="text-primary text-[18px] no-underline font-bold capitalize">
                                 {category.name}
                             </Link>
