@@ -212,10 +212,15 @@ const Checkout = () => {
       try { sessionStorage.setItem('fromCheckout', '1'); } catch {}
       try { localStorage.setItem('fromCheckout', '1'); } catch {}
       try { localStorage.setItem('lastOrderTs', String(Date.now())); } catch {}
-      const oid = response?.order?._id;
+       // Persist guestId for guest order history in case cookies are blocked
+      try {
+        const gid = response?.data?.guestId;
+        if (gid) localStorage.setItem('guestId', gid);
+      } catch {}
+      const oid = response?.data?.order?._id;
       const dest = oid ? `/order-history?from=checkout&orderId=${encodeURIComponent(oid)}` : "/order-history?from=checkout";
       navigateTo(dest, {
-        state: { orderId: response?.order?._id, fromCheckout: true },
+        state: { orderId: response?.data?.order?._id, fromCheckout: true },
       });
     } catch (error) {
       console.error("Order placement error:", error);
