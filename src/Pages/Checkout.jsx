@@ -213,6 +213,9 @@ const Checkout = () => {
       try { localStorage.setItem('fromCheckout', '1'); } catch {}
       try { localStorage.setItem('lastOrderTs', String(Date.now())); } catch {}
        // Persist guestId for guest order history in case cookies are blocked
+  console.log("Guest Id in response", response?.guestId);
+        console.log("Guest Id in order", response?.order?.guestId);
+        console.log('[Checkout] API response guestId:', response?.guestId, 'order.guestId:', response?.order?.guestId);
       try {
         const gid = response?.guestId;
         if (gid) localStorage.setItem('guestId', gid);
