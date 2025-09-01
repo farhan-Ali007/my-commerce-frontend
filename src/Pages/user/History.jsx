@@ -32,7 +32,7 @@ const History = () => {
 
   useEffect(() => {
     fetchMyOrders();
-  }, []);
+  }, [userId]);
 
   // Show one-time success modal if coming from Checkout
   useEffect(() => {
