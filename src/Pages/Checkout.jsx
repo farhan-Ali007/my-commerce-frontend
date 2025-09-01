@@ -214,10 +214,10 @@ const Checkout = () => {
       try { localStorage.setItem('lastOrderTs', String(Date.now())); } catch {}
        // Persist guestId for guest order history in case cookies are blocked
       try {
-        const gid = response?.data?.guestId;
+        const gid = response?.guestId;
         if (gid) localStorage.setItem('guestId', gid);
       } catch {}
-      const oid = response?.data?.order?._id;
+      const oid = response?.order?._id;
       const dest = oid ? `/order-history?from=checkout&orderId=${encodeURIComponent(oid)}` : "/order-history?from=checkout";
       navigateTo(dest, {
         state: { orderId: response?.data?.order?._id, fromCheckout: true },
