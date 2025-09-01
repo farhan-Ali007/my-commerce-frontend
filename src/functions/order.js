@@ -27,7 +27,10 @@ export const getMyOrders = async (userId, guestId) => {
         const response = await axios.get(url, {
             withCredentials: true,
             headers: guestId ? { 'X-Guest-Id': guestId } : undefined,
-            params: guestId ? { guestId } : undefined,
+            params: {
+                ...(guestId ? { guestId } : {}),
+                _t: Date.now(), // cache-busting param to avoid 304/stale caches
+            },
         })
         return response?.data
     } catch (error) {
