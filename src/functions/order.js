@@ -21,16 +21,20 @@ export const placeOrder = async (data) => {
     }
 }
 
-export const getMyOrders = async (userId) => {
+export const getMyOrders = async (userId, guestId) => {
     try {
-        const response = await axios.get(`${BASE_URL}/order/${userId}`, { withCredentials: true })
+        const url = `${BASE_URL}/order/${userId || 'guest'}`
+        const response = await axios.get(url, {
+            withCredentials: true,
+            headers: guestId ? { 'X-Guest-Id': guestId } : undefined,
+            params: guestId ? { guestId } : undefined,
+        })
         return response?.data
     } catch (error) {
         console.log("Error in fetching my orders", error)
         throw error;
     }
 }
-
 export const getAllOrders = async (page = 1, limit = 10) => {
     try {
         const response = await axios.get(`${BASE_URL}/order/all?page=${page}&limit=${limit}`, { withCredentials: true })
