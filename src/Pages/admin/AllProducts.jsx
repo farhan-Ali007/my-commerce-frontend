@@ -48,8 +48,6 @@ const AllProducts = () => {
         if (page === 1) didInitialFetch.current = true;
       }
     }
-    // eslint-disable-next-line
-    window.scrollTo(0, 0);
   }, [page, isSearching]);
 
   // Search effect
