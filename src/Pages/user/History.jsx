@@ -25,10 +25,6 @@ const History = () => {
       let gid = null;
       try { gid = localStorage.getItem('guestId') || null } catch {}
       const response = await getMyOrders(userId, gid);
-      // Read persisted guestId (set on checkout) if available
-      let gid = null;
-      try { gid = localStorage.getItem('guestId') || null } catch {}
-      const response = await getMyOrders(userId, gid);
       console.log("My Orders------->", response);
       setOrders(response?.orders || []);
     } catch (error) {
