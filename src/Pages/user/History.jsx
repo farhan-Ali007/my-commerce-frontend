@@ -18,9 +18,13 @@ const History = () => {
   const navigate = useNavigate();
   const [successAnim, setSuccessAnim] = useState(null);
 
-  const fetchMyOrders = async () => {
+ const fetchMyOrders = async () => {
     try {
       setLoading(true);
+      // Read persisted guestId (set on checkout) if available
+      let gid = null;
+      try { gid = localStorage.getItem('guestId') || null } catch {}
+      const response = await getMyOrders(userId, gid);
       // Read persisted guestId (set on checkout) if available
       let gid = null;
       try { gid = localStorage.getItem('guestId') || null } catch {}

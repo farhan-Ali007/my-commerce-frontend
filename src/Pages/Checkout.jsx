@@ -226,7 +226,7 @@ const Checkout = () => {
       const oid = response?.order?._id;
       const dest = oid ? `/order-history?from=checkout&orderId=${encodeURIComponent(oid)}` : "/order-history?from=checkout";
       navigateTo(dest, {
-        state: { orderId: response?.order?._id, fromCheckout: true },
+        state: { orderId: response?.data?.order?._id, fromCheckout: true },
       });
     } catch (error) {
       console.error("Order placement error:", error);

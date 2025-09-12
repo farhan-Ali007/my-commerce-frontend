@@ -38,7 +38,6 @@ export const getMyOrders = async (userId, guestId) => {
         throw error;
     }
 }
-
 export const getAllOrders = async (page = 1, limit = 10) => {
     try {
         const response = await axios.get(`${BASE_URL}/order/all?page=${page}&limit=${limit}`, { withCredentials: true })
