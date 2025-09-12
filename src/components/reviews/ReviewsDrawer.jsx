@@ -74,19 +74,19 @@ const ReviewsDrawer = ({ open, onClose, slug, product, onWriteReview }) => {
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          {/* Bottom sheet container to center the panel horizontally and dock to bottom */}
+          {/* Centered modal container */}
           <motion.div
-            className="fixed inset-0 z-[10001] flex items-end justify-center p-2 sm:p-4"
+            className="fixed inset-0 z-[10001] flex items-center justify-center p-2 sm:p-4"
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 1 }}
           >
             <motion.div
-              className="w-full max-w-5xl bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col max-h-[88vh]"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="relative z-[10002] w-full max-w-5xl bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col max-h-[88vh]"
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              transition={{ type: "spring", stiffness: 260, damping: 22 }}
               onClick={(e) => e.stopPropagation()}
             >
             <div className="flex items-center justify-between p-4 border-b">

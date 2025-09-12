@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Modal = ({ isOpen, onClose, children }) => {
+const Modal = ({ isOpen, onClose, children, maxWidthClass = "max-w-lg" }) => {
     if (!isOpen) return null;
 
     return (
@@ -19,7 +19,7 @@ const Modal = ({ isOpen, onClose, children }) => {
                         animate={{ y: "0", opacity: 1 }}
                         exit={{ y: "100vh", opacity: 0 }}
                         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                        className="bg-white rounded-lg shadow-xl relative max-w-lg w-full max-h-full overflow-y-auto custom-scrollbar"
+                        className={`bg-white rounded-lg shadow-xl relative ${maxWidthClass} w-full max-h-full overflow-y-auto custom-scrollbar`}
                         onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing the modal
                     >
                         <button
@@ -38,4 +38,4 @@ const Modal = ({ isOpen, onClose, children }) => {
     );
 };
 
-export default Modal; 
+export default Modal;

@@ -262,13 +262,12 @@ const Dashboard = () => {
 
         {!loading && (
           <>
-            {/* KPI Cards: show Today by default, switch to range after selection */}
+            {/* KPI Cards: show Today by default; when a range is selected, do NOT show Today KPIs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {rangeSelected ? (
                 <>
                   <StatCard title={`Orders (${rangeLabel})`} value={rangeTotals.orders} sub={`AOV Rs.${Math.round(rangeTotals.avgOrderValue || 0)}`} />
                   <StatCard title={`Revenue (${rangeLabel})`} value={`Rs.${Math.round(rangeTotals.revenue || 0)}`} sub={`Items ${rangeTotals.itemsSold || 0}`} />
-                  <StatCard title="Today Orders" value={kpis?.today?.orders ?? 0} sub={`AOV Rs.${Math.round(kpis?.today?.avgOrderValue || 0)}`} />
                   <StatCard title="All-time Revenue" value={`Rs.${Math.round(kpis?.allTime?.revenue || 0)}`} sub={`Orders ${kpis?.allTime?.orders || 0}`} />
                   <StatCard title={`Visitors (${rangeLabel})`} value={trafficTotals.visitors} sub={`Views ${trafficTotals.productViews}`} />
                 </>

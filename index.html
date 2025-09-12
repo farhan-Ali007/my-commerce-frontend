@@ -32,6 +32,8 @@
       imagesrcset="/customBanner1.webp 800w, /customBanner1.webp 1200w, /customBanner1.webp 1920w"
       imagesizes="100vw"
     />
+    <!-- Preload splash logo early so it appears instantly -->
+    <link rel="preload" as="image" href="/f-logo.png" />
     <!-- Content Security Policy Meta Tag (Backup for cPanel) -->
     <meta
       http-equiv="Content-Security-Policy"
@@ -67,6 +69,21 @@
       rel="stylesheet"
     />
     <title>Etimad Mart</title>
+    <!-- 🔥🔥Splash Toggle: Keep this meta to ENABLE splash; comment it to DISABLE the splash screen🔥🔥 -->
+    <!-- <meta name="enable-splash" content="1" /> -->
+     <!-- 🔥🔥SPLASH TOGGLE: comment this line to disable🔥🔥 -->
+    <!-- Early guard: hide splash by default; only show when explicitly enabled -->
+    <style>
+      #splash { display: none !important; }
+      .show-splash #splash { display: grid !important; }
+    </style>
+    <script>
+      // Decide early whether to show splash; avoids flash when disabled
+      (function(){
+        var enabled = !!document.querySelector('meta[name="enable-splash"]');
+        if (enabled) { document.documentElement.classList.add('show-splash'); }
+      })();
+    </script>
     <!-- ✅ Google Analytics -->
     <script
       async
@@ -109,6 +126,161 @@
   </head>
 
   <body>
+    <!-- Splash Screen (shows immediately, hidden when app is ready) -->
+    <style>
+      /* Minimal critical CSS for splash to avoid FOUC */
+      #splash {
+        position: fixed;
+        inset: 0;
+        /* Animated branded gradient with a subtle dark vignette for readability */
+        background:
+          radial-gradient(120% 120% at 50% 50%, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.65) 100%),
+          linear-gradient(120deg,
+            var(--color-primary, #000000) 0%,
+            var(--color-secondary, #FFB727) 50%,
+            var(--color-primary, #000000) 100%
+          );
+        background-size: 100% 100%, 220% 220%;
+        background-position: center, 0% 50%;
+        animation: splashGradient 8s ease-in-out infinite;
+        display: grid;
+        place-items: center;
+        z-index: 9999;
+        opacity: 1;
+        transition: opacity 400ms ease;
+      }
+      /* Extra animated layers */
+      #splash::before {
+        content: "";
+        position: absolute; inset: -20%;
+        background: conic-gradient(from 0deg,
+          var(--color-primary, #000000),
+          var(--color-secondary, #FFB727),
+          var(--color-primary, #000000)
+        );
+        filter: blur(60px) saturate(110%);
+        opacity: 0.22;
+        animation: rotateBlob 30s linear infinite;
+        pointer-events: none;
+      }
+      #splash::after {
+        content: "";
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(120deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0) 70%, rgba(255,255,255,0.12) 100%);
+        background-size: 180% 100%;
+        background-position: 0% 0%;
+        mix-blend-mode: overlay;
+        opacity: 0.12;
+        animation: sheenMove 10s ease-in-out infinite;
+        pointer-events: none;
+      }
+      #splash.hide { opacity: 0; pointer-events: none; }
+      #splash img {
+        width: 300px;
+        height: auto;
+        filter: drop-shadow(0 2px 12px rgba(0,0,0,.6));
+        animation: logoPulse 1400ms ease-in-out infinite;
+        transform-origin: center;
+      }
+      /* Bokeh bubbles: subtle floating translucent circles */
+      #splash .bokeh { position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+      #splash .bokeh span {
+        position:absolute; display:block; border-radius:50%;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.05) 60%, rgba(255,255,255,0) 70%);
+        opacity: .06;
+        will-change: transform, opacity;
+        animation: bokehDrift var(--dur, 24s) linear infinite;
+        mix-blend-mode: screen;
+      }
+      /* Size/position variations */
+      #splash .bokeh span:nth-child(1){ width: 120px; height:120px; left:10%; bottom:-140px; --dur:28s; }
+      #splash .bokeh span:nth-child(2){ width: 80px;  height:80px;  left:28%; bottom:-120px; --dur:24s; }
+      #splash .bokeh span:nth-child(3){ width: 150px; height:150px; left:48%; bottom:-180px; --dur:30s; opacity:.05; }
+      #splash .bokeh span:nth-child(4){ width: 60px;  height:60px;  left:64%; bottom:-100px; --dur:22s; }
+      #splash .bokeh span:nth-child(5){ width: 110px; height:110px; left:78%; bottom:-160px; --dur:26s; }
+      #splash .bokeh span:nth-child(6){ width: 90px;  height:90px;  left:88%; bottom:-140px; --dur:25s; }
+      #splash .bokeh span:nth-child(7){ width: 70px;  height:70px;  left:36%; bottom:-120px; --dur:23s; }
+      #splash .bokeh span:nth-child(8){ width: 130px; height:130px; left:5%;  bottom:-160px; --dur:29s; }
+      /* Add subtle brand tint using box-shadow glow */
+      /* Tint via subtle backgrounds only (no heavy shadows) */
+      #splash .bokeh span:nth-child(odd){ background: radial-gradient(circle at 30% 30%, color-mix(in oklab, var(--color-secondary, #FFB727) 24%, rgba(255,255,255,0.18)), rgba(255,255,255,0.04) 60%, rgba(255,255,255,0) 70%); }
+      #splash .bokeh span:nth-child(even){ background: radial-gradient(circle at 30% 30%, color-mix(in oklab, var(--color-primary, #000000) 16%, rgba(255,255,255,0.16)), rgba(255,255,255,0.04) 60%, rgba(255,255,255,0) 70%); }
+      @keyframes bokehDrift {
+        0%   { transform: translate3d(0, 0, 0); }
+        50%  { transform: translate3d(2px, -55vh, 0); }
+        100% { transform: translate3d(0, -110vh, 0); }
+      }
+      /* Center wrapper with glassy card effect */
+      #splash .splash-center {
+        display:flex;flex-direction:column;align-items:center;
+        padding: 18px 22px; border-radius: 14px;
+        background: rgba(0,0,0,0.25);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06) inset;
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+      }
+
+      /* Subtle glowing pulse for the logo */
+      @keyframes logoPulse {
+        0% { transform: scale(1); filter: drop-shadow(0 2px 12px rgba(0,0,0,.6)); }
+        50% { transform: scale(1.04); filter: drop-shadow(0 4px 18px rgba(255,255,255,.18)); }
+        100% { transform: scale(1); filter: drop-shadow(0 2px 12px rgba(0,0,0,.6)); }
+      }
+
+      /* Animated gradient motion */
+      @keyframes splashGradient {
+        0% { background-position: center, 0% 50%; }
+        50% { background-position: center, 100% 50%; }
+        100% { background-position: center, 0% 50%; }
+      }
+      @keyframes rotateBlob { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      @keyframes sheenMove {
+        0% { background-position: 0% 0%; opacity: .08; }
+        50% { background-position: 100% 0%; opacity: .22; }
+        100% { background-position: 0% 0%; opacity: .08; }
+      }
+
+      /* Typewriter tagline */
+      #splash .typewrap { margin-top: 18px; display: flex; align-items: flex-end; gap: 6px; }
+      #splash .type {
+        color: #e5e7eb;
+        font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+      }
+      #splash .caret {
+        width: 2px;
+        height: 1.1em;
+        background: #e5e7eb;
+        animation: caretBlink 1000ms step-end infinite;
+      }
+      @keyframes caretBlink { 50% { opacity: 0; } }
+
+      /* Prefer reduced motion: disable animations */
+      @media (prefers-reduced-motion: reduce) {
+        #splash { animation: none; background-position: center, 50% 50%; }
+        #splash::before, #splash::after { animation: none; }
+        #splash img { animation: none; }
+        #splash .caret { animation: none; }
+        #splash .bokeh span { animation: none; }
+      }
+    </style>
+    <div id="splash" aria-hidden="true">
+      <div class="bokeh" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="splash-center">
+        <img src="/f-logo.png" alt="Etimad Mart" fetchpriority="high" decoding="sync" />
+        <!-- Typewriter tagline below the logo -->
+        <div class="typewrap" aria-hidden="true">
+          <span id="splash-typer" class="type"></span>
+          <span class="caret"></span>
+        </div>
+      </div>
+    </div>
     <!-- Google Tag Manager (noscript) -->
     <noscript
       ><iframe
@@ -127,6 +299,99 @@
         src="https://www.facebook.com/tr?id=2204362540002843&ev=PageView&noscript=1"
     /></noscript>
     <div id="root"></div>
+    <script>
+      // Hide splash when the React app signals readiness, enforce min 5s display with a safety timeout
+      (function () {
+        var splash = document.getElementById('splash');
+        if (!splash) return;
+        // Splash toggle via meta tag only
+        var splashEnabled = !!document.querySelector('meta[name="enable-splash"]');
+        if (!splashEnabled) {
+          if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+          return;
+        }
+        // Only show splash on homepage
+        var path = window.location.pathname || '/';
+        var showOnThisPath = (path === '/');
+        if (!showOnThisPath) {
+          // Remove immediately for non-home routes (e.g., 404)
+          if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+          return;
+        }
+        var start = Date.now();
+        // Tiny typewriter that cycles phrases while splash is visible
+        var el = document.getElementById('splash-typer');
+        var phrases = [
+          'ETIMAD MART',
+          'Shopping karain Etimad ke sath'
+        ];
+        if (el) {
+          (function typewriter(node, texts){
+            var i = 0;           // phrase index
+            var j = 0;           // char index
+            var phase = 'type';  // 'type' | 'pause' | 'erase'
+            var pauseUntil = 0;  // timestamp until which we pause
+            var cpsType = 16;    // chars per second when typing
+            var cpsErase = 28;   // chars per second when erasing
+            var last = performance.now();
+
+            function frame(now){
+              if (!splash || !splash.parentNode) return; // stop when splash removed
+              var dt = Math.min(64, now - last); // cap to avoid large jumps
+              last = now;
+
+              var text = texts[i % texts.length];
+
+              if (phase === 'pause') {
+                if (now >= pauseUntil) {
+                  phase = (j >= text.length) ? 'erase' : 'type';
+                }
+              } else if (phase === 'type') {
+                j += (dt / 1000) * cpsType;
+                var jInt = Math.min(text.length, Math.floor(j));
+                node.textContent = text.slice(0, jInt);
+                if (jInt >= text.length) {
+                  j = text.length;
+                  phase = 'pause';
+                  pauseUntil = now + 850; // pause at end
+                }
+              } else if (phase === 'erase') {
+                j -= (dt / 1000) * cpsErase;
+                var k = Math.max(0, Math.floor(j));
+                node.textContent = text.slice(0, k);
+                if (k <= 0) {
+                  j = 0;
+                  i++;
+                  phase = 'pause';
+                  pauseUntil = now + 260; // brief pause before typing next
+                }
+              }
+
+              requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
+          })(el, phrases);
+        }
+        function hide() {
+          if (!splash) return;
+          splash.classList.add('hide');
+          splash.addEventListener('transitionend', function () {
+            if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+            splash = null;
+          }, { once: true });
+        }
+        // When app is ready, ensure a short minimum splash visibility
+        function onAppReady() {
+          var elapsed = Date.now() - start;
+          var minMs = 1200; // reduced from 2500ms
+          var wait = Math.max(0, minMs - elapsed);
+          setTimeout(hide, wait);
+        }
+        window.addEventListener('app-ready', onAppReady, { once: true });
+        // Fallback: hard cap at 3s just in case
+        setTimeout(hide, 3000);
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

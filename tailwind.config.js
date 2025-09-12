@@ -9,8 +9,8 @@ export default {
         space: ["Space Grotesk", "sans-serif"],
       },
       colors: {
-        primary: "#000000", // Will be overridden by API colors
-        secondary: "#FFB727", // Will be overridden by API colors
+        primary: "#000000",
+        secondary: "#FFB727",
       },
       opacity: {
         10: "0.1",
@@ -25,11 +25,24 @@ export default {
       },
       animation: {
         "custom-bounce": "bounce-in-parent 2s infinite",
+        zoom: "zoom 1s ease-in-out infinite", // 👈 New zoom animation
+        "spin-pause": "spin-pause 5s ease-in-out infinite", // 👈 New spin animation
       },
       keyframes: {
         "bounce-in-parent": {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-5px)" },
+        },
+        zoom: {
+          // 👈 New zoom keyframes
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.1)" },
+        },
+        "spin-pause": {
+          // 👈 New spin keyframes
+          "0%, 20%": { transform: "rotate(0deg)" },
+          "50%": { transform: "rotate(360deg)" },
+          "80%, 100%": { transform: "rotate(0deg)" },
         },
       },
     },

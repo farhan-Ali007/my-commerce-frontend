@@ -35,6 +35,7 @@ const AdminColorSettings = lazy(() => import("./Pages/admin/AdminColorSettings")
 const OrderDetails = lazy(() => import("./Pages/admin/OrderDetails"));
 const NewOrders = lazy(() => import("./Pages/admin/NewOrders"));
 const Footer = lazy(() => import("./components/Footer"));
+const ManualOrder = lazy(() => import('./Pages/admin/ManualOrder'));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -61,6 +62,13 @@ const App = () => {
     };
     fetchUser();
   }, [dispatch, navigateTo]);
+
+  // Notify index.html splash to hide when app is ready
+  useEffect(() => {
+    if (!loading) {
+      window.dispatchEvent(new Event('app-ready'));
+    }
+  }, [loading]);
 
 
 
@@ -137,6 +145,7 @@ const App = () => {
               <Route path="/admin-users" element={<AdminUsers />} />
               <Route path="/admin-color-settings" element={<AdminColorSettings />} />
               <Route path="/admin/orders/:orderId" element={<OrderDetails />} />
+              <Route path="/admin/manual-order" element={<AdminDashboard />} />
             </Route>
 
             {/* Direct access to color settings for admins */}

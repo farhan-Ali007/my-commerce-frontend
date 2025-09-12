@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { truncateTitle } from "../../helpers/truncateTitle";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import Lottie from "lottie-react";
 
 const History = () => {
   const { user } = useSelector((state) => state.auth);
@@ -15,11 +16,15 @@ const History = () => {
   const [placedOrderId, setPlacedOrderId] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const [successAnim, setSuccessAnim] = useState(null);
 
   const fetchMyOrders = async () => {
     try {
       setLoading(true);
-      const response = await getMyOrders(userId);
+      // Read persisted guestId (set on checkout) if available
+      let gid = null;
+      try { gid = localStorage.getItem('guestId') || null } catch {}
+      const response = await getMyOrders(userId, gid);
       console.log("My Orders------->", response);
       setOrders(response?.orders || []);
     } catch (error) {
@@ -31,7 +36,17 @@ const History = () => {
   };
 
   useEffect(() => {
+    // Fetch for guest on first mount or for logged-in when userId is ready
     fetchMyOrders();
+    // Re-fetch when userId becomes available/changes (auth hydration)
+  }, [userId]);
+
+  // Load success Lottie JSON from public
+  useEffect(() => {
+    fetch("/Success.json")
+      .then((r) => r.json())
+      .then(setSuccessAnim)
+      .catch(() => setSuccessAnim(null));
   }, []);
 
   // Show one-time success modal if coming from Checkout
@@ -120,10 +135,19 @@ const History = () => {
               transition={{ duration: 0.25 }}
             >
               <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 ring-4 ring-emerald-50 flex items-center justify-center">
-                <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
+                {successAnim ? (
+                  <Lottie
+                    animationData={successAnim}
+                    autoplay
+                    loop={false}
+                    style={{ width: 48, height: 48 }}
+                  />
+                ) : (
+                  <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                )}
               </div>
               <h3 className="text-2xl font-extrabold text-gray-900 mb-1">Order placed 🎉</h3>
               <p className="text-gray-600 mb-1">We’ll contact you shortly to confirm. You can review details below anytime.</p>
@@ -250,11 +274,20 @@ const History = () => {
                                   <td className="border-b border-gray-200 px-4 py-2 text-sm text-gray-800">
                                     <div className="font-medium mb-1">{truncateTitle(product.title, 40)}</div>
                                     <div>
-                                      {product.selectedVariants.map((variant, variantIndex) => (
-                                        <div key={variantIndex} className="capitalize text-xs text-gray-600">
-                                          <span className="font-semibold">{variant.name}:</span> {variant.values.join(", ")}
-                                        </div>
-                                      ))}
+                                      {Array.isArray(product.selectedVariants) && product.selectedVariants.length > 0 ? (
+                                        product.selectedVariants.map((variant, variantIndex) => {
+                                          const valueText = Array.isArray(variant?.values)
+                                            ? variant.values.join(", ")
+                                            : (variant?.value ?? "");
+                                          return (
+                                            <div key={variantIndex} className="capitalize text-xs text-gray-600">
+                                              <span className="font-semibold">{variant?.name}:</span> {valueText || '—'}
+                                            </div>
+                                          );
+                                        })
+                                      ) : (
+                                        <span className="text-xs text-gray-400">—</span>
+                                      )}
                                     </div>
                                   </td>
                                   <td className="border-b border-gray-200 px-4 py-2 text-center text-sm text-gray-800">{product.count}</td>

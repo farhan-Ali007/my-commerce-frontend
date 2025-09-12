@@ -4,11 +4,11 @@ import {
   FaBoxOpen,
   FaCrown,
   FaFileAlt,
+  FaPuzzlePiece,
   FaRegImage,
   FaShoppingCart,
   FaTags,
   FaUsers,
-  FaPuzzlePiece,
 } from "react-icons/fa";
 import { GiVerticalBanner } from "react-icons/gi";
 import { IoNotifications } from "react-icons/io5";
@@ -20,7 +20,8 @@ import {
   MdOutlineSpaceBar,
   MdSettings,
 } from "react-icons/md";
-import { RiMenuUnfoldFill, RiMenuFoldFill } from "react-icons/ri";
+import { RiMenuFoldFill, RiMenuUnfoldFill } from "react-icons/ri";
+import { SlNote } from "react-icons/sl";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getRecentOrders } from "../../functions/order";
 import AdminBanner from "./AdminBanner";
@@ -37,6 +38,7 @@ import AllOrders from "./AllOrders";
 import AllProducts from "./AllProducts";
 import AllUsers from "./AllUsers";
 import Dashboard from "./Dashboard";
+import ManualOrder from "./ManualOrder";
 import MenuCategories from "./MenuCategories";
 import NewOrders from "./NewOrders";
 import AdminTopbarText from "./TopBar";
@@ -110,6 +112,8 @@ const AdminDashboard = () => {
       setSelectedPage("allOrders");
     } else if (location?.pathname === "/admin/new-orders") {
       setSelectedPage("newOrders");
+    } else if (location?.pathname === "/admin/manual-order") {
+      setSelectedPage("manualOrder");
     }
   }, [location?.pathname]);
 
@@ -185,6 +189,12 @@ const AdminDashboard = () => {
         return (
           <div>
             <NewOrders />
+          </div>
+        );
+      case "manualOrder":
+        return (
+          <div>
+            <ManualOrder />
           </div>
         );
       case "dynamicPages":
@@ -458,7 +468,7 @@ const AdminDashboard = () => {
               )}
             </button>
             {/* Hover submenu for desktop */}
-            <div className="absolute left-full top-0 -ml-2 hidden lg:group-hover:block z-50">
+            <div className="absolute left-full -top-10 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[200px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
@@ -482,6 +492,15 @@ const AdminDashboard = () => {
                   }}
                 >
                   <FaShoppingCart /> All Orders
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("manualOrder");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <SlNote /> Manual Order
                 </button>
               </div>
             </div>
@@ -510,6 +529,15 @@ const AdminDashboard = () => {
                       {newOrdersCount}
                     </span>
                   )}
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("manualOrder");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <SlNote /> Manual Order
                 </button>
               </div>
             </div>

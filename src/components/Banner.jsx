@@ -37,13 +37,19 @@ const Banner = React.memo(() => {
     ];
 
     // Dynamic banners (PI) with safe fallback to staticBanners
-    const [banners, setBanners] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const preloaded = (typeof window !== 'undefined' && Array.isArray(window.__PRELOADED_BANNERS)) ? window.__PRELOADED_BANNERS : [];
+    const [banners, setBanners] = useState(preloaded);
+    const [loading, setLoading] = useState(preloaded.length === 0);
     const [error, setError] = useState(null);
     const mounted = useRef(false);
 
     const fetchBanners = useCallback(async () => {
         if (!mounted.current) return;
+        // If preloaded banners exist, skip fetching
+        if (preloaded.length > 0) {
+            setLoading(false);
+            return;
+        }
         try {
             setLoading(true);
             setError(null);
@@ -98,9 +104,24 @@ const Banner = React.memo(() => {
         
         // Calculate padding-top percentage based on aspect ratio (height / width * 100)
         const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
+        // Background fallback to avoid white area before <img> paints
+        const bgUrl = getOptimizedImageUrl(
+            banner.image,
+            bannerDimensions.desktop.width,
+            bannerDimensions.desktop.height
+        );
 
         return (
-            <div className="relative w-full overflow-hidden" style={{ paddingTop: `${paddingTopPercentage}%` }}>
+            <div
+                className="relative w-full overflow-hidden"
+                style={{
+                    paddingTop: `${paddingTopPercentage}%`,
+                    backgroundImage: bgUrl ? `url(${bgUrl})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundColor: '#f3f4f6', // light gray fallback
+                }}
+            >
                 <picture className="absolute inset-0 block w-full h-full">
                     <source 
                         media="(max-width: 640px)"

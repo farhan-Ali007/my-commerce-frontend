@@ -49,7 +49,6 @@ const AllProducts = () => {
       }
     }
     // eslint-disable-next-line
-    window.scrollTo(0, 0);
   }, [page, isSearching]);
 
   // Search effect

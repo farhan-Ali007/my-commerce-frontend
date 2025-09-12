@@ -22,12 +22,17 @@ const Login = () => {
     try {
       setLoading(true);
       const response = await loginAPI({ email, password });
-      dispatch(setUser(response?.user));
-      toast.success("Login successful");
-      navigateTo(from, { replace: true });
+      // console.log("Repsonse of login", response);
+      if (response?.success) {
+        dispatch(setUser(response?.user));
+        toast.success("Login successful");
+        navigateTo(from, { replace: true });
+      } else {
+        toast.error(response?.message || "Login failed");
+      }
     } catch (error) {
-      console.error("Error in login", error);
-      toast.error(error?.message || "Login failed");
+      console.error("Error in login", error?.response?.data?.message || error?.message);
+      toast.error(error?.response?.data?.message || error?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -54,26 +59,60 @@ const Login = () => {
           transition={{ duration: 0.6 }}
           className="bg-secondary bg-opacity-60 backdrop-blur-md p-6 shadow-2xl w-full max-w-md relative z-10"
         >
-          <h2 className="text-primary font-bold text-center text-2xl md:text-3xl py-2">Login</h2>
+          <h2 className="text-primary font-bold text-center text-2xl md:text-3xl py-2">
+            Login
+          </h2>
           <div className="w-20 h-20 mx-auto relative overflow-hidden rounded-full bg-white flex items-center justify-center mb-2">
             {/* SVG Pattern Start */}
-            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              width="80"
+              height="80"
+              viewBox="0 0 80 80"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <defs>
-                <radialGradient id="loginPatternGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <radialGradient
+                  id="loginPatternGradient"
+                  cx="50%"
+                  cy="50%"
+                  r="50%"
+                  fx="50%"
+                  fy="50%"
+                >
                   <stop offset="0%" stopColor="#3b82f6" />
                   <stop offset="100%" stopColor="#fbbf24" />
                 </radialGradient>
               </defs>
-              <circle cx="40" cy="40" r="38" fill="url(#loginPatternGradient)" />
+              <circle
+                cx="40"
+                cy="40"
+                r="38"
+                fill="url(#loginPatternGradient)"
+              />
               <circle cx="40" cy="40" r="22" fill="#fff" fillOpacity="0.2" />
-              <path d="M20 60 Q40 40 60 60" stroke="#fff" strokeWidth="2" fill="none" />
-              <path d="M30 30 Q40 20 50 30" stroke="#fff" strokeWidth="1.5" fill="none" />
+              <path
+                d="M20 60 Q40 40 60 60"
+                stroke="#fff"
+                strokeWidth="2"
+                fill="none"
+              />
+              <path
+                d="M30 30 Q40 20 50 30"
+                stroke="#fff"
+                strokeWidth="1.5"
+                fill="none"
+              />
               <circle cx="40" cy="40" r="6" fill="#fff" fillOpacity="0.7" />
             </svg>
             {/* SVG Pattern End */}
           </div>
           <form className="pt-4 flex flex-col gap-4" onSubmit={handleSubmit}>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="grid">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="grid"
+            >
               <label className="font-medium py-2 text-primary">Email *</label>
               <div className="bg-slate-100 p-2 rounded">
                 <input
@@ -88,8 +127,14 @@ const Login = () => {
               </div>
             </motion.div>
 
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="grid">
-              <label className="font-medium py-2 text-primary">Password *</label>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="grid"
+            >
+              <label className="font-medium py-2 text-primary">
+                Password *
+              </label>
               <div className="bg-slate-100 p-2 rounded flex items-center">
                 <input
                   type={showPassword ? "text" : "password"}

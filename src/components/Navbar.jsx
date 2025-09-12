@@ -59,6 +59,7 @@ const Navbar = React.memo(() => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [modalState, setModalState] = useState({
     isOpen: false,
     selectedCategory: null,
@@ -69,18 +70,65 @@ const Navbar = React.memo(() => {
 
   const searchMenuRef = useRef(null);
   const searchBarRef = useRef(null);
+  const mobileSearchToggleRef = useRef(null);
   const modalRef = useRef(null);
+
+  // React to page-type flags set on <html> by NotFound/DynamicPage
+  const [pageFlags, setPageFlags] = useState({ notFound: false, dynamic: false });
+
+  useEffect(() => {
+    const updateFlags = () => {
+      setPageFlags({
+        notFound: document.documentElement.getAttribute('data-not-found') === 'true',
+        dynamic: document.documentElement.getAttribute('data-dynamic-page') === 'true',
+      });
+    };
+    updateFlags();
+    const observer = new MutationObserver(() => updateFlags());
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-not-found', 'data-dynamic-page'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Focus mobile search input when it opens
+  useEffect(() => {
+    if (showMobileSearch && searchBarRef.current) {
+      const el = searchBarRef.current.querySelector('input');
+      if (el) el.focus();
+    }
+  }, [showMobileSearch]);
 
   const hideCategoryBar = useMemo(
     () =>
       hideCategoryBarOn.includes(location.pathname) ||
+      pageFlags.notFound ||
+      pageFlags.dynamic ||
+      // Hide on unknown routes as a safety net
+      (function isUnknownPath(path){
+        const knownPrefixes = [
+          '/',
+          '/product/',
+          '/category/',
+          '/brand/',
+          '/shop',
+          '/search',
+          '/cart',
+          '/order-history',
+          '/admin',
+          '/signup',
+          '/login',
+          '/color-settings'
+        ];
+        // Consider exactly '/' known, others must match a known prefix
+        if (path === '/') return false;
+        return !knownPrefixes.some(p => path === p || path.startsWith(p));
+      })(location.pathname) ||
       location.pathname.startsWith("/pages/") ||
       /^\/edit-product\/[^/]+$/.test(location.pathname) ||
       /^\/product\/[^/]+$/.test(location.pathname) ||
       location.pathname.startsWith("/admin/orders/") ||
       location.pathname.startsWith("/admin/new-orders") ||
       location.pathname.startsWith("/category/"),
-    [hideCategoryBarOn, location.pathname]
+    [hideCategoryBarOn, location.pathname, pageFlags]
   );
 
   const fetchBarTexts = async () => {
@@ -139,6 +187,18 @@ const Navbar = React.memo(() => {
       }
       if (modalRef.current && !modalRef.current.contains(event.target)) {
         setModalState({ isOpen: false, selectedCategory: null });
+      }
+      // Close mobile search if clicking outside the search bar
+      if (
+        showMobileSearch &&
+        searchBarRef.current &&
+        !searchBarRef.current.contains(event.target)
+      ) {
+        // Ignore clicks on the toggle button itself
+        if (mobileSearchToggleRef.current && mobileSearchToggleRef.current.contains(event.target)) {
+          return;
+        }
+        setShowMobileSearch(false);
       }
     };
 
@@ -555,6 +615,19 @@ const Navbar = React.memo(() => {
               initial="hidden"
               animate="visible"
             >
+              {/* Mobile Search Toggle */}
+              <button
+                type="button"
+                className="p-1 text-secondary"
+                aria-label="Open search"
+                ref={mobileSearchToggleRef}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMobileSearch((v) => !v)
+                }}
+              >
+                <FiSearch className="text-2xl" />
+              </button>
               {user?.role === "admin" && (
                 <Link to="/admin-dashboard" className="relative group">
                   <FaUserShield className="text-2xl text-secondary" />
@@ -575,32 +648,45 @@ const Navbar = React.memo(() => {
           </div>
         </div>
 
-        {/* Mobile Search Bar - Only shown on mobile */}
-        <div className="md:hidden px-4 py-2">
-          <motion.div
-            className="relative flex items-center bg-gray-50 rounded-full border border-secondary shadow-md w-full"
-            variants={inputVariants}
-            animate={isFocused ? "focused" : "unfocused"}
-          >
-            <input
-              type="text"
-              placeholder="Search product here..."
-              className="w-full bg-transparent outline-none px-3 py-2.5 rounded-l-full placeholder-primary/70 text-sm"
-              value={search}
-              onKeyDown={handleSearchKeyDown}
-              onChange={handleSearchChange}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              aria-label="Search products"
-            />
-            <div
-              className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 bg-primary hover:scale-105 cursor-pointer"
-              onClick={handleSearchIconClick}
+        {/* Mobile Search Bar - toggled by icon with smooth slide animation */}
+        <AnimatePresence initial={false}>
+          {showMobileSearch && (
+            <motion.div
+              key="mobile-search-wrap"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
+              className="md:hidden overflow-hidden"
             >
-              <FiSearch className="w-4 h-4" />
-            </div>
-          </motion.div>
-        </div>
+              <div className="px-4 py-2" ref={searchBarRef}>
+                <motion.div
+                  className="relative flex items-center bg-gray-50 rounded-full border border-secondary shadow-md w-full"
+                  variants={inputVariants}
+                  animate={isFocused ? "focused" : "unfocused"}
+                >
+                  <input
+                    type="text"
+                    placeholder="Search product here..."
+                    className="w-full bg-transparent outline-none px-3 py-2.5 rounded-l-full placeholder-primary/70 text-sm"
+                    value={search}
+                    onKeyDown={handleSearchKeyDown}
+                    onChange={handleSearchChange}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    aria-label="Search products"
+                  />
+                  <div
+                    className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 bg-primary hover:scale-105 cursor-pointer"
+                    onClick={handleSearchIconClick}
+                  >
+                    <FiSearch className="w-4 h-4" />
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {renderSearchResults}
         {renderNoResults}

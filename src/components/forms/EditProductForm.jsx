@@ -782,7 +782,7 @@ const EditProductForm = ({
           onChange={handleChange}
           className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
         >
-          <option value="">{defaultValues?.brand.name}</option>
+          <option value="">{defaultValues?.brand?.name}</option>
           {brands?.map((brand, index) => (
             <option key={index} value={brand?.name}>
               {brand?.name}
@@ -798,9 +798,9 @@ const EditProductForm = ({
           name="category"
           value={formData.category}
           onChange={handleChange}
-          className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+          className="w-full border px-4 py-2 text-primary rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
         >
-          <option value="">{defaultValues?.category.name}</option>
+          <option value="">{defaultValues?.category?.name}</option>
           {categories?.map((category, index) => (
             <option key={index} value={category?._id}>
               {category?.name}

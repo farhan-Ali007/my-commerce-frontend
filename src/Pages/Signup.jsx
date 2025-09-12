@@ -1,5 +1,6 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
+
 import { useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signupAPI } from "../functions/auth";
@@ -30,12 +31,16 @@ const Signup = () => {
       formData.append("password", password);
 
       const response = await signupAPI(formData);
-      dispatch(setUser(response?.newUser));
-      toast.success("Signup successful");
-      navigateTo(from, { replace: true });
+      if (response?.success) {
+        dispatch(setUser(response?.newUser));
+        toast.success("Signup successful");
+        navigateTo(from, { replace: true });
+      } else {
+        toast.error(response?.message || "Signup failed");
+      }
     } catch (error) {
-      console.error("Error during signup:", error);
-      toast.error(error?.message || "Signup failed");
+      console.error("Error during signup:", error?.response?.data?.message || error?.message);
+      toast.error(error?.response?.data?.message || error?.message || "Signup failed");
     } finally {
       setLoading(false);
     }

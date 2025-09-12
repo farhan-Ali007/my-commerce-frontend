@@ -206,12 +206,23 @@ const Checkout = () => {
         mobile: "",
         additionalInstructions: "",
       });
-      toast.success(response?.data?.message || "Your order has been placed successfully!" , {
+      toast.success(response?.message || "Your order has been placed successfully!" , {
         duration: 10000,
       });
       try { sessionStorage.setItem('fromCheckout', '1'); } catch {}
       try { localStorage.setItem('fromCheckout', '1'); } catch {}
       try { localStorage.setItem('lastOrderTs', String(Date.now())); } catch {}
+      // Persist guestId for guest order history in case cookies are blocked
+      try {
+        // Prefer top-level guestId, then order.guestId as fallback
+        const gid = response?.guestId || response?.order?.guestId || null;
+
+        if (gid) {
+          localStorage.setItem('guestId', gid);
+        } else {
+          // console.warn('[Checkout] guestId missing in API response; cannot persist');
+        }
+      } catch {}
       const oid = response?.order?._id;
       const dest = oid ? `/order-history?from=checkout&orderId=${encodeURIComponent(oid)}` : "/order-history?from=checkout";
       navigateTo(dest, {
