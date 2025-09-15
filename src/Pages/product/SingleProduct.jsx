@@ -1917,12 +1917,12 @@ const SingleProduct = () => {
       />
 
       {/* Product Long Description - placed after product details and before related products */}
-      <div className="px-4 md:px-6 max-w-6xl mx-auto mt-6">
+      <div className="px-2 md:px-6 max-w-6xl mx-auto mt-6">
         <h2 className="text-lg md:text-xl text-secondary underline underline-offset-8 font-bold font-space decoration-primary decoration-2  mb-3">
           Description
         </h2>
         <div
-          className="prose max-w-none font-space text-gray-700"
+          className="product-description prose max-w-none font-space text-gray-700"
           dangerouslySetInnerHTML={{
             __html:
               product?.longDescription ||

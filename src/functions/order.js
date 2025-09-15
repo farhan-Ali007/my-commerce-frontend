@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { BASE_URL } from '../config/baseURL'
 
-
 export const placeOrder = async (data, client = 'web') => {
     try {
         const response = await axios.post(
@@ -144,5 +143,34 @@ export const getLcsCitySuggestions = async (q, limit = 10) => {
         return response?.data?.data || []
     } catch (error) {
         return []
+    }
+}
+
+// Admin: update order details (shipping address + additionalInstructions)
+export const updateOrderDetails = async ({ orderId, shippingAddress }) => {
+    try {
+        const response = await axios.patch(
+            `${BASE_URL}/order/${orderId}/details`,
+            { shippingAddress },
+            { withCredentials: true }
+        )
+        return response?.data
+    } catch (error) {
+        console.log('Error updating order details', error)
+        throw error?.response?.data || error
+    }
+}
+
+// Admin: delete an order (only Pending & not pushed)
+export const deleteOrderById = async (orderId) => {
+    try {
+        const response = await axios.delete(
+            `${BASE_URL}/order/${orderId}`,
+            { withCredentials: true }
+        )
+        return response?.data
+    } catch (error) {
+        console.log('Error deleting order', error)
+        throw error?.response?.data || error
     }
 }

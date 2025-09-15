@@ -26,7 +26,12 @@ const Login = () => {
       if (response?.success) {
         dispatch(setUser(response?.user));
         toast.success("Login successful");
-        navigateTo(from, { replace: true });
+        const role = response?.user?.role;
+        if (role === 'admin') {
+          navigateTo('/admin-dashboard', { replace: true });
+        } else {
+          navigateTo(from, { replace: true });
+        }
       } else {
         toast.error(response?.message || "Login failed");
       }

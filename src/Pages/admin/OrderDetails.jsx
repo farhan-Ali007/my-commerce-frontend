@@ -4,8 +4,10 @@ import { MdArrowBack } from "react-icons/md";
 import { GiMoneyStack } from "react-icons/gi";
 import { IoMdCall } from "react-icons/io";
 import { dateFormatter } from "../../utils/dateFormatter";
-import { trackLcsStatus } from "../../functions/order";
+import { trackLcsStatus, updateOrderDetails, deleteOrderById } from "../../functions/order";
+import toast from "react-hot-toast";
 import { getLcsBadgeTheme } from "../../utils/courierStatus";
+import { CiEdit, CiTrash, CiCircleCheck, CiCircleRemove } from "react-icons/ci";
 
 const Row = ({ label, children }) => (
   <div className="flex flex-col sm:flex-row sm:items-center gap-1 py-1">
@@ -28,6 +30,80 @@ const OrderDetails = () => {
   const order = state?.order;
   const [tracking, setTracking] = useState(null); // { status, currentCity, lastEventAt, events }
   const [trackLoading, setTrackLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const canEdit = useMemo(() => {
+    return (order?.status === 'Pending') && !(order?.shippingProvider?.pushed);
+  }, [order?.status, order?.shippingProvider?.pushed]);
+  const [form, setForm] = useState({
+    fullName: order?.shippingAddress?.fullName || "",
+    mobile: order?.shippingAddress?.mobile || "",
+    city: order?.shippingAddress?.city || "",
+    streetAddress: order?.shippingAddress?.streetAddress || "",
+    additionalInstructions: order?.shippingAddress?.additionalInstructions || "",
+  });
+  useEffect(() => {
+    // Sync form if order changes
+    setForm({
+      fullName: order?.shippingAddress?.fullName || "",
+      mobile: order?.shippingAddress?.mobile || "",
+      city: order?.shippingAddress?.city || "",
+      streetAddress: order?.shippingAddress?.streetAddress || "",
+      additionalInstructions: order?.shippingAddress?.additionalInstructions || "",
+    });
+  }, [order?.shippingAddress]);
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const payload = {
+        orderId: order._id,
+        shippingAddress: {
+          fullName: form.fullName.trim(),
+          mobile: form.mobile.trim(),
+          city: form.city.trim(),
+          streetAddress: form.streetAddress.trim(),
+          additionalInstructions: form.additionalInstructions?.trim() || "",
+        },
+      };
+      const res = await updateOrderDetails(payload);
+      if (res?.success) {
+        // Mutate local order reference so UI updates
+        if (order?.shippingAddress) {
+          order.shippingAddress = res.order.shippingAddress;
+        }
+        toast.success("Order details updated");
+        setIsEditing(false);
+      } else {
+        toast.error(res?.error || "Failed to update order");
+      }
+    } catch (e) {
+      toast.error(e?.error || e?.message || "Failed to update order");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!order?._id) return;
+    try {
+      setDeleting(true);
+      const res = await deleteOrderById(order._id);
+      if (res?.success) {
+        toast.success("Order deleted");
+        setConfirmOpen(false);
+        navigate(state?.from || "/admin/orders", { replace: true });
+      } else {
+        toast.error(res?.error || "Failed to delete order");
+      }
+    } catch (e) {
+      toast.error(e?.error || e?.message || "Failed to delete order");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const courierStatus = useMemo(() => {
     const fromTrack = tracking?.status;
@@ -109,6 +185,34 @@ const OrderDetails = () => {
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Confirm Delete Modal */}
+            {confirmOpen && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/40" onClick={() => !deleting && setConfirmOpen(false)} />
+                <div role="dialog" aria-modal="true" className="relative bg-white w-full max-w-sm rounded-xl shadow-2xl p-5 z-10">
+                  <h3 className="text-lg font-semibold text-gray-900">Delete Order?</h3>
+                  <p className="text-sm text-gray-600 mt-1">This action cannot be undone.</p>
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmOpen(false)}
+                      disabled={deleting}
+                      className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {deleting ? 'Deleting…' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="flex flex-col gap-1">
@@ -136,6 +240,52 @@ const OrderDetails = () => {
                       <option key={status} value={status}>{status}</option>
                     ))}
                   </select>
+                  {canEdit && (
+                    <div className="flex items-center gap-2">
+                      {!isEditing ? (
+                        <>
+                          <button
+                            onClick={() => setIsEditing(true)}
+                            title="Edit order details"
+                            aria-label="Edit order details"
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 text-green-600 hover:bg-gray-50"
+                          >
+                            <CiEdit className="text-xl" />
+                          </button>
+                          <button
+                            onClick={() => setConfirmOpen(true)}
+                            title="Delete order"
+                            aria-label="Delete order"
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            disabled={deleting}
+                          >
+                            <CiTrash className="text-xl" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setIsEditing(false)}
+                            title="Cancel edit"
+                            aria-label="Cancel edit"
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            disabled={saving}
+                          >
+                            <CiCircleRemove className="text-xl" />
+                          </button>
+                          <button
+                            onClick={handleSave}
+                            title="Save changes"
+                            aria-label="Save changes"
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-blue-300 text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                            disabled={saving}
+                          >
+                            <CiCircleCheck className="text-xl" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -145,14 +295,43 @@ const OrderDetails = () => {
                     {dateFormatter(order.orderedAt)}
                   </Row>
                   <Row label="Customer">
-                    {order?.orderedBy?.username || order?.shippingAddress?.fullName}
+                    {!isEditing ? (
+                      order?.orderedBy?.username || order?.shippingAddress?.fullName
+                    ) : (
+                      <input
+                        type="text"
+                        className="border rounded px-2 py-1 w-full"
+                        value={form.fullName}
+                        onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
+                      />
+                    )}
                   </Row>
                   <Row label="Phone">
-                    <span className="inline-flex items-center gap-1">
-                      <IoMdCall /> {order?.shippingAddress?.mobile}
-                    </span>
+                    {!isEditing ? (
+                      <span className="inline-flex items-center gap-1">
+                        <IoMdCall /> {order?.shippingAddress?.mobile}
+                      </span>
+                    ) : (
+                      <input
+                        type="tel"
+                        className="border rounded px-2 py-1 w-full"
+                        value={form.mobile}
+                        onChange={(e) => setForm((f) => ({ ...f, mobile: e.target.value }))}
+                      />
+                    )}
                   </Row>
-                  <Row label="City">{order?.shippingAddress?.city || "—"}</Row>
+                  <Row label="City">
+                    {!isEditing ? (
+                      order?.shippingAddress?.city || "—"
+                    ) : (
+                      <input
+                        type="text"
+                        className="border rounded px-2 py-1 w-full"
+                        value={form.city}
+                        onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                      />
+                    )}
+                  </Row>
                 </div>
                 <div>
                   <Row label="Delivery Charges">Rs.{order?.deliveryCharges}</Row>
@@ -161,15 +340,31 @@ const OrderDetails = () => {
                       <GiMoneyStack /> Rs.{order?.totalPrice}
                     </span>
                   </Row>
-                  <Row label="Notes">
-                    {order?.additionalInstructions || "—"}
+                  <Row label="Instructions">
+                    {!isEditing ? (
+                      order?.shippingAddress?.additionalInstructions || "—"
+                    ) : (
+                      <textarea
+                        className="border rounded px-2 py-1 w-full min-h-[70px]"
+                        value={form.additionalInstructions}
+                        onChange={(e) => setForm((f) => ({ ...f, additionalInstructions: e.target.value }))}
+                      />
+                    )}
                   </Row>
                 </div>
               </div>
 
               <div className="mt-3">
                 <Row label="Address">
-                  <span className="block">{order?.shippingAddress?.streetAddress || "—"}</span>
+                  {!isEditing ? (
+                    <span className="block">{order?.shippingAddress?.streetAddress || "—"}</span>
+                  ) : (
+                    <textarea
+                      className="border rounded px-2 py-1 w-full min-h-[70px]"
+                      value={form.streetAddress}
+                      onChange={(e) => setForm((f) => ({ ...f, streetAddress: e.target.value }))}
+                    />
+                  )}
                 </Row>
               </div>
             </div>

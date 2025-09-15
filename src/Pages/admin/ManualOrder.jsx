@@ -40,6 +40,13 @@ const ManualOrder = () => {
   const [freeShipping, setFreeShipping] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // If free shipping is enabled, force deliveryCharges to 0 and lock the field
+  useEffect(() => {
+    if (freeShipping) {
+      setDeliveryCharges(0);
+    }
+  }, [freeShipping]);
+
   // debounce search
   useEffect(() => {
     const id = setTimeout(async () => {
@@ -190,7 +197,7 @@ const ManualOrder = () => {
         })),
         totalPrice: Number(total),
         freeShipping,
-        deliveryCharges: Number(deliveryCharges || 0),
+        deliveryCharges: freeShipping ? 0 : Number(deliveryCharges || 0),
         source: 'manual',
       };
       const res = await placeOrder(payload, 'manual');
@@ -547,8 +554,12 @@ const ManualOrder = () => {
                   type="number"
                   min={0}
                   value={deliveryCharges}
-                  onChange={(e) => setDeliveryCharges(Number(e.target.value || 0))}
-                  className="w-28 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1 outline-none focus:border-primary text-right"
+                  onChange={(e) => { if (freeShipping) return; setDeliveryCharges(Number(e.target.value || 0)); }}
+                  disabled={freeShipping}
+                  readOnly={freeShipping}
+                  tabIndex={freeShipping ? -1 : 0}
+                  aria-disabled={freeShipping}
+                  className={`w-28 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1 outline-none focus:border-primary text-right ${freeShipping ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
                 />
               </div>
             </div>
