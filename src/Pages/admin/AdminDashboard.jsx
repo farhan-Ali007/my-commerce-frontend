@@ -11,6 +11,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { GiVerticalBanner } from "react-icons/gi";
+import { RiCoupon2Line } from "react-icons/ri";
 import { IoNotifications } from "react-icons/io5";
 import { LuChartColumnDecreasing } from "react-icons/lu";
 import {
@@ -42,6 +43,7 @@ import ManualOrder from "./ManualOrder";
 import MenuCategories from "./MenuCategories";
 import NewOrders from "./NewOrders";
 import AdminTopbarText from "./TopBar";
+import Coupons from "./Coupons";
 
 const AdminDashboard = () => {
   const location = useLocation();
@@ -114,8 +116,12 @@ const AdminDashboard = () => {
       setSelectedPage("newOrders");
     } else if (location?.pathname === "/admin/manual-order") {
       setSelectedPage("manualOrder");
+    } else if (location?.pathname === "/admin/coupons") {
+      setSelectedPage("coupons");
     }
   }, [location?.pathname]);
+
+  // Removed URL auto-sync to prevent unexpected redirects; we will navigate explicitly on clicks where needed.
 
   const renderContent = () => {
     switch (selectedPage) {
@@ -227,6 +233,12 @@ const AdminDashboard = () => {
             <AdminPopups />
           </div>
         );
+      case "coupons":
+        return (
+          <div>
+            <Coupons />
+          </div>
+        );
       default:
         return <div>Select a page from the navigation</div>;
     }
@@ -284,6 +296,7 @@ const AdminDashboard = () => {
             }`}
             onClick={() => {
               setSelectedPage("dashboard");
+              navigate('/admin-dashboard');
               setIsSidebarOpen(false);
             }}
           >
@@ -453,6 +466,18 @@ const AdminDashboard = () => {
             <FaUsers className="text-lg" />
             <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Users</span>
           </button>
+
+          {/* Coupons - standalone */}
+          <button
+            className={`flex items-center gap-3 py-2 px-4 text-left hover:bg-gray-700 rounded-full`}
+            onClick={() => {
+              navigate("/admin/coupons");
+              setIsSidebarOpen(false);
+            }}
+          >
+            <RiCoupon2Line className="text-lg" />
+            <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Coupons</span>
+          </button>
           {/* Orders group with hover submenu (lg+) and collapsible (mobile/tablet) */}
           <div className="relative group">
             <button
@@ -474,6 +499,7 @@ const AdminDashboard = () => {
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
                     setSelectedPage("newOrders");
+                    navigate('/admin/new-orders');
                     setIsSidebarOpen(false);
                   }}
                 >
@@ -488,6 +514,7 @@ const AdminDashboard = () => {
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
                     setSelectedPage("allOrders");
+                    navigate('/admin/orders');
                     setIsSidebarOpen(false);
                   }}
                 >
@@ -511,6 +538,7 @@ const AdminDashboard = () => {
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
                     setSelectedPage("allOrders");
+                    navigate('/admin/orders');
                     setIsSidebarOpen(false);
                   }}
                 >
@@ -520,6 +548,7 @@ const AdminDashboard = () => {
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
                     setSelectedPage("newOrders");
+                    navigate('/admin/new-orders');
                     setIsSidebarOpen(false);
                   }}
                 >
@@ -693,6 +722,15 @@ const AdminDashboard = () => {
                   }}
                 >
                   <MdColorLens /> Color Settings
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    navigate("/admin/coupons");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <RiCoupon2Line /> Coupons
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"

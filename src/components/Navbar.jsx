@@ -39,6 +39,7 @@ const Navbar = React.memo(() => {
       "/pages/",
       "/category/",
       "/admin/orders",
+      "/admin/coupons",
       "/admin/sections",
     ],
     []

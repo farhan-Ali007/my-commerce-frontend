@@ -335,10 +335,38 @@ const OrderDetails = () => {
                 </div>
                 <div>
                   <Row label="Delivery Charges">Rs.{order?.deliveryCharges}</Row>
+                  <Row label="Coupon">
+                    {order?.couponCode ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-semibold">{order.couponCode}</span>
+                        {Number(order?.discountAmount || 0) > 0 && (
+                          <span className="text-green-700 text-sm">− Rs.{Number(order.discountAmount).toLocaleString()}</span>
+                        )}
+                      </span>
+                    ) : '—'}
+                  </Row>
                   <Row label="Total" >
-                    <span className="font-semibold text-green-700 inline-flex items-center gap-1">
-                      <GiMoneyStack /> Rs.{order?.totalPrice}
-                    </span>
+                    <div className="flex flex-col items-end gap-0.5">
+                      {Number(order?.discountAmount || 0) > 0 && (
+                        <div className="text-xs text-gray-500">
+                          <span className="line-through mr-2">
+                            Rs.{Number((Number(order?.totalPrice || 0) + Number(order?.discountAmount || 0))).toLocaleString()}
+                          </span>
+                          <span className="text-green-700 font-medium">
+                            You saved Rs.{Number(order?.discountAmount || 0).toLocaleString()} (
+                            {(() => {
+                              const base = Number((Number(order?.totalPrice || 0) + Number(order?.discountAmount || 0)));
+                              const pct = base > 0 ? Math.round((Number(order?.discountAmount || 0) / base) * 100) : 0;
+                              return `${pct}%`;
+                            })()}
+                            )
+                          </span>
+                        </div>
+                      )}
+                      <span className="font-semibold text-green-700 inline-flex items-center gap-1">
+                        <GiMoneyStack /> Rs.{order?.totalPrice}
+                      </span>
+                    </div>
                   </Row>
                   <Row label="Instructions">
                     {!isEditing ? (

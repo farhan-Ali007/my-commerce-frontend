@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearCart, getMyCart } from "../functions/cart";
 import { truncateTitle } from "../helpers/truncateTitle";
 import { placeOrder } from "../functions/order";
+import { validateCoupon as validateCouponApi } from "../functions/coupon";
 import { motion } from "framer-motion";
 import { clearCartRedux } from "../store/cartSlice";
 import useFacebookPixel from '../hooks/useFacebookPixel';
@@ -27,6 +28,11 @@ const Checkout = () => {
   });
   const [rememberMe, setRememberMe] = useState(false);
   const { track } = useFacebookPixel();
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponType, setCouponType] = useState(null);
+  const [couponAppliedCode, setCouponAppliedCode] = useState("");
 
   const getImageUrl = (img) => {
     if (!img) return '';
@@ -133,6 +139,39 @@ const Checkout = () => {
     }, 0);
   };
 
+  const handleApplyCoupon = async () => {
+    const code = String(couponCode || "").trim();
+    if (!code) { toast.error("Enter a coupon code"); return; }
+    try {
+      setCouponApplying(true);
+      const cartSummary = (cartItems?.products || []).map(p => ({ price: Number(p.price||0), count: Number(p.count||0) }));
+      const subtotal = calculateTotalPrice();
+      const res = await validateCouponApi({ code, cartSummary, subtotal, deliveryCharges: cartItems?.deliveryCharges || 0 });
+      if (res?.valid) {
+        setCouponDiscount(Number(res.discount || 0));
+        setCouponType(res.discountType || null);
+        setCouponAppliedCode(res.code || code.toUpperCase());
+        toast.success("Coupon applied");
+      } else {
+        setCouponDiscount(0);
+        setCouponType(null);
+        setCouponAppliedCode("");
+        toast.error(res?.message || "Invalid coupon");
+      }
+    } catch (e) {
+      toast.error(e?.message || "Failed to apply coupon");
+    } finally {
+      setCouponApplying(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponDiscount(0);
+    setCouponType(null);
+    setCouponAppliedCode("");
+    setCouponCode("");
+  };
+
   const handlePlaceOrder = async () => {
     if (!formData.fullName) {
       toast.error("Full Name is required");
@@ -173,9 +212,12 @@ const Checkout = () => {
       shippingAddress: { ...formData },
       orderedBy: userId || "guest",
       cartSummary: productsForOrder,
-      totalPrice: calculateTotalPrice() + (cartItems?.deliveryCharges || 0),
+      totalPrice: Math.max(0, calculateTotalPrice() + (cartItems?.deliveryCharges || 0) - Number(couponDiscount || 0)),
       freeShipping: cartItems?.freeShipping || false,
       deliveryCharges: cartItems?.deliveryCharges || 0,
+      couponCode: couponAppliedCode || undefined,
+      couponType: couponType || undefined,
+      discountAmount: Number(couponDiscount || 0),
     };
 
     console.log("Submitting Order:", orderData);
@@ -324,6 +366,46 @@ const Checkout = () => {
               </motion.div>
             ))}
           </div>
+          {/* Coupon */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="p-6 mb-8 bg-white rounded-lg shadow-lg"
+          >
+            <h3 className="mb-4 text-xl font-roboto font-bold">Have a coupon?</h3>
+            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+              <input
+                type="text"
+                placeholder="Enter coupon code"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                className="w-full sm:w-64 p-2 border outline-none focus:ring-0 rounded"
+                disabled={!!couponAppliedCode}
+              />
+              {!couponAppliedCode ? (
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={couponApplying}
+                  className="px-4 py-2 rounded bg-primary text-white hover:bg-primary/90 disabled:opacity-60"
+                >
+                  {couponApplying ? 'Applying…' : 'Apply'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            {couponAppliedCode && (
+              <p className="mt-2 text-sm text-green-700">Applied coupon: <strong>{couponAppliedCode}</strong></p>
+            )}
+          </motion.div>
           <div className="flex flex-col mt-4">
             <div className="flex justify-between p-2 border-b border-gray-200">
               <span className="font-semibold text-gray-700">
@@ -337,12 +419,35 @@ const Checkout = () => {
                 )}
               </span>
             </div>
+            {couponDiscount > 0 && (
+              <>
+                <div className="flex justify-between p-2 border-b border-gray-200 text-green-700">
+                  <span className="font-semibold">Coupon ({couponAppliedCode})</span>
+                  <span className="font-semibold">- Rs.{Number(couponDiscount).toLocaleString()}</span>
+                </div>
+                {/* Savings summary */}
+                <div className="flex justify-between items-center p-2 text-sm">
+                  <span className="text-green-700 font-medium">
+                    You saved Rs.{Number(couponDiscount).toLocaleString()} (
+                    {(() => {
+                      const base = Number(calculateTotalPrice() + (cartItems?.deliveryCharges || 0)) || 0;
+                      const pct = base > 0 ? Math.round((Number(couponDiscount) / base) * 100) : 0;
+                      return `${pct}%`;
+                    })()}
+                    )
+                  </span>
+                  <span className="text-gray-500 line-through">
+                    Rs.{Number((calculateTotalPrice() + (cartItems?.deliveryCharges || 0))).toLocaleString()}
+                  </span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between p-2 pt-4 text-lg font-bold bg-gray-50 rounded-b-lg">
               <span className="text-secondary">Total Price:</span>
               <span className="text-primary">
                 Rs.
                 {(
-                  calculateTotalPrice() + cartItems.deliveryCharges
+                  Math.max(0, calculateTotalPrice() + (cartItems.deliveryCharges || 0) - Number(couponDiscount || 0))
                 ).toLocaleString()}
               </span>
             </div>

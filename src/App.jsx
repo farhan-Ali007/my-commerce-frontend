@@ -36,6 +36,7 @@ const OrderDetails = lazy(() => import("./Pages/admin/OrderDetails"));
 const NewOrders = lazy(() => import("./Pages/admin/NewOrders"));
 const Footer = lazy(() => import("./components/Footer"));
 const ManualOrder = lazy(() => import('./Pages/admin/ManualOrder'));
+const Coupons = lazy(() => import('./Pages/admin/Coupons'));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -88,6 +89,7 @@ const App = () => {
 
   // List of pages where Navbar should be hidden
   const hiddenNavbarRoutes = ["/signup", "/login","/cart/checkout"];
+  const shouldHideNavbar = hiddenNavbarRoutes.includes(location.pathname);
 
   return (
     <>
@@ -102,7 +104,7 @@ const App = () => {
       
       <div className="flex flex-col">
         {/* Conditionally render Navbar */}
-        {!hiddenNavbarRoutes.includes(location.pathname) && <Navbar />}
+        {!shouldHideNavbar && <Navbar />}
         
         {/* Popup Component - appears on all pages */}
         <Popup />
@@ -146,6 +148,7 @@ const App = () => {
               <Route path="/admin-color-settings" element={<AdminColorSettings />} />
               <Route path="/admin/orders/:orderId" element={<OrderDetails />} />
               <Route path="/admin/manual-order" element={<AdminDashboard />} />
+              <Route path="/admin/coupons" element={<AdminDashboard />} />
             </Route>
 
             {/* Direct access to color settings for admins */}
