@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import React, {
   useCallback,
   useEffect,
@@ -7,24 +8,23 @@ import React, {
 } from "react";
 import Marquee from "react-fast-marquee";
 import toast from "react-hot-toast";
-import { AiOutlineShopping } from "react-icons/ai";
 import { CgMenu } from "react-icons/cg";
-import { FaUserShield, FaMobileAlt } from "react-icons/fa";
-import { FiSearch } from "react-icons/fi";
-import { IoCartOutline } from "react-icons/io5";
+import { CiMobile3 } from "react-icons/ci";
+import { FaUserShield } from "react-icons/fa";
+import { FiSearch   } from "react-icons/fi";
+import { HiOutlineShoppingBag, HiOutlineShoppingCart } from "react-icons/hi2";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { truncateTitle } from "../helpers/truncateTitle";
 import { logoutAPI } from "../functions/auth";
+import { menuCategories } from "../functions/categories";
+import { getUserLogo } from "../functions/logo";
+import { getActiveBars } from "../functions/topbar";
+import { truncateTitle } from "../helpers/truncateTitle";
 import { setUser } from "../store/authSlice";
 import { fetchSearchResults, setSearchQuery } from "../store/searchSlice";
 import CategoryBar from "./CategoryBar";
 import NavDrawer from "./drawers/NavDrawer";
-import { menuCategories } from "../functions/categories";
-import { motion, AnimatePresence } from "framer-motion";
-import { getActiveBars } from "../functions/topbar";
 import NotificationBell from "./NotificationBell";
-import { getUserLogo } from "../functions/logo";
 const Navbar = React.memo(() => {
   const hideCategoryBarOn = useMemo(
     () => [
@@ -38,7 +38,8 @@ const Navbar = React.memo(() => {
       "*",
       "/pages/",
       "/category/",
-      "/admin/orders"
+      "/admin/orders",
+      "/admin/sections",
     ],
     []
   );
@@ -58,6 +59,7 @@ const Navbar = React.memo(() => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [modalState, setModalState] = useState({
     isOpen: false,
     selectedCategory: null,
@@ -68,18 +70,65 @@ const Navbar = React.memo(() => {
 
   const searchMenuRef = useRef(null);
   const searchBarRef = useRef(null);
+  const mobileSearchToggleRef = useRef(null);
   const modalRef = useRef(null);
+
+  // React to page-type flags set on <html> by NotFound/DynamicPage
+  const [pageFlags, setPageFlags] = useState({ notFound: false, dynamic: false });
+
+  useEffect(() => {
+    const updateFlags = () => {
+      setPageFlags({
+        notFound: document.documentElement.getAttribute('data-not-found') === 'true',
+        dynamic: document.documentElement.getAttribute('data-dynamic-page') === 'true',
+      });
+    };
+    updateFlags();
+    const observer = new MutationObserver(() => updateFlags());
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-not-found', 'data-dynamic-page'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Focus mobile search input when it opens
+  useEffect(() => {
+    if (showMobileSearch && searchBarRef.current) {
+      const el = searchBarRef.current.querySelector('input');
+      if (el) el.focus();
+    }
+  }, [showMobileSearch]);
 
   const hideCategoryBar = useMemo(
     () =>
       hideCategoryBarOn.includes(location.pathname) ||
+      pageFlags.notFound ||
+      pageFlags.dynamic ||
+      // Hide on unknown routes as a safety net
+      (function isUnknownPath(path){
+        const knownPrefixes = [
+          '/',
+          '/product/',
+          '/category/',
+          '/brand/',
+          '/shop',
+          '/search',
+          '/cart',
+          '/order-history',
+          '/admin',
+          '/signup',
+          '/login',
+          '/color-settings'
+        ];
+        // Consider exactly '/' known, others must match a known prefix
+        if (path === '/') return false;
+        return !knownPrefixes.some(p => path === p || path.startsWith(p));
+      })(location.pathname) ||
       location.pathname.startsWith("/pages/") ||
       /^\/edit-product\/[^/]+$/.test(location.pathname) ||
       /^\/product\/[^/]+$/.test(location.pathname) ||
       location.pathname.startsWith("/admin/orders/") ||
       location.pathname.startsWith("/admin/new-orders") ||
       location.pathname.startsWith("/category/"),
-    [hideCategoryBarOn, location.pathname]
+    [hideCategoryBarOn, location.pathname, pageFlags]
   );
 
   const fetchBarTexts = async () => {
@@ -138,6 +187,18 @@ const Navbar = React.memo(() => {
       }
       if (modalRef.current && !modalRef.current.contains(event.target)) {
         setModalState({ isOpen: false, selectedCategory: null });
+      }
+      // Close mobile search if clicking outside the search bar
+      if (
+        showMobileSearch &&
+        searchBarRef.current &&
+        !searchBarRef.current.contains(event.target)
+      ) {
+        // Ignore clicks on the toggle button itself
+        if (mobileSearchToggleRef.current && mobileSearchToggleRef.current.contains(event.target)) {
+          return;
+        }
+        setShowMobileSearch(false);
       }
     };
 
@@ -428,7 +489,7 @@ const Navbar = React.memo(() => {
       <header className="bg-white backdrop-blur-lg w-full z-[1050] shadow-md sticky top-0">
         <div className="container mx-auto px-4 py-2">
           {/* Desktop Layout */}
-          <div className="hidden md:flex items-center justify-between">
+          <div className="hidden md:grid md:grid-cols-[auto,1fr,auto] items-center gap-4 lg:gap-6">
             {/* Left Section - Logo */}
             <div className="flex-shrink-0">
               <motion.a
@@ -448,8 +509,8 @@ const Navbar = React.memo(() => {
             </div>
 
             {/* Center Section - Search Bar */}
-            <div className="flex-1 flex justify-center items-center">
-              <div className="w-full max-w-md  lg:max-w-lg xl:max-w-[30rem] ml-0 lg:ml-10 ">
+            <div className="flex justify-center items-center">
+              <div className="w-full max-w-md lg:max-w-lg xl:max-w-[32rem]">
                 <motion.div
                   className="relative flex items-center bg-gray-50 rounded-full border border-secondary shadow-md w-full"
                   variants={inputVariants}
@@ -458,7 +519,7 @@ const Navbar = React.memo(() => {
                   <input
                     type="text"
                     placeholder="Search product here..."
-                    className="w-full bg-transparent outline-none px-3 py-2 lg:px-4 lg:py-2.5 rounded-l-full placeholder-primary/70 text-sm"
+                    className="w-full bg-transparent outline-none px-3 py-2 lg:px-4 lg:py-3 rounded-l-full placeholder-primary/70 text-sm"
                     value={search}
                     onKeyDown={handleSearchKeyDown}
                     onChange={handleSearchChange}
@@ -486,7 +547,7 @@ const Navbar = React.memo(() => {
               {/* Support Info - Hidden on mobile, shown on medium+ screens */}
               <div className="items-center hidden gap-2 text-base font-bold text-secondary md:flex">
                 <span className="text-xl font-semibold">
-                  <FaMobileAlt
+                  <CiMobile3
                     size={28}
                     className="md:w-7 md:h-7 lg:w-8 lg:h-8"
                   />
@@ -513,11 +574,11 @@ const Navbar = React.memo(() => {
                 )}
                 {user?.role === "admin" && <NotificationBell />}
                 <Link to="/shop" className="relative z-20 cursor-pointer group">
-                  <AiOutlineShopping className="text-2xl lg:text-3xl text-secondary" />
+                  <HiOutlineShoppingBag className="text-2xl lg:text-3xl text-secondary" />
                 </Link>
 
                 <Link to="/cart" className="relative z-20 cursor-pointer group">
-                  <IoCartOutline className="text-2xl lg:text-3xl text-secondary" />
+                  <HiOutlineShoppingCart className="text-2xl lg:text-3xl text-secondary" />
                   <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-primary bg-opacity-90">
                     {cart.products?.length || 0}
                   </span>
@@ -554,6 +615,19 @@ const Navbar = React.memo(() => {
               initial="hidden"
               animate="visible"
             >
+              {/* Mobile Search Toggle */}
+              <button
+                type="button"
+                className="p-1 text-secondary"
+                aria-label="Open search"
+                ref={mobileSearchToggleRef}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMobileSearch((v) => !v)
+                }}
+              >
+                <FiSearch className="text-2xl" />
+              </button>
               {user?.role === "admin" && (
                 <Link to="/admin-dashboard" className="relative group">
                   <FaUserShield className="text-2xl text-secondary" />
@@ -561,11 +635,11 @@ const Navbar = React.memo(() => {
               )}
               {user?.role === "admin" && <NotificationBell />}
               <Link to="/shop" className="relative z-20 cursor-pointer group">
-                <AiOutlineShopping className="text-2xl text-secondary" />
+                <HiOutlineShoppingBag className="text-2xl text-secondary" />
               </Link>
 
               <Link to="/cart" className="relative z-20 cursor-pointer group">
-                <IoCartOutline className="text-2xl text-secondary" />
+                <HiOutlineShoppingCart className="text-2xl text-secondary" />
                 <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white rounded-full -top-2 -right-2 bg-primary bg-opacity-90">
                   {cart.products?.length || 0}
                 </span>
@@ -574,32 +648,45 @@ const Navbar = React.memo(() => {
           </div>
         </div>
 
-        {/* Mobile Search Bar - Only shown on mobile */}
-        <div className="md:hidden px-4 py-2">
-          <motion.div
-            className="relative flex items-center bg-gray-50 rounded-full border border-secondary shadow-md w-full"
-            variants={inputVariants}
-            animate={isFocused ? "focused" : "unfocused"}
-          >
-            <input
-              type="text"
-              placeholder="Search product here..."
-              className="w-full bg-transparent outline-none px-3 py-2.5 rounded-l-full placeholder-primary/70 text-sm"
-              value={search}
-              onKeyDown={handleSearchKeyDown}
-              onChange={handleSearchChange}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              aria-label="Search products"
-            />
-            <div
-              className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 bg-primary hover:scale-105 cursor-pointer"
-              onClick={handleSearchIconClick}
+        {/* Mobile Search Bar - toggled by icon with smooth slide animation */}
+        <AnimatePresence initial={false}>
+          {showMobileSearch && (
+            <motion.div
+              key="mobile-search-wrap"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
+              className="md:hidden overflow-hidden"
             >
-              <FiSearch className="w-4 h-4" />
-            </div>
-          </motion.div>
-        </div>
+              <div className="px-4 py-2" ref={searchBarRef}>
+                <motion.div
+                  className="relative flex items-center bg-gray-50 rounded-full border border-secondary shadow-md w-full"
+                  variants={inputVariants}
+                  animate={isFocused ? "focused" : "unfocused"}
+                >
+                  <input
+                    type="text"
+                    placeholder="Search product here..."
+                    className="w-full bg-transparent outline-none px-3 py-2.5 rounded-l-full placeholder-primary/70 text-sm"
+                    value={search}
+                    onKeyDown={handleSearchKeyDown}
+                    onChange={handleSearchChange}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    aria-label="Search products"
+                  />
+                  <div
+                    className="absolute flex items-center justify-center w-8 h-8 text-white transition-transform transform rounded-full right-1 bg-primary hover:scale-105 cursor-pointer"
+                    onClick={handleSearchIconClick}
+                  >
+                    <FiSearch className="w-4 h-4" />
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {renderSearchResults}
         {renderNoResults}

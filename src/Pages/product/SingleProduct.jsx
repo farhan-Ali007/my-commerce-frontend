@@ -10,29 +10,33 @@ import React, {
 } from "react";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-hot-toast";
+import { AiOutlineClose } from "react-icons/ai";
 import {
+  FaCheck,
   FaChevronDown,
-  FaChevronLeft,
-  FaChevronRight,
   FaChevronUp,
   FaWhatsapp,
 } from "react-icons/fa6";
+import { LuAlarmClock } from "react-icons/lu";
 import { TiShoppingCart } from "react-icons/ti";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import ReviewsDrawer from "../../components/reviews/ReviewsDrawer";
+import RightEdgeTab from "../../components/reviews/RightEdgeTab";
+import SpecificationsDrawer from "../../components/reviews/SpecificationsDrawer";
+import WriteReviewModal from "../../components/reviews/WriteReviewModal";
 import SingleProductSkeleton from "../../components/skeletons/SingleProductSkeleton";
-import { getProductBySlug, getRelatedProducts } from "../../functions/product";
-import { getProductSchemaData } from "../../helpers/getProductSchema";
-import { addToCart } from "../../store/cartSlice";
 import { addItemToCart } from "../../functions/cart";
+import { getProductBySlug, getRelatedProducts } from "../../functions/product";
+import { recordProductView } from "../../functions/traffic";
+import { getProductSchemaData } from "../../helpers/getProductSchema";
 import useFacebookPixel from "../../hooks/useFacebookPixel";
 import useWhatsAppTracking from "../../hooks/useWhatsAppTracking";
-import { AiOutlineClose } from "react-icons/ai";
+import { addToCart } from "../../store/cartSlice";
 
 const LazyRelatedProducts = lazy(() =>
   import("../../components/RelatedProducts")
 );
-const LazyReviewForm = lazy(() => import("../../components/forms/ReviewForm"));
 const LazyCartDrawer = lazy(() =>
   import("../../components/drawers/CartDrawer")
 );
@@ -121,6 +125,14 @@ const SingleProduct = () => {
   const [activeVariant, setActiveVariant] = useState(null);
   const [selectedVariantValue, setSelectedVariantValue] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  // Volume tier selection
+  const [selectedTierIndex, setSelectedTierIndex] = useState(null);
+  // Reviews UI
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+  const [writeReviewOpen, setWriteReviewOpen] = useState(false);
+  const [specsOpen, setSpecsOpen] = useState(false);
+  const [mobileTabsVisible, setMobileTabsVisible] = useState(false);
+  const afterImageSentinelRef = useRef(null);
 
   const getImageUrl = useCallback((img) => {
     if (!img) return "";
@@ -137,10 +149,45 @@ const SingleProduct = () => {
         value: product.salePrice ? product.salePrice : product.price,
         currency: "PKR",
       });
+      // Record product view for analytics
+      recordProductView(product._id);
     }
   }, [product]);
+
+  // Show edge tabs on mobile after main image area is scrolled past
+  useEffect(() => {
+    const sentinel = afterImageSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setMobileTabsVisible(entry.isIntersecting);
+      },
+      { root: null, threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [afterImageSentinelRef.current]);
   const currentPrice = useMemo(() => {
     if (!product) return 0;
+
+    // If volume tiers are enabled and a tier is selected, show that tier's price
+    if (
+      product.volumeTierEnabled &&
+      Array.isArray(product.volumeTiers) &&
+      product.volumeTiers.length > 0
+    ) {
+      if (
+        selectedTierIndex !== null &&
+        product.volumeTiers[selectedTierIndex]
+      ) {
+        return (
+          Number(product.volumeTiers[selectedTierIndex].price) ||
+          product.salePrice ||
+          product.price
+        );
+      }
+    }
 
     let variantPriceSum = 0;
     let hasVariantPrice = false;
@@ -167,7 +214,47 @@ const SingleProduct = () => {
     return hasVariantPrice
       ? variantPriceSum
       : product.salePrice || product.price;
-  }, [selectedVariants, product]);
+  }, [selectedVariants, product, selectedTierIndex]);
+
+  // Compute each tier's discount relative to the previous tier's price
+  const tiersWithDiscount = useMemo(() => {
+    if (!product?.volumeTierEnabled || !Array.isArray(product?.volumeTiers))
+      return [];
+    const tiers = product.volumeTiers || [];
+    // Determine baseline as the unit price of the first tier
+    const firstTier = tiers[0];
+    const firstQty =
+      typeof firstTier?.quantity === "number" && firstTier.quantity > 0
+        ? firstTier.quantity
+        : 1;
+    const baseUnit =
+      typeof firstTier?.price === "number" && firstTier.price > 0
+        ? firstTier.price / firstQty
+        : null;
+    return tiers.map((tier, idx) => {
+      const price = tier?.price;
+      // Baseline previous price: how much it would cost if you bought `tier.quantity` using the first tier's unit price
+      const qty =
+        typeof tier?.quantity === "number" && tier.quantity > 0
+          ? tier.quantity
+          : 1;
+      const prevPrice =
+        idx > 0 && typeof baseUnit === "number"
+          ? Math.round(baseUnit * qty)
+          : null;
+      let discountPercent = null;
+      if (
+        typeof prevPrice === "number" &&
+        prevPrice > 0 &&
+        typeof price === "number"
+      ) {
+        const diff = prevPrice - price;
+        discountPercent = Math.round((diff / prevPrice) * 100);
+        if (!isFinite(discountPercent)) discountPercent = null;
+      }
+      return { ...tier, discountPercent, prevPrice };
+    });
+  }, [product?.volumeTierEnabled, product?.volumeTiers]);
 
   // Calculate percentage off
   const percentageOff = useMemo(() => {
@@ -400,12 +487,28 @@ const SingleProduct = () => {
         image.onload = () => handleImageLoad(img);
       });
 
-      // Set initial selected image to the first main image if available
-      if (response?.product?.images?.length) {
+      // Set initial selected image
+      if (
+        response?.product?.volumeTierEnabled &&
+        Array.isArray(response?.product?.volumeTiers) &&
+        response?.product?.volumeTiers.length > 0
+      ) {
+        // Default select first tier
+        setSelectedTierIndex(0);
+        const firstTier = response.product.volumeTiers[0];
+        if (firstTier?.image) {
+          setSelectedImage(
+            getImageUrl(firstTier.image) ||
+              getImageUrl(response.product.images?.[0])
+          );
+        } else if (response?.product?.images?.length) {
+          setSelectedImage(getImageUrl(response.product.images[0]));
+        }
+      } else if (response?.product?.images?.length) {
         setSelectedImage(getImageUrl(response.product.images[0]));
-        // Clear any potential initial variant selections on product load
-        setSelectedVariants({});
       }
+      // Clear any potential initial variant selections on product load
+      setSelectedVariants({});
 
       // setLoading(false); // Removed from here
     } catch (error) {
@@ -433,21 +536,32 @@ const SingleProduct = () => {
   useEffect(() => {
     let imageToSet = getImageUrl(product?.images?.[0]); // Default to first main image
 
-    // Look for an image associated with the *first* selected variant value found across all selected variants
-    // This logic might need refinement depending on desired image behavior with multiple variant selections.
-    outerLoop: for (const [variantName, selectedValues] of Object.entries(
-      selectedVariants
-    )) {
-      if (selectedValues && selectedValues.length > 0) {
-        const variant = product.variants?.find((v) => v.name === variantName);
-        if (variant) {
-          for (const selectedValue of selectedValues) {
-            const variantValue = variant.values?.find(
-              (val) => val.value === selectedValue
-            );
-            if (variantValue?.image) {
-              imageToSet = getImageUrl(variantValue.image);
-              break outerLoop; // Use the first variant image found across any selected value and stop
+    // If a volume tier is selected and it has an image, prioritize it
+    if (
+      product?.volumeTierEnabled &&
+      Array.isArray(product?.volumeTiers) &&
+      selectedTierIndex !== null &&
+      product.volumeTiers[selectedTierIndex]?.image
+    ) {
+      imageToSet = getImageUrl(product.volumeTiers[selectedTierIndex].image);
+    } else {
+      // Otherwise, look for an image from selected variant values
+      // Look for an image associated with the *first* selected variant value found across all selected variants
+      // This logic might need refinement depending on desired image behavior with multiple variant selections.
+      outerLoop: for (const [variantName, selectedValues] of Object.entries(
+        selectedVariants
+      )) {
+        if (selectedValues && selectedValues.length > 0) {
+          const variant = product.variants?.find((v) => v.name === variantName);
+          if (variant) {
+            for (const selectedValue of selectedValues) {
+              const variantValue = variant.values?.find(
+                (val) => val.value === selectedValue
+              );
+              if (variantValue?.image) {
+                imageToSet = getImageUrl(variantValue.image);
+                break outerLoop; // Use the first variant image found across any selected value and stop
+              }
             }
           }
         }
@@ -460,7 +574,14 @@ const SingleProduct = () => {
     } else {
       // console.log("useEffect: selectedImage is already set to:", selectedImage);
     }
-  }, [selectedVariants, product?.images, product?.variants]);
+  }, [
+    selectedVariants,
+    product?.images,
+    product?.variants,
+    product?.volumeTierEnabled,
+    product?.volumeTiers,
+    selectedTierIndex,
+  ]);
 
   useEffect(() => {
     // Only run if product exists and has the required properties
@@ -572,6 +693,17 @@ const SingleProduct = () => {
       }
     }
 
+    // If volume tiers are enabled, ensure a tier is selected
+    if (product?.volumeTierEnabled) {
+      if (
+        selectedTierIndex === null ||
+        !product?.volumeTiers?.[selectedTierIndex]
+      ) {
+        toast.error("Please select a volume offer before adding to cart!");
+        return;
+      }
+    }
+
     let cartItemsToAdd = [];
 
     Object.entries(selectedVariants).forEach(([variantName, values]) => {
@@ -589,6 +721,16 @@ const SingleProduct = () => {
             image = getImageUrl(variantValue.image);
           }
         }
+        // Override with selected tier details if enabled
+        if (
+          product?.volumeTierEnabled &&
+          selectedTierIndex !== null &&
+          product?.volumeTiers?.[selectedTierIndex]
+        ) {
+          const tier = product.volumeTiers[selectedTierIndex];
+          if (typeof tier.price === "number") price = tier.price;
+          if (tier.image) image = getImageUrl(tier.image);
+        }
         // Generate unique cartItemId
         const cartItemId = [product?._id, `${variantName}:${value}`].join("|");
         const cartItem = {
@@ -601,6 +743,10 @@ const SingleProduct = () => {
           selectedVariants: [{ name: variantName, values: [value] }],
           freeShipping: product?.freeShipping,
           deliveryCharges: product?.freeShipping ? 0 : 250,
+          // annotate selected tier for reference
+          ...(product?.volumeTierEnabled && selectedTierIndex !== null
+            ? { selectedTier: product.volumeTiers[selectedTierIndex] }
+            : {}),
         };
         cartItemsToAdd.push(cartItem);
       });
@@ -608,16 +754,35 @@ const SingleProduct = () => {
 
     if (cartItemsToAdd.length === 0) {
       // If no variants selected, add the base product
+      let price = Number(
+        product?.volumeTierEnabled &&
+          selectedTierIndex !== null &&
+          product?.volumeTiers?.[selectedTierIndex]?.price != null
+          ? product.volumeTiers[selectedTierIndex].price
+          : currentPrice ?? product.salePrice ?? product.price
+      );
+      let image = getImageUrl(product?.images?.[0]);
+      if (
+        product?.volumeTierEnabled &&
+        selectedTierIndex !== null &&
+        product?.volumeTiers?.[selectedTierIndex]
+      ) {
+        const tier = product.volumeTiers[selectedTierIndex];
+        if (tier.image) image = getImageUrl(tier.image);
+      }
       cartItemsToAdd.push({
         cartItemId: product?._id,
         productId: product?._id,
         title: product?.title,
-        price: product.salePrice ?? product.price,
-        image: getImageUrl(product?.images?.[0]),
+        price,
+        image,
         count: selectedQuantity,
         selectedVariants: [],
         freeShipping: product?.freeShipping,
         deliveryCharges: product?.freeShipping ? 0 : 250,
+        ...(product?.volumeTierEnabled && selectedTierIndex !== null
+          ? { selectedTier: product.volumeTiers[selectedTierIndex] }
+          : {}),
       });
     }
 
@@ -668,12 +833,37 @@ const SingleProduct = () => {
       }
     }
 
+    // If volume tiers are enabled, ensure a tier is selected
+    if (product?.volumeTierEnabled) {
+      if (
+        selectedTierIndex === null ||
+        !product?.volumeTiers?.[selectedTierIndex]
+      ) {
+        toast.error(
+          "Please select a volume offer before proceeding to checkout!"
+        );
+        return;
+      }
+    }
+
     // Prepare cart items for each selected variant value
+    try {
+      console.log("[BuyNow] State before building items:", {
+        selectedTierIndex,
+        selectedTier: product?.volumeTiers?.[selectedTierIndex] || null,
+        currentPrice,
+        tierPrice: product?.volumeTiers?.[selectedTierIndex]?.price ?? null,
+      });
+    } catch {}
     let cartItemsToAdd = [];
     Object.entries(selectedVariants).forEach(([variantName, values]) => {
       const variant = productVariants.find((v) => v.name === variantName);
       values.forEach((value) => {
-        let price = product.salePrice ?? product.price;
+        // Per-item price logic:
+        // - If a tier is selected, use the tier bundle price
+        // - Else, if this variant value has its own price, use it
+        // - Else, use product base/sale price
+        let price = Number(product.salePrice ?? product.price);
         let image = getImageUrl(product?.images?.[0]);
         let variantValue;
         if (variant) {
@@ -684,6 +874,16 @@ const SingleProduct = () => {
           if (variantValue && variantValue.image) {
             image = getImageUrl(variantValue.image);
           }
+        }
+        // If a tier is selected, it overrides price (and maybe image)
+        if (
+          product?.volumeTierEnabled &&
+          selectedTierIndex !== null &&
+          product?.volumeTiers?.[selectedTierIndex]
+        ) {
+          const tier = product.volumeTiers[selectedTierIndex];
+          if (typeof tier.price === "number") price = tier.price;
+          if (tier.image) image = getImageUrl(tier.image);
         }
         // Generate unique cartItemId
         const cartItemId = [product?._id, `${variantName}:${value}`].join("|");
@@ -697,22 +897,39 @@ const SingleProduct = () => {
           selectedVariants: [{ name: variantName, values: [value] }],
           freeShipping: product?.freeShipping,
           deliveryCharges: product?.freeShipping ? 0 : 250,
+          ...(product?.volumeTierEnabled && selectedTierIndex !== null
+            ? { selectedTier: product.volumeTiers[selectedTierIndex] }
+            : {}),
         };
         cartItemsToAdd.push(cartItem);
       });
     });
     if (cartItemsToAdd.length === 0) {
       // If no variants selected, add the base product
+      let price = product.salePrice ?? product.price;
+      let image = getImageUrl(product?.images?.[0]);
+      if (
+        product?.volumeTierEnabled &&
+        selectedTierIndex !== null &&
+        product?.volumeTiers?.[selectedTierIndex]
+      ) {
+        const tier = product.volumeTiers[selectedTierIndex];
+        if (typeof tier.price === "number") price = tier.price;
+        if (tier.image) image = getImageUrl(tier.image);
+      }
       cartItemsToAdd.push({
         cartItemId: product?._id,
         productId: product?._id,
         title: product?.title,
-        price: product.salePrice ?? product.price,
-        image: getImageUrl(product?.images?.[0]),
+        price,
+        image,
         count: selectedQuantity,
         selectedVariants: [],
         freeShipping: product?.freeShipping,
         deliveryCharges: product?.freeShipping ? 0 : 250,
+        ...(product?.volumeTierEnabled && selectedTierIndex !== null
+          ? { selectedTier: product.volumeTiers[selectedTierIndex] }
+          : {}),
       });
     }
     try {
@@ -720,9 +937,28 @@ const SingleProduct = () => {
         // For logged-in users, send all items in one API call
         const cartPayload = {
           products: cartItemsToAdd,
-          deliveryCharges: cartItemsToAdd.every((i) => i.freeShipping) ? 0 : 250,
+          deliveryCharges: cartItemsToAdd.every((i) => i.freeShipping)
+            ? 0
+            : 250,
         };
+        // Debug: Inspect Buy Now payload
+        try {
+          console.log("[BuyNow] Sending cart payload:", {
+            products: cartPayload.products.map((p) => ({
+              productId: p.productId,
+              title: p.title,
+              price: p.price,
+              count: p.count,
+              image: p.image,
+            })),
+            deliveryCharges: cartPayload.deliveryCharges,
+          });
+        } catch {}
         await addItemToCart(userId, cartPayload);
+        // Debug: after API call
+        try {
+          console.log("[BuyNow] addItemToCart completed");
+        } catch {}
         cartItemsToAdd.forEach((cartItem) => dispatch(addToCart(cartItem)));
         track("AddToCart", {
           content_ids: [product._id],
@@ -753,6 +989,8 @@ const SingleProduct = () => {
     product,
     productVariants,
     selectedQuantity,
+    selectedTierIndex,
+    currentPrice,
     dispatch,
     userId,
     navigateTo,
@@ -788,9 +1026,29 @@ const SingleProduct = () => {
       }
     }
 
+    // If volume tiers are enabled, ensure a tier is selected
+    if (product?.volumeTierEnabled) {
+      if (
+        selectedTierIndex === null ||
+        !product?.volumeTiers?.[selectedTierIndex]
+      ) {
+        toast.error(
+          "Please select a volume offer before ordering via WhatsApp!"
+        );
+        return;
+      }
+    }
+
     const phoneNumber = "923071111832";
     const productLink = window.location.href;
-    const imageLink = getImageUrl(product?.images?.[0]);
+    let imageLink = getImageUrl(product?.images?.[0]);
+    if (
+      product?.volumeTierEnabled &&
+      selectedTierIndex !== null &&
+      product?.volumeTiers?.[selectedTierIndex]?.image
+    ) {
+      imageLink = getImageUrl(product.volumeTiers[selectedTierIndex].image);
+    }
 
     // Format selected variants
     let variantsText = "";
@@ -932,7 +1190,7 @@ const SingleProduct = () => {
                   }}
                 />
               )}
-            </div> 
+            </div>
           </div>
 
           {/* Thumbnail List */}
@@ -994,13 +1252,13 @@ const SingleProduct = () => {
               ))}
             </div>
           </div>
-          </div>
-          {/* Details Column */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+        </div>
+        {/* Details Column */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <motion.h1
             className="text-[20px] md:text-[24px]  font-space mt-2 md:mt-4 font-semibold text-secondary capitalize mb-[2px] w-[320px] md:w-[720px] lg:w-[630px] break-words whitespace-normal"
             variants={itemVariants}
@@ -1217,25 +1475,30 @@ const SingleProduct = () => {
                 now <= end
               ) {
                 return (
-                  <div className="w-full flex justify-center mt-2 mb-2 lg:hidden">
-                    <div className="flex flex-col w-full max-w-[400px] gap-2">
-                      <div className="flex items-center justify-center w-full bg-green-600 border border-primary shadow-sm px-4 py-2 gap-3 rounded">
-                        <span className="px-3 py-1 bg-white text-green-700 font-bold rounded-full text-sm">
-                          Special Offer
-                        </span>
-                        <span className="text-base font-semibold text-white">
-                          {offerCountdown}
-                        </span>
-                      </div>
+                  <motion.div
+                    variants={itemVariants}
+                    className="w-full flex justify-start mt-1 mb-2 lg:hidden"
+                  >
+                    <div className="flex items-center font-space text-base sm:text-lg border w-full max-w-[400px] my-2 border-primary shadow-sm px-4 py-2 gap-3 ">
+                      <span>
+                        <LuAlarmClock
+                          size={22}
+                          className="text-green-700 animate-zoom"
+                        />
+                      </span>
+                      <span className="px-3  y-1 bg-white text-green-700 font-bold rounded-full ">
+                        Special Offer
+                      </span>
+                      <span className="text-sm sm:text-base font-semibold text-green-700">
+                        {offerCountdown}
+                      </span>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               }
             }
             return null;
           })()}
-
-          
 
           {/* Desktop Price Block */}
           <motion.div
@@ -1339,8 +1602,17 @@ const SingleProduct = () => {
                 now <= end
               ) {
                 return (
-                  <motion.div variants={itemVariants} className="w-full flex justify-start mt-1 mb-2 hidden lg:flex">
+                  <motion.div
+                    variants={itemVariants}
+                    className="w-full flex  justify-start mt-1 mb-2 hidden lg:flex"
+                  >
                     <div className="flex items-center font-space text-lg border min-w-[370px] my-4 border-primary shadow-sm px-4 py-2 gap-3">
+                      <span>
+                        <LuAlarmClock
+                          size={26}
+                          className="text-green-700 animate-zoom"
+                        />
+                      </span>
                       <span className="px-3  y-1 bg-white text-green-700 font-bold rounded-full ">
                         Special Offer
                       </span>
@@ -1354,6 +1626,94 @@ const SingleProduct = () => {
             }
             return null;
           })()}
+
+          {/* Volume Price Tiers */}
+          {product?.volumeTierEnabled &&
+            Array.isArray(product?.volumeTiers) &&
+            product.volumeTiers.length > 0 && (
+              <motion.div className="mb-4 max-w-md" variants={itemVariants}>
+                <h3 className="font-semibold capitalize text-md text-secondary font-space mb-2">
+                  Choose Bundle
+                </h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {product.volumeTiers.map((tier, idx) => {
+                    const isSelected = selectedTierIndex === idx;
+                    const meta = tiersWithDiscount[idx] || {};
+                    return (
+                      <button
+                        key={`${tier.quantity}-${tier.price}-${idx}`}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTierIndex(idx);
+                          if (tier?.image)
+                            setSelectedImage(getImageUrl(tier.image));
+                        }}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-md ${
+                          isSelected
+                            ? "border-primary ring-1 ring-primary bg-primary/10"
+                            : "border-gray-200"
+                        }`}
+                      >
+                        {/* Leading check badge */}
+                        {isSelected ? (
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-600 text-white">
+                            <FaCheck className="w-3 h-3" />
+                          </span>
+                        ) : (
+                          <span className="w-6 h-6" />
+                        )}
+                        <img
+                          src={
+                            tier.image
+                              ? getImageUrl(tier.image)
+                              : getImageUrl(product?.images?.[0]) ||
+                                "https://via.placeholder.com/60"
+                          }
+                          alt={`Tier ${tier.quantity}`}
+                          className="w-14 h-14 rounded object-cover"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-secondary">
+                              {tier.quantity} pcs
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {typeof meta.prevPrice === "number" &&
+                                meta.prevPrice > 0 && (
+                                  <span className="text-xs line-through text-gray-400">
+                                    Rs. {meta.prevPrice}
+                                  </span>
+                                )}
+                              <span className="font-bold text-primary">
+                                Rs. {tier.price}
+                              </span>
+                              {typeof meta.discountPercent === "number" &&
+                                meta.discountPercent > 0 && (
+                                  <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold">
+                                    -{meta.discountPercent}%
+                                  </span>
+                                )}
+                            </div>
+                          </div>
+                          {typeof meta.prevPrice === "number" &&
+                            typeof tier.price === "number" &&
+                            meta.prevPrice > tier.price && (
+                              <div className="mt-1 text-xs text-green-700 font-medium">
+                                Save Rs. {meta.prevPrice - tier.price}
+                              </div>
+                            )}
+                          {isSelected && (
+                            <span className="text-xs text-green-700">
+                              Selected
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
 
           {/* Variants */}
           {productVariants && productVariants.length > 0
@@ -1473,25 +1833,25 @@ const SingleProduct = () => {
           <motion.div variants={itemVariants}>
             {/* Desktop Actions */}
             <div className="hidden lg:flex flex-col w-full gap-4 lg:flex-row lg:justify-start">
-              <motion.a
+              <motion.button
+                type="button"
                 onClick={handleByNow}
                 className="w-full px-6 py-2 text-sm font-bold text-center text-white no-underline bg-primary/80 lg:text-base lg:w-auto lg:flex-2 hover:bg-primary"
                 whileHover={{ scale: 1.03, opacity: 0.95 }}
                 whileTap={{ scale: 0.98 }}
-                href="#"
               >
                 Cash on Delivery
-              </motion.a>
-              <motion.a
+              </motion.button>
+              <motion.button
+                type="button"
                 onClick={handleAddToCart}
                 className="flex items-center justify-center w-full gap-1 px-6 py-2 text-sm font-bold text-primary no-underline bg-secondary/80 lg:w-auto lg:text-base hover:bg-secondary"
                 whileHover={{ scale: 1.03, opacity: 0.95 }}
                 whileTap={{ scale: 0.98 }}
-                href="#"
               >
-                <TiShoppingCart className="text-xl" />
+                <TiShoppingCart className="text-xl animate-spin-pause" />
                 Add to Cart
-              </motion.a>
+              </motion.button>
             </div>
             <motion.button
               onClick={handleWhatsAppOrder}
@@ -1502,18 +1862,74 @@ const SingleProduct = () => {
               <FaWhatsapp className="text-2xl" /> Order via WhatsApp
             </motion.button>
             {product?.category?.name && (
-              <motion.p className="mb-1  capitalize" variants={itemVariants}>
-                <strong></strong>{" "}
-                <Link
-                  to={`/category/${product?.category?.slug}`}
-                  className="text-[20px] text-blue-600 ml-2 md:ml-20 md:text-xl font-space font-semibold no-underline hover:underline"
-                >
-                  {product.category.name}
-                </Link>
-              </motion.p>
+              <motion.div
+                className="mb-1 capitalize flex flex-col gap-2"
+                variants={itemVariants}
+              >
+                {/* Category */}
+                <div className="flex items-center">
+                  <span className="text-gray-600 font-poppins  mr-4">
+                    Category:
+                  </span>
+                  <Link
+                    to={`/category/${product?.category?.slug}`}
+                    className="text-[20px] text-blue-600 md:text-xl font-space font-semibold no-underline hover:underline"
+                  >
+                    {product.category.name}
+                  </Link>
+                </div>
+
+                {/* Brand */}
+                <div className="flex items-center">
+                  <span className="text-gray-600 font-poppins mr-4">
+                    Brand:
+                  </span>
+                  <Link
+                    to={`/brand/${product?.brand?.slug}`}
+                    className="text-[20px] text-blue-600 md:text-xl font-space font-semibold no-underline hover:underline"
+                  >
+                    {product.brand?.name}
+                  </Link>
+                </div>
+              </motion.div>
             )}
           </motion.div>
         </motion.div>
+      </div>
+
+      {/* Sentinel to trigger mobile tab visibility once reached (after main image section) */}
+      <div ref={afterImageSentinelRef} className="h-1 w-full" />
+
+      {/* Right Edge Tabs (Desktop always visible, Mobile when sentinel visible) */}
+      <RightEdgeTab
+        onClick={() => setReviewsOpen(true)}
+        label="Reviews"
+        positionClass="top-1/2"
+        translateClass="-translate-y-1/2"
+        mobileVisible={mobileTabsVisible}
+      />
+      <RightEdgeTab
+        onClick={() => setSpecsOpen(true)}
+        label="Specifications"
+        positionClass="top-[calc(50%+60px)]"
+        translateClass=""
+        mobileVisible={mobileTabsVisible}
+      />
+
+      {/* Product Long Description - placed after product details and before related products */}
+      <div className="px-2 md:px-6 max-w-6xl mx-auto mt-6">
+        <h2 className="text-lg md:text-xl text-secondary underline underline-offset-8 font-bold font-space decoration-primary decoration-2  mb-3">
+          Description
+        </h2>
+        <div
+          className="product-description prose max-w-none font-space text-gray-700"
+          dangerouslySetInnerHTML={{
+            __html:
+              product?.longDescription ||
+              product?.description ||
+              "<p>No description available.</p>",
+          }}
+        />
       </div>
 
       {/* Cart Drawer */}
@@ -1522,14 +1938,39 @@ const SingleProduct = () => {
           isDrawerOpen={isDrawerOpen}
           setIsDrawerOpen={setIsDrawerOpen}
         />
-        <LazyReviewForm slug={slug} product={product} />
-        <hr />
         <LazyRelatedProducts
           relatedProducts={relatedProducts}
           currentPage={currentPage}
           totalPages={totalPages}
         />
       </Suspense>
+
+      {/* Mobile buttons removed in favor of mobile-visible edge tabs */}
+
+      {/* Reviews Drawer and Write Review Modal */}
+      <ReviewsDrawer
+        open={reviewsOpen}
+        onClose={() => setReviewsOpen(false)}
+        slug={slug}
+        product={product}
+        onWriteReview={() => setWriteReviewOpen(true)}
+      />
+      <WriteReviewModal
+        open={writeReviewOpen}
+        onClose={() => setWriteReviewOpen(false)}
+        onSubmitted={() => {
+          setWriteReviewOpen(false);
+          setReviewsOpen(false);
+        }}
+        slug={slug}
+        product={product}
+      />
+      <SpecificationsDrawer
+        open={specsOpen}
+        onClose={() => setSpecsOpen(false)}
+        title="Specifications"
+        html={product?.description || "<p>No specifications available.</p>"}
+      />
 
       {/* Image Preview Overlay */}
       <AnimatePresence>
@@ -1567,25 +2008,25 @@ const SingleProduct = () => {
       <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white border-t border-gray-200 shadow-lg lg:hidden">
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
-            <motion.a
+            <motion.button
+              type="button"
               onClick={handleByNow}
               className="flex-1 px-4 py-3 text-sm font-bold text-center text-white no-underline bg-primary md:bg-primary/90 hover:bg-primary "
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              href="#"
             >
               Cash On Delivery
-            </motion.a>
-            <motion.a
+            </motion.button>
+            <motion.button
+              type="button"
               onClick={handleAddToCart}
               className="flex items-center justify-center flex-1 gap-1 px-4 py-3 text-sm font-bold text-primary no-underline bg-secondary md:bg-secondary/90 hover:bg-secondary "
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              href="#"
             >
               <TiShoppingCart className="text-lg" />
               Add to Cart
-            </motion.a>
+            </motion.button>
           </div>
           <motion.button
             onClick={handleWhatsAppOrder}

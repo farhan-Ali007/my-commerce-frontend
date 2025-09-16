@@ -103,7 +103,7 @@ const NewOrders = () => {
         </div>
 
         {/* Orders Table Container */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -139,6 +139,8 @@ const NewOrders = () => {
                             ? "bg-blue-100 text-blue-700"
                             : order?.source === "mobile"
                             ? "bg-green-100 text-green-700"
+                            : order?.source === "manual"
+                            ? "bg-purple-100 text-purple-700"
                             : "bg-gray-100 text-gray-700"
                         }`}
                         title={order?.source || "unknown"}
@@ -196,17 +198,8 @@ const NewOrders = () => {
               </div>
               {/* Desktop: Table */}
               <div className="hidden md:block">
-                <table className="w-full table-fixed border-collapse bg-white">
-                  <colgroup>
-                    <col style={{ width: "7rem" }} />
-                    <col style={{ width: "10rem" }} />
-                    <col style={{ width: "6rem" }} />
-                    <col style={{ width: "7.5rem" }} />
-                    <col style={{ width: "12rem" }} />
-                    <col style={{ width: "6rem" }} />
-                    <col style={{ width: "6rem" }} />
-                    <col style={{ width: "2.5rem" }} />
-                  </colgroup>
+                <div className="overflow-x-auto relative">
+                <table className="w-full table-auto border-collapse bg-white min-w-[960px]">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr className="border-b border-gray-200">
                       <th className="px-2 py-1 w-28 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
@@ -227,13 +220,13 @@ const NewOrders = () => {
                           <span>Status</span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200 max-w-[224px]">
+                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200 max-w-[160px]">
                         <div className="flex items-center gap-2">
                           <FcViewDetails size={20} />
                           <span>Products</span>
                         </div>
                       </th>
-                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-3 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200 hidden lg:table-cell">
                         <div className="flex items-center gap-2">
                           <FaMoneyBillTrendUp size={20} className="text-gray-500" />
                           <span>Delivery</span>
@@ -245,7 +238,7 @@ const NewOrders = () => {
                           <span>Total</span>
                         </div>
                       </th>
-                      <th className="px-1 py-3 w-12 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      <th className="px-1 py-3 w-12 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider sticky right-0 bg-white z-20">
                         <span
                           className="inline-flex items-center justify-center w-full"
                           title="View"
@@ -278,6 +271,8 @@ const NewOrders = () => {
                                 ? "bg-blue-100 text-blue-700"
                                 : order?.source === "mobile"
                                 ? "bg-green-100 text-green-700"
+                                : order?.source === "manual"
+                                ? "bg-purple-100 text-purple-700"
                                 : "bg-gray-100 text-gray-700"
                             }`}
                             title={order?.source || "unknown"}
@@ -298,7 +293,7 @@ const NewOrders = () => {
                             ))}
                           </select>
                         </td>
-                        <td className="px-3 py-3 border-r border-gray-200 max-w-[192px]">
+                        <td className="px-3 py-3 border-r border-gray-200 max-w-[160px]">
                           <div className="text-sm text-gray-800 truncate">
                             <span className="font-semibold text-xs">{order.cartSummary?.length || 0} item(s)</span>
                             {order.cartSummary && order.cartSummary.length > 0 && (
@@ -309,13 +304,13 @@ const NewOrders = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200">
+                        <td className="px-3 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200 hidden lg:table-cell">
                           Rs.{order?.deliveryCharges}
                         </td>
                         <td className="px-3 py-3 text-sm font-bold text-green-600 border-r border-gray-200">
                           Rs.{order?.totalPrice}
                         </td>
-                        <td className="px-1 py-3 text-center">
+                        <td className="px-1 py-3 text-center sticky right-0 bg-white z-20">
                           <button
                             className="inline-flex items-center justify-center  p-2 "
                             title="View details"
@@ -332,6 +327,7 @@ const NewOrders = () => {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           )}

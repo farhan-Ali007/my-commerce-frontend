@@ -13,32 +13,22 @@ export function replaceBulletsWithCheck(html) {
       h2.style.fontSize = "20px"; // Or any size you prefer
     });
 
-  // Helper to process only top-level <li> in a list
-  function processList(list, isNested = false) {
-    for (const li of list.children) {
-      if (li.tagName === "LI") {
-        if (!isNested) {
-          // Only add icon if not already present
-          if (!li.innerHTML.trim().startsWith(customIcon)) {
-            li.innerHTML = customIcon + li.innerHTML;
-          }
-        }
-        // Recursively process nested lists inside this <li>
-        for (const child of li.children) {
-          if (child.tagName === "UL" || child.tagName === "OL") {
-            processList(child, true);
-          }
-        }
-      }
-    }
-  }
+  // Remove default bullets/numbers for ALL lists so only checks show
+  const allLists = root.querySelectorAll("ul, ol");
+  allLists.forEach((list) => {
+    list.style.listStyleType = "none";
+    list.style.paddingLeft = "0"; // counteract default indent from prose
+    list.style.marginLeft = "0";
+  });
 
-  // Find all top-level <ul> or <ol> and process their <li>
-  for (const list of root.children) {
-    if (list.tagName === "UL" || list.tagName === "OL") {
-      processList(list, false);
+  // Prepend check icon to EVERY list item
+  const allLis = root.querySelectorAll("li");
+  allLis.forEach((li) => {
+    const trimmed = li.innerHTML.trim();
+    if (!trimmed.startsWith(customIcon)) {
+      li.innerHTML = customIcon + li.innerHTML;
     }
-  }
+  });
 
   return root.innerHTML;
 }

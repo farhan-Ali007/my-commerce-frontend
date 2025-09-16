@@ -26,6 +26,14 @@ const FeaturedProducts = React.memo(() => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const sliderRef = useRef(null);
+  const containerRef = useRef(null);
+
+  // Motion gating: skip animations on touch devices or when user prefers reduced motion
+  const allowMotion = useMemo(() => {
+    const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isCoarse = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    return !(prefersReduced || isCoarse);
+  }, []);
 
   const productsPerPage = 8;
 
@@ -43,6 +51,39 @@ const FeaturedProducts = React.memo(() => {
     }),
     []
   );
+
+  // Pause autoplay when offscreen to reduce work; resume when visible
+  useEffect(() => {
+    if (!('IntersectionObserver' in window)) return;
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      const api = sliderRef.current;
+      if (!api || typeof api.slickPause !== 'function') return;
+      if (entry.isIntersecting && entry.intersectionRatio > 0) {
+        api.slickPlay && api.slickPlay();
+      } else {
+        api.slickPause();
+      }
+    }, { threshold: 0.1 });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Also pause when tab is hidden
+  useEffect(() => {
+    const onVis = () => {
+      const api = sliderRef.current;
+      if (!api || typeof api.slickPause !== 'function') return;
+      if (document.hidden) api.slickPause();
+      else api.slickPlay && api.slickPlay();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
 
   const fetchProducts = useCallback(
     async (page) => {
@@ -106,8 +147,9 @@ const FeaturedProducts = React.memo(() => {
       dots: false,
       infinite: false,
       speed: 500,
-      autoplay: true,
+      autoplay: allowMotion,
       autoplaySpeed: 4000,
+      lazyLoad: 'ondemand',
       slidesToShow: 5,
       slidesToScroll: 2,
       prevArrow: <CustomPrevArrow />,
@@ -233,14 +275,18 @@ const FeaturedProducts = React.memo(() => {
   }
 
   return (
-    <div className="w-full px-1 mt-4 overflow-hidden md:px-4 lg:px-4">
+    <div
+      className="w-full px-1 mt-4 overflow-hidden md:px-4 lg:px-4"
+      ref={containerRef}
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '560px 420px' }}
+    >
       {/* Heading with lines */}
       <motion.div
         className="flex items-center justify-center w-full px-5 mb-4 md:mb-7"
         variants={headingVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.5 }}
+        initial={allowMotion ? 'hidden' : false}
+        whileInView={allowMotion ? 'visible' : undefined}
+        viewport={allowMotion ? { once: true, amount: 0.5 } : undefined}
       >
         <div className="flex-grow h-[0.5px] mr-4 bg-primary"></div>
         <h2 className="text-2xl font-extrabold text-center text-secondary font-space md:text-4xl whitespace-nowrap">
@@ -255,7 +301,7 @@ const FeaturedProducts = React.memo(() => {
         <div className="relative overflow-x-auto scrollbar-hide">
           <Slider {...settings} ref={sliderRef} className="flex">
             {products.map((product) => (
-              <div key={product._id} className="px-2 py-2 md:px-3">
+              <div key={product._id} className="px-1 py-2 md:px-3">
                 <ProductCard product={product} />
               </div>
             ))}

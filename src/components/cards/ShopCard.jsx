@@ -9,6 +9,7 @@ import { addToCart } from "../../store/cartSlice";
 import { addItemToCart } from "../../functions/cart";
 import { AiOutlineLoading } from "react-icons/ai";
 import useFacebookPixel from "../../hooks/useFacebookPixel";
+import useFacebookPixel from "../../hooks/useFacebookPixel";
 
 const ShopCard = ({ product }) => {
   const dispatch = useDispatch();
@@ -37,6 +38,10 @@ const ShopCard = ({ product }) => {
     if (typeof img === "string") return img;
     if (typeof img === "object") return img.url || "";
     return "";
+    if (!img) return "";
+    if (typeof img === "string") return img;
+    if (typeof img === "object") return img.url || "";
+    return "";
   };
 
   const renderStars = (rating) => {
@@ -61,6 +66,7 @@ const ShopCard = ({ product }) => {
 
     if (fractionalPart >= 0.5) {
       stars.push(
+        <div key="half-star" className="relative w-3 md:w-4 h-3 md:h-4">
         <div key="half-star" className="relative w-3 md:w-4 h-3 md:h-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -112,13 +118,30 @@ const ShopCard = ({ product }) => {
       navigateTo(`/product/${product?.slug}`);
       return;
     }
+    // If volume tiers exist, default to the first tier
+    const firstTier =
+      product?.volumeTierEnabled &&
+      Array.isArray(product?.volumeTiers) &&
+      product.volumeTiers.length > 0
+        ? product.volumeTiers[0]
+        : null;
+    const priceToUse =
+      typeof firstTier?.price === "number"
+        ? firstTier.price
+        : salePrice
+        ? salePrice
+        : price;
+    const imageToUse = firstTier?.image
+      ? getImageUrl(firstTier.image)
+      : getImageUrl(product?.images && product.images[0]);
+
     const cartItem = {
       cartItemId: id,
       productId: id,
-      price: salePrice ? salePrice : price,
+      price: priceToUse,
       count: 1,
       title: product.title,
-      image: getImageUrl(product?.images && product.images[0]),
+      image: imageToUse,
       freeShipping: product.freeShipping,
       deliveryCharges: product.freeShipping ? 0 : 250,
     };
@@ -139,9 +162,11 @@ const ShopCard = ({ product }) => {
       toast.success("Item added to cart.");
       // Meta Pixel AddToCart event
       track("AddToCart", {
+      track("AddToCart", {
         content_ids: [product._id],
         content_name: product.title,
         value: product.salePrice ? product.salePrice : product.price,
+        currency: "PKR",
         currency: "PKR",
       });
     } catch (error) {
@@ -159,18 +184,36 @@ const ShopCard = ({ product }) => {
       return;
     }
     const variantsForBackend = [];
+    // If volume tiers exist, default to the first tier
+    const firstTier =
+      product?.volumeTierEnabled &&
+      Array.isArray(product?.volumeTiers) &&
+      product.volumeTiers.length > 0
+        ? product.volumeTiers[0]
+        : null;
+    const priceToUse =
+      typeof firstTier?.price === "number"
+        ? firstTier.price
+        : product.salePrice
+        ? product.salePrice
+        : product.price;
+    const imageToUse = firstTier?.image
+      ? getImageUrl(firstTier.image)
+      : getImageUrl(product?.images && product.images[0]);
+
     const cartItem = {
       cartItemId: product._id,
       productId: product._id,
       title: product.title,
-      price: product.salePrice ? product.salePrice : product.price,
-      image: getImageUrl(product?.images && product.images[0]),
+      price: priceToUse,
+      image: imageToUse,
       count: 1,
       selectedVariants: variantsForBackend,
       freeShipping: product.freeShipping,
       deliveryCharges: product.deliveryCharges,
     };
 
+    // console.log("Cart Items in shop card ------->", cartItem);
     // console.log("Cart Items in shop card ------->", cartItem);
     try {
       setLoading(true);
@@ -196,11 +239,39 @@ const ShopCard = ({ product }) => {
       const existingItems = Array.isArray(currentCartItems)
         ? currentCartItems
         : [];
+      const computeKey = (item) =>
+        item.cartItemId ||
+        `${item.productId}${
+          Array.isArray(item.selectedVariants) &&
+          item.selectedVariants.length > 0
+            ? "|" +
+              item.selectedVariants
+                .map(
+                  (v) =>
+                    `${v.name}:${
+                      Array.isArray(v.values)
+                        ? v.values.join(",")
+                        : v.values || ""
+                    }`
+                )
+                .join("|")
+            : ""
+        }`;
+      const existingItems = Array.isArray(currentCartItems)
+        ? currentCartItems
+        : [];
       const combined = [...existingItems];
       const idx = combined.findIndex(
         (i) => computeKey(i) === computeKey(cartItem)
       );
+      const idx = combined.findIndex(
+        (i) => computeKey(i) === computeKey(cartItem)
+      );
       if (idx >= 0) {
+        combined[idx] = {
+          ...combined[idx],
+          count: combined[idx].count + cartItem.count,
+        };
         combined[idx] = {
           ...combined[idx],
           count: combined[idx].count + cartItem.count,
@@ -214,15 +285,18 @@ const ShopCard = ({ product }) => {
         const cartPayload = {
           products: combined,
           deliveryCharges: combined.every((i) => i.freeShipping) ? 0 : 250,
+          deliveryCharges: combined.every((i) => i.freeShipping) ? 0 : 250,
         };
         await addItemToCart(userId, cartPayload);
       }
       setLoading(false);
       // Meta Pixel InitiateCheckout event
       track("InitiateCheckout", {
+      track("InitiateCheckout", {
         content_ids: [product._id],
         content_name: product.title,
         value: product.salePrice ? product.salePrice : product.price,
+        currency: "PKR",
         currency: "PKR",
       });
       navigateTo("/cart/checkout");
@@ -235,7 +309,7 @@ const ShopCard = ({ product }) => {
 
   return (
     <motion.div
-      className="max-w-sm bg-white h-[320px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg hover:border-b-2 border-primary transition-shadow duration-300 flex flex-col items-stretch relative"
+      className="group max-w-sm bg-white h-[320px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col items-stretch relative"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -250,9 +324,13 @@ const ShopCard = ({ product }) => {
       >
         <div className="relative w-full h-full">
           <motion.img
-            className="absolute top-0 left-0 object-cover w-full h-full"
+            className="absolute top-0 left-0 object-contain w-full h-full"
             src={
               imgLoaded
+                ? isHovered && images[1]
+                  ? getImageUrl(images[1])
+                  : getImageUrl(images[0])
+                : "/loadingCard.png"
                 ? isHovered && images[1]
                   ? getImageUrl(images[1])
                   : getImageUrl(images[0])
@@ -349,7 +427,7 @@ const ShopCard = ({ product }) => {
             )}
           </div>
         </div>
-        <div className="flex items-center justify-between gap-x-2 flex-nowrap">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <p className="flex flex-col text-sm font-semibold text-primary/90">
             {salePrice ? (
               <span className="text-sm text-gray-400 line-through">
@@ -358,7 +436,7 @@ const ShopCard = ({ product }) => {
             ) : (
               <span>Rs. {price}</span>
             )}{" "}
-            Rs.{salePrice}
+            Rs.{salePrice ?? price}
           </p>
           {salePrice && price && (
             <span className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs font-semibold">
@@ -376,6 +454,8 @@ const ShopCard = ({ product }) => {
           )}
         </div>
       </div>
+      {/* Gradient underline on hover */}
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </motion.div>
   );
 };

@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import { getPageBySlug } from '../functions/pages';
 import getDynamicPageSchema from '../helpers/getDynamicPageSchema';
+import NotFound from './NotFound';
 
 const DynamicPage = () => {
   const { slug } = useParams();
@@ -23,12 +24,17 @@ const DynamicPage = () => {
         setLoading(false);
       }
     };
+    // Flag dynamic page active (used by Navbar to hide CategoryBar)
+    document.documentElement.setAttribute('data-dynamic-page', 'true');
     fetchPage();
+    return () => {
+      document.documentElement.removeAttribute('data-dynamic-page');
+    };
   }, [slug]);
 
   if (loading) return <div className="py-10 text-center">Loading...</div>;
-  if (error) return <div className="py-10 text-center text-red-600">{error}</div>;
-  if (!page) return null;
+  if (error) return <NotFound />;
+  if (!page) return <NotFound />;
 
   // Generate schema
   const schema = getDynamicPageSchema({

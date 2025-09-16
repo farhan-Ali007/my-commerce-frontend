@@ -54,6 +54,53 @@ a {
   padding-left: 0;
 }
 
+/* Product description heading styles */
+.product-description h1 {
+  font-size: 1.75rem; /* ~28px */
+  line-height: 2.25rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.product-description h2 {
+  font-size: 1.5rem; /* ~24px */
+  line-height: 2rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.product-description h3 {
+  font-size: 1.25rem; /* ~20px */
+  line-height: 1.75rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Emphasis text inside product descriptions */
+.product-description strong,
+.product-description b {
+  font-weight: 700;
+  line-height: normal;
+  color: inherit; /* keep theme color */
+  font-size: 1.2rem;
+}
+
+.product-description em,
+.product-description i {
+  font-style: italic;
+  font-weight: 500;
+  color: inherit;
+}
+
+@media (min-width: 768px) {
+  .product-description h1 { font-size: 2rem; line-height: 2.5rem; }
+  .product-description h2 { font-size: 1.75rem; line-height: 2.25rem; }
+  .product-description h3 { font-size: 1.5rem; line-height: 2rem; }
+}
+
 @media (max-width: 768px) {
   .banner-link {
     max-width: 90%;
@@ -110,4 +157,28 @@ body {
 .range-slider__thumb {
   background: #F0AD26 !important;
   border: 2px solid #F0AD26 !important;
+}
+
+/* Utility: force visible draggable scrollbar for specific elements */
+.scrollbar-default {
+  /* IE and Edge */
+  -ms-overflow-style: auto;
+  /* Firefox */
+  scrollbar-width: thin;
+}
+.scrollbar-default::-webkit-scrollbar {
+  display: block; /* override global hide */
+  width: 8px;
+  height: 8px;
+}
+.scrollbar-default::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-default::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.4);
+  border-radius: 8px;
+  border: 2px solid transparent;
+}
+.scrollbar-default:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.6);
 }

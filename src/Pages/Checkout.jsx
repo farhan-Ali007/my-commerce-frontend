@@ -45,15 +45,17 @@ const Checkout = () => {
 
     if (isLoggedIn) {
       // For logged-in users: flatten product structure
+      // IMPORTANT: Prefer cart item's overridden price/image (e.g., tier price) over product defaults
       return {
         ...data,
         products: data.products.map((item) => ({
           ...item,
           title: item.product?.title || item.title,
           image:
-            getImageUrl((item.product?.images && item.product.images[0])) ||
-            getImageUrl(item.image),
-          price: item.product?.salePrice || item.price,
+            getImageUrl(item.image) ||
+            getImageUrl(item.product?.images && item.product.images[0]),
+          price:
+            (item.price != null ? item.price : (item.product?.salePrice ?? item.product?.price ?? 0)),
           productId: item.product?._id || item.productId,
         })),
         deliveryCharges: data.deliveryCharges || 0,
@@ -89,6 +91,19 @@ const Checkout = () => {
           cartData = normalizeCartData(cartState, false);
         }
 
+        // Debug: Inspect normalized cart data
+        try {
+          console.log("[Checkout] Normalized cart data:", {
+            products: cartData?.products?.map(p => ({
+              productId: p.productId,
+              title: p.title,
+              price: p.price,
+              count: p.count,
+              image: p.image,
+            })),
+            deliveryCharges: cartData?.deliveryCharges,
+          });
+        } catch {}
         setCartItems(cartData);
       } catch (error) {
         if (error.response && error.response.status === 404) {
@@ -191,9 +206,27 @@ const Checkout = () => {
         mobile: "",
         additionalInstructions: "",
       });
-      toast.success(response?.data?.message || "Order placed successfully!");
-      navigateTo("/order-history", {
-        state: { orderId: response?.order?._id },
+      toast.success(response?.message || "Your order has been placed successfully!" , {
+        duration: 10000,
+      });
+      try { sessionStorage.setItem('fromCheckout', '1'); } catch {}
+      try { localStorage.setItem('fromCheckout', '1'); } catch {}
+      try { localStorage.setItem('lastOrderTs', String(Date.now())); } catch {}
+      // Persist guestId for guest order history in case cookies are blocked
+      try {
+        // Prefer top-level guestId, then order.guestId as fallback
+        const gid = response?.guestId || response?.order?.guestId || null;
+
+        if (gid) {
+          localStorage.setItem('guestId', gid);
+        } else {
+          // console.warn('[Checkout] guestId missing in API response; cannot persist');
+        }
+      } catch {}
+      const oid = response?.order?._id;
+      const dest = oid ? `/order-history?from=checkout&orderId=${encodeURIComponent(oid)}` : "/order-history?from=checkout";
+      navigateTo(dest, {
+        state: { orderId: response?.data?.order?._id, fromCheckout: true },
       });
     } catch (error) {
       console.error("Order placement error:", error);

@@ -53,14 +53,14 @@ const ShowcaseCategories = ({
         {/* Left: Category Name and Static Image */}
         <div className="w-full md:w-1/4 flex flex-row md:flex-col items-center md:items-center justify-center md:justify-center mb-2 md:mb-0 h-full gap-4 md:gap-0 px-2 md:px-0">
           <Link className="no-underline flex-1 md:flex-none max-w-[50%] md:max-w-none" to={`/category/${categorySlug}`}> 
-            <h2 className="text-lg md:text-2xl font-bold text-secondary font-space mb-0 md:mb-4 text-center md:text-left block truncate">
+            <h2 className="text-lg md:text-2xl font-bold text-secondary font-space mb-0 md:mb-4 text-center md:text-left md:ml-4 block truncate">
               {categoryName}
             </h2>
           </Link>
           <img
             src={categoryImage}
             alt={categoryName}
-            className="block w-16 h-16 md:w-full md:max-w-[300px] md:h-[380px] object-cover bg-gray-100 self-center rounded shadow-none hover:shadow-md flex-shrink-0"
+            className="block w-16 h-16 md:w-auto md:max-w-[300px] md:h-auto md:max-h-[380px] lg:w-[300px] lg:h-[380px] md:object-contain lg:object-cover md:bg-transparent lg:bg-gray-100 self-center md:ml-2 rounded shadow-none hover:shadow-md flex-shrink-0"
             loading="lazy"
             decoding="async"
             width={300}

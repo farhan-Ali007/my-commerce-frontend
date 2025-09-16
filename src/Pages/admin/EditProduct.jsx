@@ -89,7 +89,8 @@ const EditProduct = () => {
       const response = await updateProduct(slug, data);
       setLoading(false);
       toast.success(response?.message || "Product created successfully");
-      navigateTo('/admin-dashboard')
+      try { localStorage.setItem('selectedPage', 'allProducts'); } catch {}
+      navigateTo('/admin-dashboard?tab=allProducts')
     } catch (error) {
       setLoading(false);
       console.log("Error in updating product", error);

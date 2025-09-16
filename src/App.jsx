@@ -5,12 +5,12 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import DynamicPage from './Pages/DynamicPage';
 import NotFound from "./Pages/NotFound";
 import AdminRoute from "./components/AdminRoute";
-import Footer from "./components/Footer";
 import MetaPixelTracker from './components/MetaPixelTracker';
 import Navbar from "./components/Navbar";
 import Popup from "./components/Popup";
 import { getUserAPI } from "./functions/auth";
 import { setUser } from "./store/authSlice";
+import { recordVisit } from "./functions/traffic";
 
 
 
@@ -27,12 +27,15 @@ const Shop = lazy(() => import("./Pages/Shop"));
 const Search = lazy(() => import("./Pages/Search"));
 const History = lazy(() => import("./Pages/user/History"));
 const AdminDashboard = lazy(() => import("./Pages/admin/AdminDashboard"));
+const AdminSections = lazy(() => import("./Pages/admin/AdminSections"));
 const CreateProduct = lazy(() => import("./Pages/admin/CreateProduct"));
 const EditProduct = lazy(() => import("./Pages/admin/EditProduct"));
 const AdminUsers = lazy(() => import("./Pages/admin/AdminUsers"));
 const AdminColorSettings = lazy(() => import("./Pages/admin/AdminColorSettings"));
 const OrderDetails = lazy(() => import("./Pages/admin/OrderDetails"));
 const NewOrders = lazy(() => import("./Pages/admin/NewOrders"));
+const Footer = lazy(() => import("./components/Footer"));
+const ManualOrder = lazy(() => import('./Pages/admin/ManualOrder'));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -60,7 +63,20 @@ const App = () => {
     fetchUser();
   }, [dispatch, navigateTo]);
 
+  // Notify index.html splash to hide when app is ready
+  useEffect(() => {
+    if (!loading) {
+      window.dispatchEvent(new Event('app-ready'));
+    }
+  }, [loading]);
 
+
+
+  // Record visit on route changes (immediate)
+  useEffect(() => {
+    const path = location.pathname + (location.search || "");
+    recordVisit({ path });
+  }, [location.pathname, location.search]);
 
   if (loading) {
     return (
@@ -123,11 +139,13 @@ const App = () => {
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
               <Route path="/admin/orders" element={<AdminDashboard />} />
               <Route path="/admin/new-orders" element={<AdminDashboard />} />
+              <Route path="/admin/sections" element={<AdminSections />} />
               <Route path="/add-product" element={<CreateProduct />} />
               <Route path="/edit-product/:slug" element={<EditProduct />} />
               <Route path="/admin-users" element={<AdminUsers />} />
               <Route path="/admin-color-settings" element={<AdminColorSettings />} />
               <Route path="/admin/orders/:orderId" element={<OrderDetails />} />
+              <Route path="/admin/manual-order" element={<AdminDashboard />} />
             </Route>
 
             {/* Direct access to color settings for admins */}
@@ -139,7 +157,9 @@ const App = () => {
         </Suspense>
         <Toaster position="top-center" />
       </div>
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </>
   );
 };

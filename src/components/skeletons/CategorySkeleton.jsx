@@ -1,12 +1,10 @@
 const CategorySkeleton = () => (
-    <div className="relative group cursor-pointer overflow-hidden">
-        {/* Placeholder for Category Image */}
-        <div className="w-full h-36 bg-gray-300 animate-pulse"></div>
-        {/* Placeholder for Category Name */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <span className="text-gray-300 text-xl font-bold animate-pulse">Loading...</span>
-        </div>
-    </div>
+  <div className="flex flex-col items-center overflow-visible">
+    {/* Image placeholder with exact same sizing as real category tile */}
+    <div className="relative w-20 h-20 overflow-hidden rounded-lg shadow-sm md:h-24 md:w-24 lg:h-36 lg:w-36 bg-gray-200 animate-pulse" />
+    {/* Text placeholder under image */}
+    <div className="mt-2 h-3.5 w-16 md:w-20 lg:w-24 bg-gray-200 rounded animate-pulse" />
+  </div>
 );
 
 export default CategorySkeleton;

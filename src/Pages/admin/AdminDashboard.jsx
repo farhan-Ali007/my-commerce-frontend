@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import { BiSolidCategory } from "react-icons/bi";
 import {
   FaBoxOpen,
   FaCrown,
   FaFileAlt,
+  FaPuzzlePiece,
   FaRegImage,
   FaShoppingCart,
   FaTags,
@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 import { GiVerticalBanner } from "react-icons/gi";
 import { IoNotifications } from "react-icons/io5";
+import { LuChartColumnDecreasing } from "react-icons/lu";
 import {
   MdCampaign,
   MdColorLens,
@@ -19,8 +20,9 @@ import {
   MdOutlineSpaceBar,
   MdSettings,
 } from "react-icons/md";
-import { RiMenuUnfoldFill } from "react-icons/ri";
-import { SiSimpleanalytics } from "react-icons/si";
+import { RiMenuFoldFill, RiMenuUnfoldFill } from "react-icons/ri";
+import { SlNote } from "react-icons/sl";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getRecentOrders } from "../../functions/order";
 import AdminBanner from "./AdminBanner";
 import AdminBrands from "./AdminBrands";
@@ -36,14 +38,25 @@ import AllOrders from "./AllOrders";
 import AllProducts from "./AllProducts";
 import AllUsers from "./AllUsers";
 import Dashboard from "./Dashboard";
+import ManualOrder from "./ManualOrder";
 import MenuCategories from "./MenuCategories";
 import NewOrders from "./NewOrders";
 import AdminTopbarText from "./TopBar";
 
 const AdminDashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [selectedPage, setSelectedPage] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Large screens: collapse/expand sidebar
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      const stored = localStorage.getItem("adminSidebarCollapsed");
+      return stored ? stored === "true" : true; // default collapsed
+    } catch {
+      return true; // default collapsed if storage fails
+    }
+  });
   const [newOrdersCount, setNewOrdersCount] = useState(1);
   // Mobile/tablet collapsible sections
   const [openSection, setOpenSection] = useState(null);
@@ -51,12 +64,32 @@ const AdminDashboard = () => {
     setOpenSection((prev) => (prev === name ? null : name));
 
   useEffect(() => {
-    const savedPage = localStorage.getItem("selectedPage");
-    if (savedPage) {
-      setSelectedPage(savedPage);
+    // Priority: navigation state > URL query > localStorage
+    const stateTab = location?.state?.tab;
+    if (stateTab) {
+      setSelectedPage(stateTab);
+      try { localStorage.setItem('selectedPage', stateTab); } catch {}
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const params = new URLSearchParams(location.search);
+    const queryTab = params.get('tab');
+    if (queryTab) {
+      setSelectedPage(queryTab);
+      try { localStorage.setItem('selectedPage', queryTab); } catch {}
+    } else {
+      const savedPage = localStorage.getItem("selectedPage");
+      if (savedPage) setSelectedPage(savedPage);
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("adminSidebarCollapsed", String(isSidebarCollapsed));
+    } catch {}
+  }, [isSidebarCollapsed]);
 
   useEffect(() => {
     localStorage.setItem("selectedPage", selectedPage);
@@ -79,6 +112,8 @@ const AdminDashboard = () => {
       setSelectedPage("allOrders");
     } else if (location?.pathname === "/admin/new-orders") {
       setSelectedPage("newOrders");
+    } else if (location?.pathname === "/admin/manual-order") {
+      setSelectedPage("manualOrder");
     }
   }, [location?.pathname]);
 
@@ -156,6 +191,12 @@ const AdminDashboard = () => {
             <NewOrders />
           </div>
         );
+      case "manualOrder":
+        return (
+          <div>
+            <ManualOrder />
+          </div>
+        );
       case "dynamicPages":
         return (
           <div>
@@ -203,19 +244,35 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <div
-        className={`w-full lg:w-1/5 bg-gray-800 z-[100] h-auto lg:h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${
+        className={`w-full ${
+          isSidebarCollapsed ? "lg:w-16" : "lg:w-64"
+        } bg-gray-800 z-[100] h-auto lg:h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:transform-none transition-transform duration-200 ease-in-out`}
       >
         <div className="flex items-center justify-between p-4">
-          <h2 className="text-2xl font-bold">Admin Panel</h2>
-          <button
-            onClick={() => setSelectedPage("colorSettings")}
-            className="lg:hidden p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
-            title="Color Settings"
-          >
-            <MdColorLens className="text-lg" />
-          </button>
+          <h2 className={`text-2xl font-bold ${isSidebarCollapsed ? "lg:hidden" : ""}`}>Admin Panel</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedPage("colorSettings")}
+              className="lg:hidden p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
+              title="Color Settings"
+            >
+              <MdColorLens className="text-lg" />
+            </button>
+            {/* Collapse toggle (large screens) */}
+            <button
+              onClick={() => setIsSidebarCollapsed((v) => !v)}
+              className="hidden lg:flex p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
+              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {isSidebarCollapsed ? (
+                <RiMenuUnfoldFill className="text-lg" />
+              ) : (
+                <RiMenuFoldFill className="text-lg" />
+              )}
+            </button>
+          </div>
         </div>
         <nav className="flex flex-col gap-2 text-white">
           {/* Dashboard */}
@@ -230,8 +287,8 @@ const AdminDashboard = () => {
               setIsSidebarOpen(false);
             }}
           >
-            <SiSimpleanalytics className="text-lg" />
-            Dashboard
+            <LuChartColumnDecreasing className="text-lg" />
+            <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Dashboard</span>
           </button>
 
           {/* Products group with hover submenu (lg+) and collapsible (mobile/tablet) */}
@@ -241,10 +298,10 @@ const AdminDashboard = () => {
               onClick={() => toggleSection("products")}
             >
               <FaBoxOpen className="text-lg" />
-              Products
+              <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Products</span>
             </button>
             {/* Hover submenu for desktop */}
-            <div className="absolute left-full top-0 -ml-2 hidden lg:group-hover:block z-50">
+            <div className="absolute left-full -top-14 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
@@ -255,7 +312,7 @@ const AdminDashboard = () => {
                 >
                   <FaBoxOpen /> All Products
                 </button>
-                <button
+                {/* <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
                     setSelectedPage("allUsers");
@@ -263,7 +320,7 @@ const AdminDashboard = () => {
                   }}
                 >
                   <FaUsers /> Users
-                </button>
+                </button> */}
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
@@ -323,7 +380,7 @@ const AdminDashboard = () => {
                 >
                   <FaBoxOpen /> All Products
                 </button>
-                <button
+                {/* <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
                     setSelectedPage("allUsers");
@@ -331,7 +388,7 @@ const AdminDashboard = () => {
                   }}
                 >
                   <FaUsers /> Users
-                </button>
+                </button> */}
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
@@ -394,7 +451,7 @@ const AdminDashboard = () => {
             }}
           >
             <FaUsers className="text-lg" />
-            Users
+            <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Users</span>
           </button>
           {/* Orders group with hover submenu (lg+) and collapsible (mobile/tablet) */}
           <div className="relative group">
@@ -403,15 +460,15 @@ const AdminDashboard = () => {
               onClick={() => toggleSection("orders")}
             >
               <FaShoppingCart className="text-lg" />
-              Orders
+              <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Orders</span>
               {newOrdersCount > 0 && (
-                <span className="ml-auto bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+                <span className={`ml-auto bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 ${isSidebarCollapsed ? "lg:hidden" : ""}`}>
                   {newOrdersCount}
                 </span>
               )}
             </button>
             {/* Hover submenu for desktop */}
-            <div className="absolute left-full top-0 -ml-2 hidden lg:group-hover:block z-50">
+            <div className="absolute left-full -top-10 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[200px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
@@ -435,6 +492,15 @@ const AdminDashboard = () => {
                   }}
                 >
                   <FaShoppingCart /> All Orders
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("manualOrder");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <SlNote /> Manual Order
                 </button>
               </div>
             </div>
@@ -464,6 +530,15 @@ const AdminDashboard = () => {
                     </span>
                   )}
                 </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("manualOrder");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <SlNote /> Manual Order
+                </button>
               </div>
             </div>
           </div>
@@ -474,10 +549,10 @@ const AdminDashboard = () => {
               onClick={() => toggleSection("customize")}
             >
               <MdSettings className="text-lg" />
-              Customization
+              <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Customization</span>
             </button>
             {/* Hover submenu for desktop */}
-            <div className="absolute left-full -top-32 -ml-2 hidden lg:group-hover:block z-50">
+            <div className="absolute left-full -top-40 -ml-2 hidden lg:group-hover:block z-50">
               <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
@@ -505,6 +580,24 @@ const AdminDashboard = () => {
                   }}
                 >
                   <FaFileAlt /> Pages
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("adminBanner");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <GiVerticalBanner /> Banner
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    navigate("/admin/sections");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaPuzzlePiece /> Sections Editor
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
@@ -568,6 +661,24 @@ const AdminDashboard = () => {
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
+                    setSelectedPage("adminBanner");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <GiVerticalBanner /> Banner
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    navigate("/admin/sections");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaPuzzlePiece /> Sections Editor
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
                     setSelectedPage("footer");
                     setIsSidebarOpen(false);
                   }}
@@ -599,7 +710,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="w-full lg:w-4/5 p-2 lg:p-8 lg:pt-0 bg-gray-100 overflow-y-auto">
+      <div className="w-full flex-1 p-2 lg:p-8 lg:pt-0 bg-gray-100 overflow-y-auto">
         {renderContent()}
       </div>
     </div>

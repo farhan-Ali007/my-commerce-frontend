@@ -1,20 +1,33 @@
-import { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FaAngleDown, FaAngleRight, FaMobileAlt } from "react-icons/fa";
-import { IoIosClose } from "react-icons/io";
+import { ImCross } from 'react-icons/im';
 import Drawer from 'react-modern-drawer';
 import 'react-modern-drawer/dist/index.css';
 import { Link } from 'react-router-dom';
 
 const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
     const [expandedCategories, setExpandedCategories] = useState([]);
+    const [allowMotion, setAllowMotion] = useState(true);
 
-    const toggleCategoryExpansion = (categoryId) => {
-        if (expandedCategories.includes(categoryId)) {
-            setExpandedCategories(expandedCategories.filter((id) => id !== categoryId));
-        } else {
-            setExpandedCategories([...expandedCategories, categoryId]);
+    useEffect(() => {
+        try {
+            const reduceMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const isCoarse = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+            setAllowMotion(!(reduceMotion || isCoarse));
+        } catch (_) {
+            setAllowMotion(true);
         }
-    };
+    }, []);
+
+    const toggleCategoryExpansion = useCallback((categoryId) => {
+        setExpandedCategories((prev) => (
+            prev.includes(categoryId)
+                ? prev.filter((id) => id !== categoryId)
+                : [...prev, categoryId]
+        ));
+    }, []);
+
+    // Keep the drawer mounted so react-modern-drawer can animate open/close
 
     return (
         <Drawer
@@ -22,15 +35,15 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
             onClose={toggleDrawer}
             size={350}
             direction="left"
-            className="!z-[1200] drawer h-screen overflow-y-auto relative bg-white  shadow-md"
+            className="!z-[1200] drawer h-screen overflow-y-auto relative bg-white shadow-md"
         >
-            <div className="p-4">
+            <div className="p-4" style={{ contentVisibility: 'auto', containIntrinsicSize: '200px' }}>
                 <div className='flex justify-between items-center'>
                     <div>
                         <span className="text-xl font-bold mb-4 text-primary">Categories</span>
                     </div>
                     <div>
-                        <IoIosClose className='font-extrabold mb-2 text-secondary' size={40} onClick={closeDrawer} />
+                        <ImCross fontWeight={700} className=' mb-2 text-secondary' size={22} onClick={closeDrawer} />
                     </div>
                 </div>
                 {categories.map((category) => (
@@ -48,7 +61,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                             )}
                         </div>
                         <div
-                            className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedCategories.includes(category._id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                            className={`overflow-hidden ${allowMotion ? 'transition-all duration-300 ease-in-out' : 'transition-none'} ${expandedCategories.includes(category._id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                                 }`}
                         >
                             {category.subcategories.length > 0 && (
@@ -57,7 +70,7 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                                         <Link
                                             key={subcategory._id}
                                             to={`/category/${category.slug}/subcategory/${subcategory.slug}`}
-                                            className="block capitalize mb-2 bg-transparent bg-opacity-10 border-secondary border-l-4 no-underline text-primary py-1 pl-2 rounded hover:bg-secondary hover:text-white transition-colors"
+                                            className={`block capitalize mb-2 bg-transparent bg-opacity-10 border-secondary border-l-4 no-underline text-primary py-1 pl-2 rounded hover:bg-secondary hover:text-white ${allowMotion ? 'transition-colors' : ''}`}
                                         >
                                             {subcategory.name}
                                         </Link>
@@ -79,4 +92,4 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
     );
 };
 
-export default NavDrawer;
+export default React.memo(NavDrawer);
