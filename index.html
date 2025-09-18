@@ -56,8 +56,16 @@
     />
     <link rel="icon" type="image/png" href="/top-logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Critical body font (Poppins) loaded normally with display=swap -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+    <!-- Load Poppins asynchronously to avoid render-blocking; rely on system-ui fallback initially -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+    </noscript>
 
     <!-- Secondary fonts loaded asynchronously to avoid render-blocking -->
     <link

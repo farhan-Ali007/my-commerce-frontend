@@ -10,8 +10,8 @@ const Banner = React.memo(() => {
 
   const bannerDimensions = useMemo(() => ({
     desktop: { width: 1920, height: 550 },
-    tablet: { width: 1200, height: 400 },
-    mobile: { width: 800, height: 250 }
+    tablet: { width: 1024, height: 320 },
+    mobile: { width: 480, height: 140 }
   }), []);
 
   const aspectRatio = useMemo(() => 
@@ -105,25 +105,18 @@ const Banner = React.memo(() => {
     if (!imageUrl) return '';
     if (imageUrl.startsWith('/')) return imageUrl;
     const sep = imageUrl.includes('?') ? '&' : '?';
-    return `${imageUrl}${sep}f_auto&q_80&w=${width}&h=${height}&c=fill`;
+    // Use modern defaults for mobile: auto format, economical quality, and device DPR scaling
+    return `${imageUrl}${sep}f_auto&q_auto:eco&dpr=auto&w=${width}&h=${height}&c=fill`;
   }, []);
 
   const renderBannerImage = useCallback((banner, index) => {
     if (!banner?.image) return null;
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
-    const bgUrl = getOptimizedImageUrl(
-      banner.image,
-      bannerDimensions.desktop.width,
-      bannerDimensions.desktop.height
-    );
     return (
       <div
         className="relative w-full overflow-hidden"
         style={{
           paddingTop: `${paddingTopPercentage}%`,
-          backgroundImage: bgUrl ? `url(${bgUrl})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
           backgroundColor: '#f3f4f6',
         }}
       >
