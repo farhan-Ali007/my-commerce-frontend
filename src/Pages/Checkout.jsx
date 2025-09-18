@@ -33,6 +33,7 @@ const Checkout = () => {
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponType, setCouponType] = useState(null);
   const [couponAppliedCode, setCouponAppliedCode] = useState("");
+  const [couponError, setCouponError] = useState("");
 
   const getImageUrl = (img) => {
     if (!img) return '';
@@ -144,19 +145,35 @@ const Checkout = () => {
     if (!code) { toast.error("Enter a coupon code"); return; }
     try {
       setCouponApplying(true);
-      const cartSummary = (cartItems?.products || []).map(p => ({ price: Number(p.price||0), count: Number(p.count||0) }));
+      setCouponError("");
+      const cartSummary = (cartItems?.products || []).map(p => ({
+        price: Number(p.price || 0),
+        count: Number(p.count || 0),
+        productId: p.productId || p?.product?._id || null,
+        // Provide categoryIds for category-scoped coupons. Prefer nested product.category, then p.category
+        categoryIds: (() => {
+          const cid = p?.product?.category || p?.category || null;
+          return cid ? [String(cid)] : [];
+        })(),
+      }));
       const subtotal = calculateTotalPrice();
-      const res = await validateCouponApi({ code, cartSummary, subtotal, deliveryCharges: cartItems?.deliveryCharges || 0 });
+      // Include identity info for per-user limit checks
+      let guestId = null;
+      try { guestId = localStorage.getItem('guestId') || null; } catch {}
+      const res = await validateCouponApi({ code, cartSummary, subtotal, deliveryCharges: cartItems?.deliveryCharges || 0, userId, guestId });
       if (res?.valid) {
         setCouponDiscount(Number(res.discount || 0));
         setCouponType(res.discountType || null);
         setCouponAppliedCode(res.code || code.toUpperCase());
+        setCouponError("");
         toast.success("Coupon applied");
       } else {
         setCouponDiscount(0);
         setCouponType(null);
         setCouponAppliedCode("");
-        toast.error(res?.message || "Invalid coupon");
+        const msg = res?.message || "Invalid coupon";
+        setCouponError(msg);
+        toast.error(msg);
       }
     } catch (e) {
       toast.error(e?.message || "Failed to apply coupon");
@@ -402,6 +419,11 @@ const Checkout = () => {
                 </button>
               )}
             </div>
+            {couponError && (
+              <div className="mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+                {couponError}
+              </div>
+            )}
             {couponAppliedCode && (
               <p className="mt-2 text-sm text-green-700">Applied coupon: <strong>{couponAppliedCode}</strong></p>
             )}

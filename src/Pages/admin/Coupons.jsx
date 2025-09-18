@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { FiEdit2 } from "react-icons/fi";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { CiEdit, CiTrash } from "react-icons/ci";
+import { getAllCategories } from "../../functions/categories";
 
 const initialForm = {
   code: "",
@@ -24,6 +25,8 @@ const initialForm = {
   perUserLimit: 0,
   active: true,
   notes: "",
+  // Leave empty for sitewide; otherwise, apply only to selected categories
+  allowedCategoryIds: [],
 };
 
 const Coupons = () => {
@@ -34,6 +37,10 @@ const Coupons = () => {
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
   const [active, setActive] = useState("any"); // any|true|false
+
+  // Categories for targeting
+  const [categories, setCategories] = useState([]);
+  const [catsLoading, setCatsLoading] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -66,6 +73,24 @@ const Coupons = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, active]);
 
+  // Fetch categories once for the selector
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        setCatsLoading(true);
+        const res = await getAllCategories();
+        if (res?.success && Array.isArray(res?.categories)) {
+          setCategories(res.categories);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      } finally {
+        setCatsLoading(false);
+      }
+    };
+    fetchCats();
+  }, []);
+
   const resetAndClose = () => {
     setModalOpen(false);
     setForm(initialForm);
@@ -92,6 +117,9 @@ const Coupons = () => {
       perUserLimit: c.perUserLimit ?? 0,
       active: Boolean(c.active),
       notes: c.notes || "",
+      allowedCategoryIds: Array.isArray(c.allowedCategoryIds)
+        ? c.allowedCategoryIds.map((id) => String(id))
+        : [],
     });
     setModalOpen(true);
   };
@@ -120,6 +148,9 @@ const Coupons = () => {
         perUserLimit: Number(form.perUserLimit || 0),
         startsAt: form.startsAt ? new Date(form.startsAt) : undefined,
         expiresAt: form.expiresAt ? new Date(form.expiresAt) : undefined,
+        allowedCategoryIds: Array.isArray(form.allowedCategoryIds)
+          ? form.allowedCategoryIds.filter(Boolean)
+          : [],
       };
       if (editingId) {
         await adminUpdateCoupon(editingId, payload);
@@ -207,6 +238,7 @@ const Coupons = () => {
                 <th className="px-3 py-2">Code</th>
                 <th className="px-3 py-2">Type</th>
                 <th className="px-3 py-2">Value</th>
+                <th className="px-3 py-2">Scope</th>
                 <th className="px-3 py-2">Min Order</th>
                 <th className="px-3 py-2">Max Discount</th>
                 <th className="px-3 py-2">Starts</th>
@@ -218,7 +250,7 @@ const Coupons = () => {
             <tbody className="divide-y">
               {loading ? (
                 <tr>
-                  <td className="px-3 py-4" colSpan={9}>
+                  <td className="px-3 py-4" colSpan={10}>
                     Loading…
                   </td>
                 </tr>
@@ -231,6 +263,11 @@ const Coupons = () => {
                       {c.type === "percent"
                         ? `${c.value}%`
                         : `Rs.${Number(c.value).toLocaleString()}`}
+                    </td>
+                    <td className="px-3 py-2">
+                      {Array.isArray(c.allowedCategoryIds) && c.allowedCategoryIds.length > 0
+                        ? `${c.allowedCategoryIds.length} categor${c.allowedCategoryIds.length > 1 ? "ies" : "y"}`
+                        : "Sitewide"}
                     </td>
                     <td className="px-3 py-2">
                       Rs.{Number(c.minOrder || 0).toLocaleString()}
@@ -305,7 +342,7 @@ const Coupons = () => {
                 ))
               ) : (
                 <tr>
-                  <td className="px-3 py-4" colSpan={9}>
+                  <td className="px-3 py-4" colSpan={10}>
                     No coupons found
                   </td>
                 </tr>
@@ -373,7 +410,7 @@ const Coupons = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative z-10 bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 md:p-7"
+            className="relative z-10 bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 md:p-7 max-h-[95vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold">
@@ -537,6 +574,60 @@ const Coupons = () => {
                   />{" "}
                   Active
                 </label>
+              </div>
+              {/* Category targeting */}
+              <div className="md:col-span-12">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs text-gray-600 mb-1">Applies to categories</label>
+                  <div className="text-[11px] text-gray-500">
+                    {form.allowedCategoryIds?.length ? (
+                      <>
+                        Selected: {form.allowedCategoryIds.length} • Empty = sitewide
+                        <button
+                          type="button"
+                          className="ml-2 underline text-primary"
+                          onClick={() => setForm((f) => ({ ...f, allowedCategoryIds: [] }))}
+                        >
+                          Clear
+                        </button>
+                      </>
+                    ) : (
+                      "Sitewide (select categories to limit)"
+                    )}
+                  </div>
+                </div>
+                <div className="max-h-48 overflow-auto border rounded-lg p-2">
+                  {catsLoading ? (
+                    <div className="text-sm text-gray-500 p-2">Loading categories…</div>
+                  ) : categories?.length ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                      {categories.map((cat) => {
+                        const checked = form.allowedCategoryIds?.includes(String(cat._id));
+                        return (
+                          <label key={cat._id} className="inline-flex items-center gap-2 text-sm p-1 hover:bg-gray-50 rounded">
+                            <input
+                              type="checkbox"
+                              checked={!!checked}
+                              onChange={(e) => {
+                                const id = String(cat._id);
+                                setForm((f) => {
+                                  const set = new Set(f.allowedCategoryIds || []);
+                                  if (e.target.checked) set.add(id);
+                                  else set.delete(id);
+                                  return { ...f, allowedCategoryIds: Array.from(set) };
+                                });
+                              }}
+                            />
+                            <span className="capitalize">{cat.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500 p-2">No categories found</div>
+                  )}
+                </div>
+                <p className="mt-1 text-[11px] text-gray-500">Only items in selected categories will be discounted. Delivery is never discounted for category-specific coupons.</p>
               </div>
               <div className="md:col-span-12">
                 <label className="block text-xs text-gray-600 mb-1">

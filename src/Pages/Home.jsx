@@ -75,6 +75,11 @@ const Home = () => {
         <meta name="robots" content="index, follow" />
         <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
+        {/* Performance hints: Cloudinary image CDN */}
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        {/* Preload first hero image (static fallback) for faster LCP */}
+        <link rel="preload" as="image" href="/customBanner1.webp" imagesizes="100vw" />
       </Helmet>
       {/* Config-driven sections rendered via SectionRenderer (temporarily disabled during development) */}
        {/* {layoutLoading ? (
@@ -90,7 +95,7 @@ const Home = () => {
       </h1>
       <Banner />
       <div style={{ contentVisibility: 'auto', containIntrinsicSize: '480px' }}>
-        <Suspense fallback={<SectionSkeleton className="h-24" />}> 
+        <Suspense fallback={null}> 
           <Categories />
         </Suspense>
       </div>

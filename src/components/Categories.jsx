@@ -7,13 +7,21 @@ const Categories = React.memo(() => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    // Simple cache to speed up subsequent visits
+    const CACHE_KEY = 'categories_cache_v1';
+    const CACHE_MS = 30 * 60 * 1000; // 30 minutes
 
     const fetchAllCategories = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
             const response = await getAllCategories();
-            setCategories(response?.categories || []);
+            const list = response?.categories || [];
+            setCategories(list);
+            // Warm cache
+            try {
+                sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items: list }));
+            } catch {}
         } catch (error) {
             console.error("Error in fetching all categories", error);
             setError("Failed to load categories. Please try again later.");
@@ -23,6 +31,13 @@ const Categories = React.memo(() => {
     }, []);
 
     useEffect(() => {
+        // Read from cache first for instant paint
+        try {
+            const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null');
+            if (cached && Array.isArray(cached.items) && Date.now() - cached.ts < CACHE_MS) {
+                setCategories(cached.items);
+            }
+        } catch {}
         fetchAllCategories();
     }, [fetchAllCategories]);
 
@@ -38,7 +53,7 @@ const Categories = React.memo(() => {
     const renderCategories = useMemo(() => {
         if (loading) {
             // Return tiles directly so they use the same outer grid container
-            return Array.from({ length: 14 }).map((_, idx) => (
+            return Array.from({ length: 8 }).map((_, idx) => (
                 <CategorySkeleton key={idx} />
             ));
         }
@@ -51,6 +66,7 @@ const Categories = React.memo(() => {
             );
         }
 
+        const eagerCount = 4; // eagerly load a few likely above-the-fold
         return categories?.slice(0, 14).map((category, index) => (
             <div
                 key={category._id || index}
@@ -68,9 +84,9 @@ const Categories = React.memo(() => {
                             sizes="(min-width: 1024px) 144px, (min-width: 768px) 96px, 80px"
                             alt={category?.name}
                             className="object-cover w-full h-full transform transition-transform duration-300 ease-in-out motion-safe:md:group-hover:scale-105"
-                            loading="lazy"
+                            loading={index < eagerCount ? 'eager' : 'lazy'}
                             decoding="async"
-                            fetchpriority="low"
+                            fetchpriority={index < eagerCount ? 'high' : 'low'}
                             width={144}
                             height={144}
                         />

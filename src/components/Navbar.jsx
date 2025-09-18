@@ -158,15 +158,33 @@ const Navbar = React.memo(() => {
   }, []);
 
   useEffect(() => {
+    const CACHE_KEY = 'menu_categories_cache_v1';
+    const CACHE_MS = 30 * 60 * 1000; // 30 minutes
+    // Paint quickly with cached categories if fresh
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null');
+      if (cached && Array.isArray(cached.items) && (Date.now() - cached.ts) < CACHE_MS) {
+        setSelectedCategories(cached.items);
+      }
+    } catch {}
+
+    const ac = new AbortController();
     const fetchSelectedCategories = async () => {
       try {
-        const response = await menuCategories();
-        setSelectedCategories(response.categories);
+        const response = await menuCategories({ signal: ac.signal });
+        const cats = response?.categories || [];
+        setSelectedCategories(cats);
+        try {
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items: cats }));
+        } catch {}
       } catch (error) {
-        console.error("Error fetching selected categories:", error);
+        if (error?.name !== 'AbortError' && error?.name !== 'CanceledError') {
+          console.error("Error fetching selected categories:", error);
+        }
       }
     };
     fetchSelectedCategories();
+    return () => ac.abort();
   }, []);
 
   useEffect(() => {

@@ -1,9 +1,9 @@
 import axios from 'axios'
 import { BASE_URL } from '../config/baseURL'
 
-export const validateCoupon = async ({ code, cartSummary, subtotal, deliveryCharges }) => {
+export const validateCoupon = async ({ code, cartSummary, subtotal, deliveryCharges, userId, guestId }) => {
   try {
-    const res = await axios.post(`${BASE_URL}/coupon/validate`, { code, cartSummary, subtotal, deliveryCharges }, {
+    const res = await axios.post(`${BASE_URL}/coupon/validate`, { code, cartSummary, subtotal, deliveryCharges, userId, guestId }, {
       withCredentials: true,
     })
     return res?.data

@@ -14,6 +14,7 @@ import { GiVerticalBanner } from "react-icons/gi";
 import { RiCoupon2Line } from "react-icons/ri";
 import { IoNotifications } from "react-icons/io5";
 import { LuChartColumnDecreasing } from "react-icons/lu";
+import { TbLayoutSidebar, TbLayoutSidebarRight } from "react-icons/tb";
 import {
   MdCampaign,
   MdColorLens,
@@ -279,9 +280,9 @@ const AdminDashboard = () => {
               title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {isSidebarCollapsed ? (
-                <RiMenuUnfoldFill className="text-lg" />
+                <TbLayoutSidebar  className="text-lg" />
               ) : (
-                <RiMenuFoldFill className="text-lg" />
+                <TbLayoutSidebarRight className="text-lg" />
               )}
             </button>
           </div>

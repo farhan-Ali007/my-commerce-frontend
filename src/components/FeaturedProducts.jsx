@@ -12,7 +12,6 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 import Slider from "react-slick";
-import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
 import { getFeaturedProducts } from "../functions/product";
 import ProductCard from "./cards/ProductCard";
@@ -27,6 +26,7 @@ const FeaturedProducts = React.memo(() => {
   const [error, setError] = useState(null);
   const sliderRef = useRef(null);
   const containerRef = useRef(null);
+  const [mountSlider, setMountSlider] = useState(false);
 
   // Motion gating: skip animations on touch devices or when user prefers reduced motion
   const allowMotion = useMemo(() => {
@@ -116,6 +116,12 @@ const FeaturedProducts = React.memo(() => {
     fetchProducts(currentPage);
   }, [currentPage, fetchProducts]);
 
+  // Mount the heavy slider after first paint so content shows instantly
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMountSlider(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const CustomPrevArrow = useCallback(
     (props) => (
       <button
@@ -180,6 +186,12 @@ const FeaturedProducts = React.memo(() => {
     }),
     [CustomPrevArrow, CustomNextArrow]
   );
+
+  // Force re-init when product list changes (prevents stale slides)
+  const sliderKey = useMemo(() => {
+    const ids = (products || []).map(p => p?._id || '').join('-');
+    return `featured-${currentPage}-${products.length}-${ids}`;
+  }, [products, currentPage]);
 
   const getVisiblePages = useCallback(() => {
     const maxVisible = 5;
@@ -299,13 +311,24 @@ const FeaturedProducts = React.memo(() => {
         renderSkeletons
       ) : (
         <div className="relative overflow-x-auto scrollbar-hide">
-          <Slider {...settings} ref={sliderRef} className="flex">
-            {products.map((product) => (
-              <div key={product._id} className="px-1 py-2 md:px-3">
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </Slider>
+          {!mountSlider ? (
+            // Static horizontally scrollable fallback for instant paint
+            <div className="flex" style={{ width: 'max-content' }}>
+              {products.map((product) => (
+                <div key={product._id} className="px-1 py-2 md:px-3" style={{ width: '250px' }}>
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Slider key={sliderKey} {...settings} ref={sliderRef} className="flex">
+              {products.map((product) => (
+                <div key={product._id} className="px-1 py-2 md:px-3">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </Slider>
+          )}
         </div>
       )}
 
