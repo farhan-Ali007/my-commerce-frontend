@@ -330,7 +330,7 @@ const Checkout = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="px-5 py-5 md:px-20 "
+      className="px-0 py-5 md:px-20 "
     >
       <div className="max-w-4xl mx-auto">
         <motion.h2
@@ -347,7 +347,7 @@ const Checkout = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
-          className="p-6 mb-8 bg-white rounded-lg shadow-lg"
+          className="px-2 md:px-6 py-6 mb-8 bg-white rounded-lg shadow-lg"
         >
           <h3 className="mb-4 text-xl font-bold">Order Summary</h3>
           <div className="flex flex-col">

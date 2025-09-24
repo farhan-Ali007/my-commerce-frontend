@@ -1,12 +1,84 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
+import { useKeenSlider } from "keen-slider/react";
+import "keen-slider/keen-slider.min.css";
 import { getBanners } from "../functions/banner";
 
 const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
   const [mountSlider, setMountSlider] = useState(false);
+  // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
+  const autoplay = useCallback((delay = 1000) => (slider) => {
+    let timeoutId;
+    let mouseOver = false;
+    let stopped = false;
+    const clear = () => timeoutId && clearTimeout(timeoutId);
+    const next = () => {
+      clear();
+      if (mouseOver || stopped) return;
+      timeoutId = setTimeout(() => slider.next(), delay);
+    };
+
+    slider.on("created", () => {
+      const container = slider.container;
+
+      // Do not autoplay with reduced motion or a single slide
+      try {
+        const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce || slider.slides.length < 2) {
+          stopped = true;
+          clear();
+          return;
+        }
+      } catch {}
+
+      const onMouseOver = () => { mouseOver = true; clear(); };
+      const onMouseOut = () => { mouseOver = false; next(); };
+      container.addEventListener('mouseover', onMouseOver);
+      container.addEventListener('mouseout', onMouseOut);
+
+      const onVisibility = () => { stopped = document.hidden; stopped ? clear() : next(); };
+      document.addEventListener('visibilitychange', onVisibility);
+
+      let io;
+      try {
+        io = new IntersectionObserver((entries) => {
+          entries.forEach((e) => { stopped = !e.isIntersecting; stopped ? clear() : next(); });
+        });
+        io.observe(container);
+      } catch {}
+
+      next();
+
+      slider.on('dragStarted', clear);
+      slider.on('animationEnded', next);
+      slider.on('updated', next);
+
+      slider.on('destroyed', () => {
+        container.removeEventListener('mouseover', onMouseOver);
+        container.removeEventListener('mouseout', onMouseOut);
+        document.removeEventListener('visibilitychange', onVisibility);
+        if (io) {
+          try { io.disconnect(); } catch {}
+        }
+        clear();
+      });
+    });
+  }, []);
+  const [sliderContainerRef, instanceRef] = useKeenSlider(
+    {
+      loop: true,
+      renderMode: 'precision',
+      slides: { perView: 1, spacing: 0 },
+      slideChanged: (s) => setCurrentSlide(s.track.details.rel),
+      breakpoints: {
+        "(min-width: 768px)": {
+          slides: { perView: 1, spacing: 0 },
+        },
+      },
+    },
+    [autoplay(4000)]
+  );
 
   const bannerDimensions = useMemo(() => ({
     desktop: { width: 1920, height: 550 },
@@ -80,26 +152,9 @@ const Banner = React.memo(() => {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const settings = useMemo(() => ({
-    dots: false,
-    infinite: true,
-    speed: 400,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: 
-      typeof window !== "undefined" && window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? false
-        : true,
-    autoplaySpeed: 4000,
-    pauseOnHover: true,
-    arrows: false,
-    afterChange: (index) => setCurrentSlide(index),
-  }), []);
-
   const handleDotClick = useCallback((index) => {
-    sliderRef.current?.slickGoTo(index);
-  }, []);
+    instanceRef.current?.moveToIdx(index);
+  }, [instanceRef]);
 
   const getOptimizedImageUrl = useCallback((imageUrl, width, height) => {
     if (!imageUrl) return '';
@@ -112,6 +167,8 @@ const Banner = React.memo(() => {
   const renderBannerImage = useCallback((banner, index) => {
     if (!banner?.image) return null;
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
+    const isLCP = index === 0; // First image is LCP candidate
+    
     return (
       <div
         className="relative w-full overflow-hidden"
@@ -144,13 +201,21 @@ const Banner = React.memo(() => {
               bannerDimensions.desktop.height
             )}
             alt={banner.alt || `Banner ${index + 1}`}
-            loading={index === 0 ? 'eager' : 'lazy'}
-            decoding="async"
-            fetchpriority={index === 0 ? 'high' : 'auto'}
+            loading={isLCP ? 'eager' : 'lazy'}
+            decoding={isLCP ? 'sync' : 'async'}
+            fetchpriority={isLCP ? 'high' : 'low'}
             sizes="100vw"
-            className="absolute inset-0 object-cover object-center w-full h-full transform transition-transform duration-300 ease-out motion-safe:md:group-hover:scale-105"
+            className={`absolute inset-0 object-cover object-center w-full h-full ${
+              isLCP ? '' : 'transform transition-transform duration-300 ease-out motion-safe:md:group-hover:scale-105'
+            }`}
             width={bannerDimensions.desktop.width}
             height={bannerDimensions.desktop.height}
+            onLoad={isLCP ? () => {
+              // Mark LCP as loaded for performance monitoring
+              if (typeof window !== 'undefined' && window.performance?.mark) {
+                window.performance.mark('lcp-banner-loaded');
+              }
+            } : undefined}
             onError={(e) => {
               console.error('Error loading banner image:', e);
               e.target.style.display = 'none';
@@ -194,42 +259,38 @@ const Banner = React.memo(() => {
     // }
 
     return (
-        <div className="relative w-full mx-auto">
-            <div className="relative w-full">
-                {/* Override slick's default loading spinner background to prevent white loader flash */}
-                <style>{`
-                  .slick-loading .slick-list { background: none !important; }
-                `}</style>
-                {!mountSlider ? (
-                  <div className="w-full">
-                    <a
-                      href={firstBanner?.link || '#'}
-                      className="block w-full h-full group"
-                      target="_self"
-                      rel="noopener noreferrer"
-                    >
-                      {firstBanner && renderBannerImage(firstBanner, 0)}
-                    </a>
-                  </div>
-                ) : (
-                  <Slider key={sliderKey} ref={sliderRef} {...settings}>
-                    {resolvedBanners.map((banner, index) => (
-                      <div key={banner._id} className="w-full">
-                        <a
-                          href={banner.link}
-                          className="block w-full h-full group"
-                          target="_self"
-                          rel="noopener noreferrer"
-                        >
-                          {renderBannerImage(banner, index)}
-                        </a>
-                      </div>
-                    ))}
-                  </Slider>
-                )}
-                {mountSlider && resolvedBanners.length > 1 && renderDots()}
+      <div className="relative w-full mx-auto">
+        <div className="relative w-full">
+          {!mountSlider ? (
+            <div className="w-full">
+              <a
+                href={firstBanner?.link || '#'}
+                className="block w-full h-full group"
+                target="_self"
+                rel="noopener noreferrer"
+              >
+                {firstBanner && renderBannerImage(firstBanner, 0)}
+              </a>
             </div>
+          ) : (
+            <div ref={sliderContainerRef} className="keen-slider">
+              {resolvedBanners.map((banner, index) => (
+                <div key={banner._id} className="keen-slider__slide">
+                  <a
+                    href={banner.link}
+                    className="block w-full h-full group"
+                    target="_self"
+                    rel="noopener noreferrer"
+                  >
+                    {renderBannerImage(banner, index)}
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+          {mountSlider && resolvedBanners.length > 1 && renderDots()}
         </div>
+      </div>
     );
 });
 

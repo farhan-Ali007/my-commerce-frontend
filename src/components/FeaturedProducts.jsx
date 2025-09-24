@@ -6,13 +6,12 @@ import React, {
   useMemo,
 } from "react";
 import {
-  FaArrowLeft,
-  FaArrowRight,
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
+import { BiSolidChevronLeft, BiSolidChevronRight , } from "react-icons/bi";
+import { useKeenSlider } from "keen-slider/react";
+import "keen-slider/keen-slider.min.css";
 import { getFeaturedProducts } from "../functions/product";
 import ProductCard from "./cards/ProductCard";
 import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
@@ -24,9 +23,27 @@ const FeaturedProducts = React.memo(() => {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const sliderRef = useRef(null);
   const containerRef = useRef(null);
   const [mountSlider, setMountSlider] = useState(false);
+  const [sliderContainerRef, instanceRef] = useKeenSlider({
+    loop: true,
+    renderMode: 'precision',
+    slides: { 
+      perView: 2,
+      spacing: 8,
+    },
+    breakpoints: {
+      "(min-width: 640px)": {
+        slides: { perView: 3, spacing: 12 },
+      },
+      "(min-width: 1024px)": {
+        slides: { perView: 5, spacing: 16 },
+      },
+      "(min-width: 1280px)": {
+        slides: { perView: 5, spacing: 16 },
+      },
+    },
+  });
 
   // Motion gating: skip animations on touch devices or when user prefers reduced motion
   const allowMotion = useMemo(() => {
@@ -60,12 +77,14 @@ const FeaturedProducts = React.memo(() => {
 
     const observer = new IntersectionObserver((entries) => {
       const [entry] = entries;
-      const api = sliderRef.current;
-      if (!api || typeof api.slickPause !== 'function') return;
+      const api = instanceRef.current;
+      if (!api) return;
       if (entry.isIntersecting && entry.intersectionRatio > 0) {
-        api.slickPlay && api.slickPlay();
+        // Resume autoplay when visible
+        api.moveToIdx && api.moveToIdx(api.track.details.rel);
       } else {
-        api.slickPause();
+        // Pause when not visible (Keen Slider doesn't have explicit pause/play)
+        // We can stop the autoplay by not calling moveToIdx
       }
     }, { threshold: 0.1 });
 
@@ -76,10 +95,9 @@ const FeaturedProducts = React.memo(() => {
   // Also pause when tab is hidden
   useEffect(() => {
     const onVis = () => {
-      const api = sliderRef.current;
-      if (!api || typeof api.slickPause !== 'function') return;
-      if (document.hidden) api.slickPause();
-      else api.slickPlay && api.slickPlay();
+      const api = instanceRef.current;
+      if (!api) return;
+      // Keen Slider handles autoplay automatically, no need for manual pause/play
     };
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
@@ -122,76 +140,16 @@ const FeaturedProducts = React.memo(() => {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const CustomPrevArrow = useCallback(
-    (props) => (
-      <button
-        {...props}
-        className="absolute left-0 top-[50%] transform -translate-y-1/2 bg-primary opacity-70 text-secondary hover:text-white p-2 rounded-full z-10 hover:opacity-90"
-        aria-label="Previous slide"
-      >
-        <FaArrowLeft />
-      </button>
-    ),
-    []
-  );
 
-  const CustomNextArrow = useCallback(
-    (props) => (
-      <button
-        {...props}
-        className="absolute right-0 top-[50%] transform -translate-y-1/2 bg-primary opacity-70 text-secondary hover:text-white p-2 rounded-full z-10 hover:opacity-90"
-        aria-label="Next slide"
-      >
-        <FaArrowRight />
-      </button>
-    ),
-    []
-  );
+  const handlePrev = useCallback(() => {
+    instanceRef.current?.prev();
+  }, [instanceRef]);
 
-  const settings = useMemo(
-    () => ({
-      dots: false,
-      infinite: false,
-      speed: 500,
-      autoplay: allowMotion,
-      autoplaySpeed: 4000,
-      lazyLoad: 'ondemand',
-      slidesToShow: 5,
-      slidesToScroll: 2,
-      prevArrow: <CustomPrevArrow />,
-      nextArrow: <CustomNextArrow />,
-      responsive: [
-        {
-          breakpoint: 1024,
-          settings: {
-            slidesToShow: 3,
-            slidesToScroll: 1,
-          },
-        },
-        {
-          breakpoint: 768,
-          settings: {
-            slidesToShow: 3,
-            slidesToScroll: 1,
-          },
-        },
-        {
-          breakpoint: 480,
-          settings: {
-            slidesToShow: 2,
-            slidesToScroll: 2,
-          },
-        },
-      ],
-    }),
-    [CustomPrevArrow, CustomNextArrow]
-  );
+  const handleNext = useCallback(() => {
+    instanceRef.current?.next();
+  }, [instanceRef]);
 
-  // Force re-init when product list changes (prevents stale slides)
-  const sliderKey = useMemo(() => {
-    const ids = (products || []).map(p => p?._id || '').join('-');
-    return `featured-${currentPage}-${products.length}-${ids}`;
-  }, [products, currentPage]);
+
 
   const getVisiblePages = useCallback(() => {
     const maxVisible = 5;
@@ -288,7 +246,7 @@ const FeaturedProducts = React.memo(() => {
 
   return (
     <div
-      className="w-full px-1 mt-4 overflow-hidden md:px-4 lg:px-4"
+      className="w-full px-1 mt-4 overflow-hidden md:px-4 lg:px-6"
       ref={containerRef}
       style={{ contentVisibility: 'auto', containIntrinsicSize: '560px 420px' }}
     >
@@ -310,24 +268,41 @@ const FeaturedProducts = React.memo(() => {
       {loading ? (
         renderSkeletons
       ) : (
-        <div className="relative overflow-x-auto scrollbar-hide">
+        <div className="relative">
           {!mountSlider ? (
-            // Static horizontally scrollable fallback for instant paint
-            <div className="flex" style={{ width: 'max-content' }}>
+            // Static list before Keen mounts
+            <div className="flex gap-2 lg:gap-0 overflow-x-auto scrollbar-hide px-1 lg:px-0">
               {products.map((product) => (
-                <div key={product._id} className="px-1 py-2 md:px-3" style={{ width: '250px' }}>
+                <div key={product._id} className="shrink-0 w-[250px] px-1 lg:px-0 py-2">
                   <ProductCard product={product} />
                 </div>
               ))}
             </div>
           ) : (
-            <Slider key={sliderKey} {...settings} ref={sliderRef} className="flex">
-              {products.map((product) => (
-                <div key={product._id} className="px-1 py-2 md:px-3">
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </Slider>
+            <div className="relative">
+              <div ref={sliderContainerRef} className="keen-slider">
+                {products.map((product) => (
+                  <div key={product._id} className="keen-slider__slide px-1 lg:px-[0.1rem] py-2">
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+              {/* Custom arrows for Keen */}
+              <button
+                onClick={handlePrev}
+                className="absolute left-0 md:-left-3 top-1/2 md:top-[45%] lg:top-1/2 transform -translate-y-1/2 bg-primary opacity-70 text-secondary hover:text-white p-1 rounded-full z-10 hover:opacity-90"
+                aria-label="Previous slide"
+              >
+                <BiSolidChevronLeft />
+              </button>
+              <button
+                onClick={handleNext}
+                className="absolute right-0 md:-right-3 top-1/2 md:top-[45%] lg:top-1/2 transform -translate-y-1/2 bg-primary opacity-70 text-secondary hover:text-white p-1 rounded-full z-10 hover:opacity-90"
+                aria-label="Next slide"
+              >
+                <BiSolidChevronRight />
+              </button>
+            </div>
           )}
         </div>
       )}

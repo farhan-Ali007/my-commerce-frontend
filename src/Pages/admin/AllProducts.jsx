@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { CiEdit, CiTrash } from 'react-icons/ci';
+import { BiCategory } from 'react-icons/bi';
 import toast from "react-hot-toast";
 import { deleteProduct, getAllProducts } from "../../functions/product";
 import { truncateTitle } from "../../helpers/truncateTitle";
 import { searchProduct } from '../../functions/search';
+import CategoriesModal from '../../components/modals/CategoriesModal';
 
 const PAGE_SIZE = 16; // Set your page size here
 
@@ -25,6 +27,10 @@ const AllProducts = () => {
   // Pagination state must be declared before effects that depend on it
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  // Modal state
+  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Removed duplicate fetchMyProducts; using fetchProducts below
   const didInitialFetch = useRef(false);
@@ -123,6 +129,16 @@ const AllProducts = () => {
     return '';
   };
 
+  const handleShowCategories = (product) => {
+    setSelectedProduct(product);
+    setShowCategoriesModal(true);
+  };
+
+  const handleCloseCategoriesModal = () => {
+    setShowCategoriesModal(false);
+    setSelectedProduct(null);
+  };
+
   const fetchProducts = async (pageNum) => {
     setLoading(true);
     try {
@@ -209,7 +225,21 @@ const AllProducts = () => {
                       {truncateTitle(product?.title, 40)}
                     </Link>
                   </td>
-                  <td className="py-2 px-4 text-[14px]">{product?.category?.name}</td>
+                  <td className="py-2 px-4">
+                    <button
+                      onClick={() => handleShowCategories(product)}
+                      className="flex items-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-all duration-200 text-sm font-medium group"
+                      title="View Categories"
+                    >
+                      <BiCategory className="text-base group-hover:scale-110 transition-transform" />
+                      <span>
+                        {product?.categories?.length > 0 
+                          ? `${product.categories.length} ${product.categories.length === 1 ? 'Category' : 'Categories'}`
+                          : product?.category?.name || 'No Categories'
+                        }
+                      </span>
+                    </button>
+                  </td>
                   <td className="py-2 px-4">
                     <span className="line-through text-gray-400">Rs.{product?.price}</span>
                     {product.salePrice && (
@@ -278,6 +308,13 @@ const AllProducts = () => {
           <span>Loading...</span>
         </div>
       )}
+
+      {/* Categories Modal */}
+      <CategoriesModal
+        isOpen={showCategoriesModal}
+        onClose={handleCloseCategoriesModal}
+        product={selectedProduct}
+      />
     </div>
   );
 };

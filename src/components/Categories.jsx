@@ -10,6 +10,9 @@ const Categories = React.memo(() => {
     // Simple cache to speed up subsequent visits
     const CACHE_KEY = 'categories_cache_v1';
     const CACHE_MS = 30 * 60 * 1000; // 30 minutes
+    // Mobile detection and staged rendering for faster first paint
+    const [isMobile, setIsMobile] = useState(false);
+    const [showAll, setShowAll] = useState(false);
 
     const fetchAllCategories = useCallback(async () => {
         try {
@@ -39,21 +42,52 @@ const Categories = React.memo(() => {
             }
         } catch {}
         fetchAllCategories();
+        // Detect mobile once on mount
+        try {
+            const mm = window.matchMedia && window.matchMedia('(max-width: 768px)');
+            setIsMobile(!!mm && mm.matches);
+            if (mm && typeof mm.addEventListener === 'function') {
+                const handler = (e) => setIsMobile(e.matches);
+                mm.addEventListener('change', handler);
+                return () => mm.removeEventListener('change', handler);
+            }
+        } catch {}
     }, [fetchAllCategories]);
+
+    // After first paint on mobile, hydrate to show remaining tiles without blocking initial render
+    useEffect(() => {
+        if (!isMobile) return; // only for mobile
+        if (showAll) return;
+        if (!Array.isArray(categories) || categories.length <= 6) return;
+        let idleId;
+        let timeoutId;
+        const run = () => setShowAll(true);
+        if ('requestIdleCallback' in window) {
+            idleId = window.requestIdleCallback(run, { timeout: 1200 });
+        } else {
+            timeoutId = setTimeout(run, 800);
+        }
+        return () => {
+            if (idleId && window.cancelIdleCallback) window.cancelIdleCallback(idleId);
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+    }, [isMobile, categories, showAll]);
 
     // Helper to generate optimized image URLs when remote (e.g., Cloudinary); local paths unchanged
     const getOptimizedImageUrl = useCallback((imageUrl, width, height) => {
         if (!imageUrl) return '';
         if (typeof imageUrl === 'string' && imageUrl.startsWith('/')) return imageUrl;
         const sep = (typeof imageUrl === 'string' && imageUrl.includes('?')) ? '&' : '?';
-        return `${imageUrl}${sep}f_auto&q_80&w=${width}&h=${height}&c=fill`;
+        // Prefer economical quality on mobile and device DPR scaling
+        return `${imageUrl}${sep}f_auto&q_auto:eco&dpr=auto&w=${width}&h=${height}&c=fill`;
     }, []);
 
     // Memoize the category list rendering
     const renderCategories = useMemo(() => {
         if (loading) {
             // Return tiles directly so they use the same outer grid container
-            return Array.from({ length: 8 }).map((_, idx) => (
+            const skeletonCount = isMobile ? 6 : 8;
+            return Array.from({ length: skeletonCount }).map((_, idx) => (
                 <CategorySkeleton key={idx} />
             ));
         }
@@ -66,8 +100,12 @@ const Categories = React.memo(() => {
             );
         }
 
-        const eagerCount = 4; // eagerly load a few likely above-the-fold
-        return categories?.slice(0, 14).map((category, index) => (
+        // Stage rendering: fewer tiles first, hydrate remaining after idle
+        const eagerCount = isMobile ? 2 : 4;
+        const initialCount = isMobile ? 6 : 8;
+        const maxCount = showAll ? 14 : initialCount;
+
+        return categories?.slice(0, maxCount).map((category, index) => (
             <div
                 key={category._id || index}
                 className="flex flex-col items-center overflow-visible transform transition-transform duration-300 ease-out motion-safe:md:hover:-translate-y-1"

@@ -23,6 +23,9 @@
     <link rel="preconnect" href="https://etimadmart.up.railway.app" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Preconnect to Facebook for better caching -->
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+    <link rel="dns-prefetch" href="https://www.facebook.com">
 
     <!-- Performance: Preload LCP hero image (first banner) -->
     <link
@@ -77,6 +80,19 @@
     <noscript>
       <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
     </noscript>
+    
+    <!-- CRITICAL CSS FOR PERFORMANCE -->
+    <style>
+      /* Critical CSS for Above-the-Fold Content - Inlined for best performance */
+      .banner-container{position:relative;width:100%;height:0;padding-top:28.65%;background-color:#f3f4f6;overflow:hidden;contain:layout style paint}.banner-image{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center}.banner-skeleton{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite}@keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}@media (max-width:640px){.banner-container{padding-top:29.17%}}@media (max-width:1024px) and (min-width:641px){.banner-container{padding-top:31.25%}}.navbar{position:sticky;top:0;z-index:1000;background-color:white;box-shadow:0 2px 4px rgba(0,0,0,0.1)}.main-container{min-height:100vh;display:flex;flex-direction:column}.content-wrapper{flex:1}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Oxygen','Ubuntu','Cantarell',sans-serif;line-height:1.6;color:#333;margin:0;padding:0}.prevent-cls{contain:layout style paint}.focus-visible{outline:2px solid #4F46E5;outline-offset:2px}@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}}
+    </style>
+    
+    <!-- ADDITIONAL PERFORMANCE OPTIMIZATIONS -->
+    <link rel="dns-prefetch" href="//etimadmart.up.railway.app">
+    <link rel="prefetch" href="/customBanner2.webp">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="color-scheme" content="light">
+    
     <title>Etimad Mart</title>
     <!-- 🔥🔥Splash Toggle: Keep this meta to ENABLE splash; comment it to DISABLE the splash screen🔥🔥 -->
     <!-- <meta name="enable-splash" content="1" /> -->
@@ -107,8 +123,9 @@
         gtag('config', 'G-E9DQ6Y0HFP');
       });
     </script>
-    <!-- Meta Pixel Code -->
+    <!-- Optimized Meta Pixel Code -->
     <script>
+      // Lazy load Facebook Pixel to improve cache performance
       !(function (f, b, e, v, n, t, s) {
         if (f.fbq) return;
         n = f.fbq = function () {
@@ -119,19 +136,87 @@
         n.loaded = !0;
         n.version = "2.0";
         n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s);
+        
+        // Defer script loading until page is interactive
+        function loadPixelScript() {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadPixelScript);
+            return;
+          }
+          
+          // Use requestIdleCallback for better performance
+          (window.requestIdleCallback || function(cb){ return setTimeout(cb, 100); })(function(){
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            // Add cache-friendly attributes
+            t.crossOrigin = 'anonymous';
+            t.referrerPolicy = 'strict-origin-when-cross-origin';
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s);
+            
+            // Initialize after script loads
+            t.onload = function() {
+              fbq("init", "2204362540002843");
+              fbq("track", "PageView");
+            };
+          });
+        }
+        
+        loadPixelScript();
       })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-      // Defer Pixel init/track to idle (or next tick fallback)
-      (window.requestIdleCallback || function(cb){ return setTimeout(cb, 0); })(function(){
-        fbq("init", "2204362540002843");
-        fbq("track", "PageView");
-      });
     </script>
-    <!-- End Meta Pixel Code -->
+    <!-- End Optimized Meta Pixel Code -->
+    
+    <!-- PERFORMANCE MONITORING & OPTIMIZATION SCRIPT -->
+    <script>
+      // Performance monitoring and optimization
+      (function() {
+        // Mark critical resources
+        if ('performance' in window && 'mark' in performance) {
+          performance.mark('head-start');
+        }
+        
+        // Optimize font loading
+        if ('fonts' in document) {
+          document.fonts.ready.then(function() {
+            if ('performance' in window && 'mark' in performance) {
+              performance.mark('fonts-loaded');
+            }
+          });
+        }
+        
+        // Preload next banner image after LCP
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            // Prefetch additional resources after initial load
+            var resources = ['/customBanner2.webp', '/api/products', '/api/categories'];
+            resources.forEach(function(href) {
+              var link = document.createElement('link');
+              link.rel = 'prefetch';
+              link.href = href;
+              document.head.appendChild(link);
+            });
+          }, 1000);
+        });
+        
+        // Performance monitoring
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            if ('performance' in window) {
+              var perfData = performance.getEntriesByType('navigation')[0];
+              if (perfData) {
+                console.log('Performance Metrics:', {
+                  'DOM Content Loaded': Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart),
+                  'Load Complete': Math.round(perfData.loadEventEnd - perfData.loadEventStart),
+                  'Total Load Time': Math.round(perfData.loadEventEnd - perfData.fetchStart)
+                });
+              }
+            }
+          }, 100);
+        });
+      })();
+    </script>
   </head>
 
   <body>

@@ -207,6 +207,7 @@ const Search = () => {
   };
 
   const handlePageChange = (pageNumber) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setCurrentPage(pageNumber);
     searchProducts(pageNumber);
   };

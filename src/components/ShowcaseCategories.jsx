@@ -48,7 +48,7 @@ const ShowcaseCategories = ({
   }, []);
 
   return (
-    <section className="w-full max-w-screen-xl mx-auto px-2 md:px-8 py-4 md:py-0">
+    <section className="w-full max-w-screen-xl mx-auto px-1 md:px-8 py-4 md:py-0">
       <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch min-h-[300px] md:min-h-[400px]">
         {/* Left: Category Name and Static Image */}
         <div className="w-full md:w-1/4 flex flex-row md:flex-col items-center md:items-center justify-center md:justify-center mb-2 md:mb-0 h-full gap-4 md:gap-0 px-2 md:px-0">

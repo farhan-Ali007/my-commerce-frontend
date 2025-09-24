@@ -160,11 +160,21 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     }) : ({ hidden: { opacity: 1 }, visible: { opacity: 1 } }), [allowMotion]);
 
     const imageVariants = useMemo(() => allowMotion ? ({
+        initial: {
+            scale: 1,
+        },
         hover: {
-            scale: 1.05,
+            scale: 1.08,
             transition: {
-                duration: 0.2,
-                ease: "easeOut"
+                duration: 0.8,
+                ease: [0.25, 0.1, 0.25, 1] // Custom cubic-bezier for smooth Shopify-like effect
+            }
+        },
+        exit: {
+            scale: 1,
+            transition: {
+                duration: 0.4,
+                ease: [0.25, 0.1, 0.25, 1]
             }
         },
     }) : undefined, [allowMotion]);
@@ -262,7 +272,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
     return (
         <motion.div
-            className="group max-w-sm bg-white h-[320px] overflow-hidden rounded-lg shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="group max-w-sm bg-white h-[350px] overflow-hidden rounded shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col items-stretch relative"
             style={{ contentVisibility: 'auto', containIntrinsicSize: '320px 320px' }}
             variants={cardVariants}
             initial={allowMotion ? "hidden" : false}
@@ -272,31 +282,75 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             onMouseEnter={allowMotion ? () => setIsHovered(true) : undefined}
             onMouseLeave={allowMotion ? () => setIsHovered(false) : undefined}
         >
-            <Link to={`/product/${slug}`} className="w-full mb-4 overflow-hidden" style={{ height: `${imageHeight}px` }}>
-                <div className="relative w-full h-full">
-                    <motion.img
-                        className="absolute top-0 left-0 object-contain w-full h-full"
-                        src={getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
-                        srcSet={getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
-                        sizes={`(max-width: 768px) 50vw, ${imageWidth}px`}
-                        alt={title}
-                        loading="lazy"
-                        width={imageWidth}
-                        height={imageHeight}
-                        decoding="async"
-                        variants={imageVariants}
-                        whileHover={allowMotion ? "hover" : undefined}
-                        onError={() => { /* keep silent to avoid state churn */ }}
-                    />
-                </div>
-            </Link>
+            {/* Image container with hover buttons */}
+            <div className="relative w-full mb-0 lg:mb-4 overflow-hidden">
+                <Link to={`/product/${slug}`} className="block w-full">
+                    {/* Square container to avoid horizontal gaps on mobile */}
+                    <div className="relative w-full aspect-square" style={{ aspectRatio: '1 / 1' }}>
+                        <motion.img
+                            className="absolute inset-0 w-full h-full object-cover transition-transform"
+                            src={getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
+                            srcSet={getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
+                            sizes={`(max-width: 768px) 50vw, ${imageWidth}px`}
+                            alt={title}
+                            loading="lazy"
+                            width={imageWidth}
+                            height={imageHeight}
+                            decoding="async"  
+                            variants={imageVariants}
+                            initial="initial"
+                            whileHover={allowMotion ? "hover" : undefined}
+                            style={{ 
+                                transformOrigin: 'center center',
+                                willChange: 'transform'
+                            }}
+                        />
+                    </div>
+                </Link>
+                
+                {/* Hover buttons - positioned at bottom of image container */}
+                {allowMotion && (
+                    <AnimatePresence>
+                        {isHovered && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                transition={{ duration: 0.2, ease: "easeOut" }}
+                                className="absolute bottom-0 left-0 right-0 hidden lg:flex justify-between gap-0 z-20"
+                            >
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleAddToCart();
+                                    }}
+                                    className="flex-1 bg-primary/95 backdrop-blur-sm text-white font-semibold py-1 text-xs hover:bg-primary transition-colors duration-200  shadow-lg"
+                                >
+                                    Add To Cart
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleByNow();
+                                    }}
+                                    className="flex-1 bg-secondary/95 backdrop-blur-sm text-white font-semibold py-1 text-xs hover:bg-secondary transition-colors duration-200  shadow-lg"
+                                >
+                                    Buy Now
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                )}
+            </div>
 
-            {/* Mobile action buttons in normal flow to avoid overlap */}
-            <div className="-mt-4 mb-2 flex  lg:hidden">
-                <button onClick={handleAddToCart} className="flex-1 bg-primary/90 text-white font-semibold py-1 md:py-2  text-[12px]  hover:bg-primary transition">
+            {/* Mobile action buttons - shown on all screen sizes below the content */}
+            <div className="flex lg:hidden justify-between gap-0 mx-0 mb-0">
+                <button onClick={handleAddToCart} className="flex-1 bg-primary/95 text-white font-semibold py-2 text-xs hover:bg-primary transition-colors duration-200 shadow-lg">
                     Add To Cart
                 </button>
-                <button onClick={handleByNow} className="flex-1 bg-secondary/90 text-white font-semibold py-1 md:py-2 text-[12px]  hover:bg-secondary transition">
+                <button onClick={handleByNow} className="flex-1 bg-secondary/95 text-white font-semibold py-2 text-xs hover:bg-secondary transition-colors duration-200 shadow-lg">
                     Buy Now
                 </button>
             </div>
@@ -309,42 +363,14 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     viewport={{ once: true, amount: 0.2 }}
                 >
-                    <TbTruckDelivery size={18} /> Free Shipping
+                    <TbTruckDelivery size={14} /> Free Shipping
                 </motion.span>
             )}
 
-            {allowMotion && (
-                <AnimatePresence>
-                    {isHovered && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="absolute top-[162px] left-0 right-0 hidden lg:flex justify-between will-change-transform"
-                        >
-                            <button
-                                onClick={handleAddToCart}
-                                className="w-1/2 bg-primary/80 text-white font-semibold py-1 text-[12px] hover:bg-primary transition-colors duration-200"
-                            >
-                                Add To Cart
-                            </button>
-                            <button
-                                onClick={handleByNow}
-                                className="w-1/2 bg-secondary/80 text-white font-semibold py-1 text-[12px] hover:bg-secondary transition-colors duration-200"
-                            >
-                                Buy Now
-                            </button>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            )}
 
             <div className="justify-start mx-2 md:mt-0 mb-4 font-roboto">
                 <Link to={`/product/${slug}`} className='text-black no-underline'>
-                    <h2
-                        onMouseEnter={() => setIsHovered(true)}
-                        className="mb-2 text-sm font-medium">
+                    <h2 className="mb-2 text-sm font-medium">
                         {truncateTitle(title, 45)}
                     </h2>
                 </Link>
@@ -357,7 +383,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p className="flex flex-col text-sm font-semibold text-primary/90 leading-snug">
                         {salePrice ? (
-                            <span className="text-sm text-gray-400 line-through">Rs. {price}</span>
+                            <span className="text-sm text-gray-500 line-through">Rs. {price}</span>
                         ) : (
                             <span>Rs. {price}</span>
                         )}{' '}

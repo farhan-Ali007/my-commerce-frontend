@@ -101,6 +101,8 @@ const SingleProduct = () => {
   const [totalPages, setTotalPages] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [previousImage, setPreviousImage] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState({});
@@ -151,8 +153,14 @@ const SingleProduct = () => {
       });
       // Record product view for analytics
       recordProductView(product._id);
+      
+      // Set initial image if not already set
+      if (!selectedImage && product.images && product.images.length > 0) {
+        const firstImage = getImageUrl(product.images[0]);
+        setSelectedImage(firstImage);
+      }
     }
-  }, [product]);
+  }, [product, selectedImage, getImageUrl]);
 
   // Show edge tabs on mobile after main image area is scrolled past
   useEffect(() => {
@@ -300,20 +308,46 @@ const SingleProduct = () => {
     setLoadedImages((prev) => new Set(prev).add(url));
   }, []);
 
+  // Smooth image transition function
+  const changeImageWithTransition = useCallback((newImageURL) => {
+    if (newImageURL === selectedImage || !newImageURL) return;
+    
+    console.log('Transitioning from:', selectedImage, 'to:', newImageURL); // Debug log
+    
+    // Set previous image and start transition
+    setPreviousImage(selectedImage);
+    setIsTransitioning(true);
+    
+    // Preload new image if not already loaded
+    if (!loadedImages.has(newImageURL)) {
+      const img = new Image();
+      img.src = newImageURL;
+      img.onload = () => {
+        handleImageLoad(newImageURL);
+        setSelectedImage(newImageURL);
+        
+        // End transition after animation completes
+        setTimeout(() => {
+          setIsTransitioning(false);
+          setPreviousImage(null);
+        }, 600);
+      };
+    } else {
+      setSelectedImage(newImageURL);
+      
+      // End transition after animation completes
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setPreviousImage(null);
+      }, 600);
+    }
+  }, [selectedImage, loadedImages, handleImageLoad]);
+
   const handleMouseEnterProduct = useCallback(
     (imageURL) => {
-      if (!loadedImages.has(imageURL)) {
-        const img = new Image();
-        img.src = imageURL;
-        img.onload = () => {
-          setSelectedImage(imageURL);
-          handleImageLoad(imageURL);
-        };
-      } else {
-        setSelectedImage(imageURL);
-      }
+      changeImageWithTransition(imageURL);
     },
-    [loadedImages, handleImageLoad, product?.variants, product?.images]
+    [changeImageWithTransition]
   );
 
   const handleMouseMove = useCallback((e) => {
@@ -446,8 +480,11 @@ const SingleProduct = () => {
   // Data fetching
   const fetchRelatedProducts = useCallback(async () => {
     try {
+      const categoryId = product.categories?.length > 0 
+        ? product.categories[0]._id 
+        : product.category?._id;
       const response = await getRelatedProducts(
-        product.category?._id,
+        categoryId,
         product._id
       );
       setRelatedProducts(response?.products);
@@ -527,7 +564,7 @@ const SingleProduct = () => {
   }, [fetchProduct]);
 
   useEffect(() => {
-    if (product?.category?._id) {
+    if (product?.categories?.length > 0 || product?.category?._id) {
       fetchRelatedProducts();
     }
   }, [product, fetchRelatedProducts]);
@@ -1149,23 +1186,51 @@ const SingleProduct = () => {
           {/* Main Image */}
           <div className="relative flex-1 order-1 mt-4 lg:order-2 lg:mt-3 ">
             <div
-              className="overflow-hidden aspect-square w-full max-w-[340px] md:max-w-[400px] border border-red-100 mx-0 md:mx-auto lg:mx-9 xl:mx-auto relative"
+              className="overflow-hidden aspect-square w-full max-w-[340px] md:max-w-[400px] border border-red-100 mx-0 md:mx-auto lg:mx-9 xl:mx-auto relative bg-gray-100"
               onMouseMove={isLargeScreen ? handleMouseMove : undefined}
               onMouseLeave={isLargeScreen ? handleMouseLeave : undefined}
             >
-              <img
-                ref={imageRef}
-                src={selectedImage || "https://via.placeholder.com/500"}
-                alt={product?.title || "Product Image"}
-                width="1000"
-                height="1000"
-                className={`w-full h-full object-cover cursor-pointer transition-opacity duration-300 ${
-                  loadedImages.has(selectedImage) ? "opacity-100" : "opacity-0"
-                }`}
-                onLoad={() => handleImageLoad(selectedImage)}
-              />
-              {!loadedImages.has(selectedImage) && (
-                <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+              {/* Previous image for crossfade effect */}
+              {previousImage && isTransitioning && (
+                <div
+                  className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-out"
+                  style={{ 
+                    zIndex: 1,
+                    opacity: 0
+                  }}
+                >
+                  <img
+                    src={previousImage}
+                    alt="Previous Image"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
+              {/* Current main image */}
+              <div
+                className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-out"
+                style={{ 
+                  zIndex: 2,
+                  opacity: loadedImages.has(selectedImage) && selectedImage ? 1 : 0
+                }}
+              >
+                <img
+                  ref={imageRef}
+                  src={selectedImage || "https://via.placeholder.com/500"}
+                  alt={product?.title || "Product Image"}
+                  width="1000"
+                  height="1000"
+                  className="w-full h-full object-cover cursor-pointer"
+                  onLoad={() => handleImageLoad(selectedImage)}
+                />
+              </div>
+              
+              {/* Loading placeholder */}
+              {!loadedImages.has(selectedImage) && selectedImage && (
+                <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center" style={{ zIndex: 3 }}>
+                  <span className="text-gray-500 text-sm">Loading...</span>
+                </div>
               )}
               {isLargeScreen && zoomStyle.backgroundX !== undefined && (
                 <div
@@ -1236,7 +1301,7 @@ const SingleProduct = () => {
                       }
                     }
                     if (!isVariantImage) {
-                      setSelectedImage(getImageUrl(image));
+                      changeImageWithTransition(getImageUrl(image));
                     }
                   }}
                 >
@@ -1861,22 +1926,38 @@ const SingleProduct = () => {
             >
               <FaWhatsapp className="text-2xl" /> Order via WhatsApp
             </motion.button>
-            {product?.category?.name && (
+            {(product?.categories?.length > 0 || product?.category?.name) && (
               <motion.div
                 className="mb-1 capitalize flex flex-col gap-2"
                 variants={itemVariants}
               >
-                {/* Category */}
-                <div className="flex items-center">
-                  <span className="text-gray-600 font-poppins  mr-4">
-                    Category:
+                {/* Categories */}
+                <div className="flex items-start">
+                  <span className="text-gray-600 font-poppins mr-4 mt-1">
+                    {product?.categories?.length > 1 ? 'Categories:' : 'Category:'}
                   </span>
-                  <Link
-                    to={`/category/${product?.category?.slug}`}
-                    className="text-[20px] text-blue-600 md:text-xl font-space font-semibold no-underline hover:underline"
-                  >
-                    {product.category.name}
-                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    {product?.categories?.length > 0 ? (
+                      product.categories.map((category, index) => (
+                        <Link
+                          key={index}
+                          to={`/category/${category?.slug}`}
+                          className="text-[18px] text-blue-600 md:text-xl font-space font-semibold no-underline hover:underline"
+                        >
+                          {category.name}
+                          {index < product.categories.length - 1 && ','}
+                        </Link>
+                      ))
+                    ) : (
+                      // Fallback for old single category format
+                      <Link
+                        to={`/category/${product?.category?.slug}`}
+                        className="text-[18px] text-blue-600 md:text-xl font-space font-semibold no-underline hover:underline"
+                      >
+                        {product.category.name}
+                      </Link>
+                    )}
+                  </div>
                 </div>
 
                 {/* Brand */}

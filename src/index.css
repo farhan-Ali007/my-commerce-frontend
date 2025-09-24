@@ -59,32 +59,26 @@ a {
   font-size: 1.75rem; /* ~28px */
   line-height: 2.25rem;
   font-weight: 700;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
 }
 
 .product-description h2 {
   font-size: 1.5rem; /* ~24px */
   line-height: 2rem;
   font-weight: 700;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
 }
 
 .product-description h3 {
   font-size: 1.25rem; /* ~20px */
   line-height: 1.75rem;
   font-weight: 600;
-  margin-top: 0.75rem;
-  margin-bottom: 0.5rem;
 }
 
 /* Emphasis text inside product descriptions */
-.product-description strong,
+/* .product-description strong,
 .product-description b {
   font-weight: 700;
   line-height: normal;
-  color: inherit; /* keep theme color */
+  color: inherit; 
   font-size: 1.2rem;
 }
 
@@ -93,9 +87,9 @@ a {
   font-style: italic;
   font-weight: 500;
   color: inherit;
-}
+} */
 
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
   .product-description h1 { font-size: 2rem; line-height: 2.5rem; }
   .product-description h2 { font-size: 1.75rem; line-height: 2.25rem; }
   .product-description h3 { font-size: 1.5rem; line-height: 2rem; }
@@ -106,7 +100,7 @@ a {
     max-width: 90%;
     overflow-wrap: break-word;
   }
-}
+} */
 
 .image-zoom-container img {
   transition: transform 0.3s ease;

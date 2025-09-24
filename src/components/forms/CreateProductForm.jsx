@@ -16,7 +16,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         longDescription: "",
         weight: "",
         images: [],
-        category: "",
+        categories: [],
         subCategory: "",
         price: "",
         salePrice: "",
@@ -39,7 +39,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             description: "",
             weight: "",
             images: [],
-            category: "",
+            categories: [],
             subCategory: "",
             price: "",
             salePrice: "",
@@ -181,6 +181,20 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         }));
     };
 
+    const handleCategorySelect = (category) => {
+        setFormData((prev) => ({
+            ...prev,
+            categories: [...prev.categories, category],
+        }));
+    };
+
+    const handleCategoryRemove = (category) => {
+        setFormData((prev) => ({
+            ...prev,
+            categories: prev.categories.filter((c) => c !== category),
+        }));
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -200,8 +214,8 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             toast.error("Product stock is required.");
             return;
         }
-        if (!formData.category) {
-            toast.error("Product category is required.");
+        if (!formData.categories || formData.categories.length === 0) {
+            toast.error("At least one product category is required.");
             return;
         }
         if (formData.images.length === 0) {
@@ -228,7 +242,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         submissionData.append("price", formData.price);
         submissionData.append("salePrice", formData.salePrice);
         submissionData.append("weight", formData.weight);
-        submissionData.append("category", formData.category);
+        submissionData.append("categories", JSON.stringify(formData.categories.map(cat => cat.name)));
         submissionData.append("subCategory", formData.subCategory);
         submissionData.append("brand", formData.brand);
         submissionData.append("stock", formData.stock);
@@ -530,20 +544,37 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                     ))}
                 </select>
             </div>
-            {/* Category */}
+            {/* Categories */}
             <div className="mb-4">
-                <label className="block font-medium mb-2 text-primaryondary">Category</label>
-                <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
-                >
-                    <option value="" disabled>Select a category</option>
+                <label className="block font-medium mb-2 text-primaryondary">Categories</label>
+                <div className="flex flex-wrap gap-2">
                     {categories?.map((category, index) => (
-                        <option key={index} value={category?.name}>{category?.name}</option>
+                        <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleCategorySelect(category)}
+                            disabled={formData?.categories?.includes(category)}
+                            className={`px-4 py-2 rounded-full border-2 border-gray-300 ${formData?.categories?.includes(category) ? 'bg-gray-300 text-black cursor-not-allowed' : 'bg-white text-black hover:bg-gray-100'}`}
+                        >
+                            {category?.name}
+                        </button>
                     ))}
-                </select>
+                </div>
+
+                <div className="mt-2 flex flex-wrap gap-2">
+                    {formData?.categories?.map((category, index) => (
+                        <div key={index} className="flex items-center gap-2 bg-secondary opacity-90 text-white px-4 py-1 rounded-full">
+                            <span>{category?.name}</span>
+                            <button
+                                type="button"
+                                onClick={() => handleCategoryRemove(category)}
+                                className="text-sm font-semibold hover:text-red-200"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* SubCategory */}

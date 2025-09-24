@@ -17,6 +17,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "framer-motion": "^12.0.6",
+    "keen-slider": "^6.8.6",
     "lottie-react": "^2.4.1",
     "quill-better-table": "^1.2.10",
     "react": "^18.3.1",
@@ -33,11 +34,9 @@
     "react-range-slider-input": "^3.2.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.0",
-    "react-slick": "^0.30.3",
     "recharts": "^3.1.2",
     "simplebar": "^6.3.2",
-    "simplebar-react": "^3.3.2",
-    "slick-carousel": "^1.8.1"
+    "simplebar-react": "^3.3.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

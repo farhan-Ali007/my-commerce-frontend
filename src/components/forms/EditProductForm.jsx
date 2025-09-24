@@ -28,7 +28,7 @@ const EditProductForm = ({
     weight: "",
     images: [],
     metaDescription: "",
-    category: "",
+    categories: [],
     subCategory: "",
     price: "",
     salePrice: null,
@@ -74,7 +74,11 @@ const EditProductForm = ({
         variants: transformedVariants,
         brand: defaultValues.brand?.name || "",
         metaDescription: defaultValues.metaDescription || "",
-        category: defaultValues.category?._id || "",
+        categories: Array.isArray(defaultValues.categories) 
+          ? defaultValues.categories.map(cat => ({ _id: cat._id, name: cat.name }))
+          : defaultValues.category 
+            ? [{ _id: defaultValues.category._id, name: defaultValues.category.name }]
+            : [],
         subCategory:
           defaultValues.subCategory?._id || defaultValues.subCategory || "",
         specialOfferEnabled: defaultValues.specialOfferEnabled || false,
@@ -272,6 +276,20 @@ const EditProductForm = ({
     }));
   };
 
+  const handleCategorySelect = (category) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: [...prev.categories, category],
+    }));
+  };
+
+  const handleCategoryRemove = (category) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.filter((c) => c._id !== category._id),
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -309,13 +327,11 @@ const EditProductForm = ({
       });
     submissionData.append('volumeTiers', JSON.stringify(tiersPayload));
 
-    // Handle category
-    if (formData.category && typeof formData.category === "string") {
-      submissionData.append("category", formData.category); // If already a string, pass directly
-    } else if (formData.category && formData.category._id) {
-      submissionData.append("category", formData.category._id); // Extract _id if it's an object
+    // Handle categories
+    if (formData.categories && formData.categories.length > 0) {
+      submissionData.append("categories", JSON.stringify(formData.categories.map(cat => cat.name || cat)));
     } else {
-      console.error("Invalid category format received in handleSubmit.");
+      console.error("No categories selected.");
     }
     // Add tags
     submissionData.append(
@@ -791,22 +807,41 @@ const EditProductForm = ({
         </select>
       </div>
 
-      {/* Category */}
+      {/* Categories */}
       <div className="mb-4">
-        <label className="block font-medium mb-2">Category</label>
-        <select
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          className="w-full border px-4 py-2 text-primary rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
-        >
-          <option value="">{defaultValues?.category?.name}</option>
+        <label className="block font-medium mb-2">Categories</label>
+        <div className="flex flex-wrap gap-2">
           {categories?.map((category, index) => (
-            <option key={index} value={category?._id}>
+            <button
+              key={index}
+              type="button"
+              onClick={() => handleCategorySelect(category)}
+              disabled={formData?.categories?.some(c => c._id === category._id)}
+              className={`px-4 py-2 rounded-full border-2 border-gray-300 ${
+                formData?.categories?.some(c => c._id === category._id) 
+                  ? 'bg-gray-300 text-black cursor-not-allowed' 
+                  : 'bg-white text-black hover:bg-gray-100'
+              }`}
+            >
               {category?.name}
-            </option>
+            </button>
           ))}
-        </select>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          {formData?.categories?.map((category, index) => (
+            <div key={index} className="flex items-center gap-2 bg-secondary opacity-90 text-white px-4 py-1 rounded-full">
+              <span>{category?.name}</span>
+              <button
+                type="button"
+                onClick={() => handleCategoryRemove(category)}
+                className="text-sm font-semibold hover:text-red-200"
+              >
+                &times;
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* sub Category */}
