@@ -75,3 +75,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     try { window.dispatchEvent(new Event('app-ready')) } catch {}
   }))
 })()
+
+// Register Service Worker for performance optimization
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('SW registered: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}

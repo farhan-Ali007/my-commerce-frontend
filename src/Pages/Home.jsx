@@ -89,11 +89,11 @@ const showcaseCategories = [
     name: "Trimmers and Shavers",
     image: "/trimmer.webp",
   },
-  {
-    slug: "mehndi-stickers", 
-    name: "Mehndi Stickers",
-    image: "/mehndi.webp",
-  },
+  // {
+  //   slug: "mehndi-stickers", 
+  //   name: "Mehndi Stickers",
+  //   image: "/mehndi.webp",
+  // },
   {
     slug: "beauty-and-personal-care",
     name: "Beauty & Personal Care",
@@ -127,6 +127,8 @@ const Home = () => {
       // Start preloading below-the-fold content
       import('../components/Brands');
       import('../components/FeaturedProducts');
+      import('../components/NewArrivals');
+      import('../components/BestSellers');
       window.removeEventListener('scroll', handleScroll);
     }
   }, []);
@@ -147,8 +149,37 @@ const Home = () => {
         
         {/* Performance optimizations */}
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preload" as="image" href="/trimmer.webp" />
+        <link rel="preload" as="image" href="/mehndi.webp" />
+        <link rel="preload" as="image" href="/beauty.webp" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="preload" as="image" href="/customBanner1.webp" fetchpriority="high" />
+        
+        {/* Font optimizations */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" media="print" onLoad="this.media='all'" />
+        
+        {/* Critical CSS for above-the-fold content */}
+        <style>{`
+          .hero-section { min-height: 400px; }
+          .showcase-categories { min-height: 300px; }
+          .critical-text { font-display: swap; }
+          
+          /* Critical layout styles */
+          .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+          @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; } }
+          @media (min-width: 1024px) { .product-grid { grid-template-columns: repeat(5, 1fr); gap: 1.75rem; } }
+          
+          /* Prevent layout shift */
+          .product-card { aspect-ratio: 1; min-height: 300px; }
+          .brand-logo { aspect-ratio: 1; }
+          
+          /* Critical animations */
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          .fade-in { animation: fadeIn 0.3s ease-out; }
+        `}</style>
         
         {/* Prefetch critical API endpoints */}
         <link rel="prefetch" href="/api/categories" />

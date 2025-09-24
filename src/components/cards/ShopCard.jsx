@@ -68,6 +68,23 @@ const ShopCard = ({ product }) => {
     return "";
   };
 
+  const getOptimizedImageUrl = (imageUrl) => {
+    if (!imageUrl) return '';
+    // Keep local assets as-is
+    if (typeof imageUrl === 'string' && imageUrl.startsWith('/')) return imageUrl;
+    const sep = imageUrl.includes('?') ? '&' : '?';
+    return `${imageUrl}${sep}f_auto&q_auto&dpr=auto&w=200&h=200&c_fill`;
+  };
+
+  const getOptimizedSrcSet = (imageUrl) => {
+    if (!imageUrl) return undefined;
+    const base = getImageUrl(imageUrl);
+    const sep = base.includes('?') ? '&' : '?';
+    const url1x = `${base}${sep}f_auto&q_auto&dpr=auto&w=200&h=200&c_fill`;
+    const url2x = `${base}${sep}f_auto&q_auto&dpr=auto&w=400&h=400&c_fill`;
+    return `${url1x} 200w, ${url2x} 400w`;
+  };
+
   const renderStars = (rating) => {
     const stars = [];
     const maxStars = 5;
@@ -315,11 +332,11 @@ const ShopCard = ({ product }) => {
               className="absolute inset-0 w-full h-full object-contain transition-transform"
               src={
                 imgLoaded
-                  ? isHovered && images[1]
-                    ? getImageUrl(images[1])
-                    : getImageUrl(images[0])
+                  ? getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))
                   : "/loadingCard.png"
               }
+              srcSet={imgLoaded ? getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0])) : undefined}
+              sizes="(max-width: 768px) 50vw, 200px"
               alt={title}
               loading="lazy"
               width={200}

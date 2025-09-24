@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import ProductCard from './cards/ProductCard';
 import ProductCardSkeleton from './skeletons/ProductCardSkeleton';
 import { getBestSellers } from '../functions/product';
@@ -10,7 +11,14 @@ const BestSellers = React.memo(() => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [error, setError] = useState(null);
-    const productsPerPage = 10;
+    const productsPerPage = 5; // Reduced from 5 for better performance
+    
+    // Only load when component comes into view
+    const { ref, inView } = useInView({
+        triggerOnce: true,
+        threshold: 0.1,
+        rootMargin: '200px 0px', // Start loading 200px before it's visible
+    });
 
     const headingVariants = useMemo(() => ({
         hidden: { opacity: 0, y: 50 },
@@ -48,9 +56,11 @@ const BestSellers = React.memo(() => {
     }, [productsPerPage]);
 
     useEffect(() => {
-        // Ensure the initial fetch explicitly requests page 1
-        fetchBestSellers(1);
-    }, [fetchBestSellers]);
+        // Only fetch when component comes into view
+        if (inView) {
+            fetchBestSellers(1);
+        }
+    }, [inView, fetchBestSellers]);
 
     const loadMoreProducts = useCallback(() => {
         if (currentPage < totalPages) {
@@ -89,7 +99,7 @@ const BestSellers = React.memo(() => {
                     key={product._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.3) }} // Reduced stagger delay
                 >
                     <ProductCard product={product} />
                 </motion.div>
@@ -133,7 +143,7 @@ const BestSellers = React.memo(() => {
     }
 
     return (
-        <div className="max-w-screen-xl px-2 mx-auto my-4 md:px-4 lg:px-4">
+        <div ref={ref} className="max-w-screen-xl px-2 mx-auto my-4 md:px-4 lg:px-4">
             {/* Heading with lines */}
             <motion.div 
                 className="flex items-center justify-center w-full px-5 mb-8"
@@ -149,7 +159,11 @@ const BestSellers = React.memo(() => {
                 <div className="flex-grow h-[0.5px] ml-4 bg-primary"></div>
             </motion.div>
 
-            {loading && currentPage === 1 ? renderSkeletons : renderProducts}
+            {!inView ? (
+                <div className="h-64 bg-gray-50 animate-pulse rounded-lg flex items-center justify-center">
+                    <span className="text-gray-400">Loading Best Sellers...</span>
+                </div>
+            ) : loading && currentPage === 1 ? renderSkeletons : renderProducts}
             {renderLoadMoreButton}
         </div>
     );
