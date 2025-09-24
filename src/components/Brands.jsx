@@ -63,7 +63,7 @@ const Brands = React.memo(() => {
           <div className="relative rounded-full overflow-visible">
             {/* Gradient ring wrapper with padding; spins on hover (desktop) */}
             <div
-              className="w-10 sm:w-16 md:w-20 lg:w-24 h-10 sm:h-16 md:h-20 lg:h-24 rounded-full p-[2px] md:group-hover:animate-[spin_3s_linear_infinite]"
+              className="w-14 sm:w-16 md:w-20 lg:w-24 h-14 sm:h-16 md:h-20 lg:h-24 rounded-full p-[2px] md:group-hover:animate-[spin_3s_linear_infinite]"
               style={ringStyle}
             >
               {/* Inner white circle holds the logo; clipped cleanly with small insets */}
@@ -73,11 +73,11 @@ const Brands = React.memo(() => {
                   alt={brand.name}
                   loading="lazy"
                   decoding="async"
-                  sizes="(min-width: 1024px) 112px, (min-width: 768px) 80px, 40px"
+                  sizes="(min-width: 1024px) 112px, (min-width: 768px) 80px, 56px"
                   width={88}
                   height={88}
                   onError={handleImageError}
-                  className="block w-[32px] h-[32px] sm:w-[54px] sm:h-[54px] md:w-[70px] md:h-[70px] lg:w-[80px] lg:h-[80px] object-contain rounded-full"
+                  className="block w-[48px] h-[48px] sm:w-[54px] sm:h-[54px] md:w-[70px] md:h-[70px] lg:w-[80px] lg:h-[80px] object-contain rounded-full"
                 />
               </div>
             </div>

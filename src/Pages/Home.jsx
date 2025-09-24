@@ -87,7 +87,7 @@ const showcaseCategories = [
   {
     slug: "trimmers-and-shavers",
     name: "Trimmers and Shavers",
-    image: "/trimmer.png",
+    image: "/trimmer.webp",
   },
   {
     slug: "mehndi-stickers", 
