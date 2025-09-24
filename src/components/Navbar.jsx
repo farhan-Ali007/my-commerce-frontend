@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import { CgMenu } from "react-icons/cg";
 import { CiMobile3 } from "react-icons/ci";
 import { FaUserShield } from "react-icons/fa";
-import { FiSearch   } from "react-icons/fi";
+import { FiSearch } from "react-icons/fi";
 import { HiOutlineShoppingBag, HiOutlineShoppingCart } from "react-icons/hi2";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -75,25 +75,33 @@ const Navbar = React.memo(() => {
   const modalRef = useRef(null);
 
   // React to page-type flags set on <html> by NotFound/DynamicPage
-  const [pageFlags, setPageFlags] = useState({ notFound: false, dynamic: false });
+  const [pageFlags, setPageFlags] = useState({
+    notFound: false,
+    dynamic: false,
+  });
 
   useEffect(() => {
     const updateFlags = () => {
       setPageFlags({
-        notFound: document.documentElement.getAttribute('data-not-found') === 'true',
-        dynamic: document.documentElement.getAttribute('data-dynamic-page') === 'true',
+        notFound:
+          document.documentElement.getAttribute("data-not-found") === "true",
+        dynamic:
+          document.documentElement.getAttribute("data-dynamic-page") === "true",
       });
     };
     updateFlags();
     const observer = new MutationObserver(() => updateFlags());
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-not-found', 'data-dynamic-page'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-not-found", "data-dynamic-page"],
+    });
     return () => observer.disconnect();
   }, []);
 
   // Focus mobile search input when it opens
   useEffect(() => {
     if (showMobileSearch && searchBarRef.current) {
-      const el = searchBarRef.current.querySelector('input');
+      const el = searchBarRef.current.querySelector("input");
       if (el) el.focus();
     }
   }, [showMobileSearch]);
@@ -104,24 +112,24 @@ const Navbar = React.memo(() => {
       pageFlags.notFound ||
       pageFlags.dynamic ||
       // Hide on unknown routes as a safety net
-      (function isUnknownPath(path){
+      (function isUnknownPath(path) {
         const knownPrefixes = [
-          '/',
-          '/product/',
-          '/category/',
-          '/brand/',
-          '/shop',
-          '/search',
-          '/cart',
-          '/order-history',
-          '/admin',
-          '/signup',
-          '/login',
-          '/color-settings'
+          "/",
+          "/product/",
+          "/category/",
+          "/brand/",
+          "/shop",
+          "/search",
+          "/cart",
+          "/order-history",
+          "/admin",
+          "/signup",
+          "/login",
+          "/color-settings",
         ];
         // Consider exactly '/' known, others must match a known prefix
-        if (path === '/') return false;
-        return !knownPrefixes.some(p => path === p || path.startsWith(p));
+        if (path === "/") return false;
+        return !knownPrefixes.some((p) => path === p || path.startsWith(p));
       })(location.pathname) ||
       location.pathname.startsWith("/pages/") ||
       /^\/edit-product\/[^/]+$/.test(location.pathname) ||
@@ -158,12 +166,16 @@ const Navbar = React.memo(() => {
   }, []);
 
   useEffect(() => {
-    const CACHE_KEY = 'menu_categories_cache_v1';
+    const CACHE_KEY = "menu_categories_cache_v1";
     const CACHE_MS = 30 * 60 * 1000; // 30 minutes
     // Paint quickly with cached categories if fresh
     try {
-      const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null');
-      if (cached && Array.isArray(cached.items) && (Date.now() - cached.ts) < CACHE_MS) {
+      const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
+      if (
+        cached &&
+        Array.isArray(cached.items) &&
+        Date.now() - cached.ts < CACHE_MS
+      ) {
         setSelectedCategories(cached.items);
       }
     } catch {}
@@ -175,10 +187,13 @@ const Navbar = React.memo(() => {
         const cats = response?.categories || [];
         setSelectedCategories(cats);
         try {
-          sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items: cats }));
+          sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ ts: Date.now(), items: cats })
+          );
         } catch {}
       } catch (error) {
-        if (error?.name !== 'AbortError' && error?.name !== 'CanceledError') {
+        if (error?.name !== "AbortError" && error?.name !== "CanceledError") {
           console.error("Error fetching selected categories:", error);
         }
       }
@@ -214,7 +229,10 @@ const Navbar = React.memo(() => {
         !searchBarRef.current.contains(event.target)
       ) {
         // Ignore clicks on the toggle button itself
-        if (mobileSearchToggleRef.current && mobileSearchToggleRef.current.contains(event.target)) {
+        if (
+          mobileSearchToggleRef.current &&
+          mobileSearchToggleRef.current.contains(event.target)
+        ) {
           return;
         }
         setShowMobileSearch(false);
@@ -621,7 +639,7 @@ const Navbar = React.memo(() => {
               animate="visible"
             >
               <img
-                src="/logo.png"
+                src={logo?.image || "/logo.png"}
                 alt="Logo"
                 className="h-10"
                 loading="eager"
@@ -642,7 +660,7 @@ const Navbar = React.memo(() => {
                 ref={mobileSearchToggleRef}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowMobileSearch((v) => !v)
+                  setShowMobileSearch((v) => !v);
                 }}
               >
                 <FiSearch className="text-2xl" />
@@ -673,9 +691,9 @@ const Navbar = React.memo(() => {
             <motion.div
               key="mobile-search-wrap"
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
+              animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.22, ease: 'easeInOut' }}
+              transition={{ duration: 0.22, ease: "easeInOut" }}
               className="md:hidden overflow-hidden"
             >
               <div className="px-4 py-2" ref={searchBarRef}>
