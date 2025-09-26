@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   getFeaturedProducts,
-  getNewArrivals,
+  getNewProducts,
   getBestSellers,
+} from "../../functions/homepage";
+import {
   getAllProducts,
 } from "../../functions/product";
 
@@ -12,7 +14,7 @@ const fetchBySource = async (source, page, limit) => {
     case "featured":
       return await getFeaturedProducts(page, limit);
     case "new-arrivals":
-      return await getNewArrivals(page, limit);
+      return await getNewProducts(page, limit);
     case "best-sellers":
       return await getBestSellers(page, limit);
     default:

@@ -3,9 +3,21 @@
 import { BASE_URL } from '../config/baseURL';
 
 // Single function to get all homepage data
-export const getHomepageData = async () => {
+// Accept optional pagination params for featured/new/best sections
+// params: { featuredPage, featuredLimit, newPage, newLimit, bestPage, bestLimit }
+export const getHomepageData = async (params = {}) => {
   try {
-    const response = await fetch(`${BASE_URL}/homepage-data`, {
+    const query = new URLSearchParams();
+    if (params.featuredPage) query.set('featuredPage', params.featuredPage);
+    if (params.featuredLimit) query.set('featuredLimit', params.featuredLimit);
+    if (params.newPage) query.set('newPage', params.newPage);
+    if (params.newLimit) query.set('newLimit', params.newLimit);
+    if (params.bestPage) query.set('bestPage', params.bestPage);
+    if (params.bestLimit) query.set('bestLimit', params.bestLimit);
+
+    const url = `${BASE_URL}/homepage-data${query.toString() ? `?${query.toString()}` : ''}`;
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -31,61 +43,60 @@ export const getHomepageData = async () => {
   }
 };
 
-// Fallback functions for individual components (if needed)
-export const getBanners = async () => {
-  try {
-    const data = await getHomepageData();
-    return data.data.banners;
-  } catch (error) {
-    console.error('Banners fetch failed:', error);
-    return [];
-  }
-};
+// Public API surface (kept):
+// - getHomepageData(params)
+// - getCachedHomepageData()
+// - getFeaturedProducts(page, limit)
+// - getNewProducts(page, limit)
+// - getBestSellers(page, limit)
+// - getShowcaseProducts(categorySlug)
+// - getHomepageCategories(), getHomepageBrands(), getHomepageBanners(), getHomepageTopbar(), getHomepageMenuCategories()
 
-export const getCategories = async () => {
+export const getFeaturedProducts = async (page = 1, limit = 8) => {
   try {
-    const data = await getHomepageData();
-    return data.data.categories;
-  } catch (error) {
-    console.error('Categories fetch failed:', error);
-    return [];
-  }
-};
-
-export const getBrands = async () => {
-  try {
-    const data = await getHomepageData();
-    return data.data.brands;
-  } catch (error) {
-    console.error('Brands fetch failed:', error);
-    return [];
-  }
-};
-
-export const getFeaturedProducts = async () => {
-  try {
-    const data = await getHomepageData();
-    return data.data.featuredProducts;
+    const data = await getHomepageData({ featuredPage: page, featuredLimit: limit });
+    const meta = data.data.metadata?.featuredProducts || {};
+    return {
+      products: data.data.featuredProducts,
+      totalProducts: meta.totalProducts ?? data.data.featuredProducts?.length ?? 0,
+      totalPages: meta.totalPages ?? 1,
+      currentPage: meta.currentPage ?? page,
+      limit: meta.limit ?? limit,
+    };
   } catch (error) {
     console.error('Featured products fetch failed:', error);
     return [];
   }
 };
 
-export const getNewProducts = async () => {
+export const getNewProducts = async (page = 1, limit = 8) => {
   try {
-    const data = await getHomepageData();
-    return data.data.newProducts;
+    const data = await getHomepageData({ newPage: page, newLimit: limit });
+    const meta = data.data.metadata?.newProducts || {};
+    return {
+      products: data.data.newProducts,
+      totalProducts: meta.totalProducts ?? data.data.newProducts?.length ?? 0,
+      totalPages: meta.totalPages ?? 1,
+      currentPage: meta.currentPage ?? page,
+      limit: meta.limit ?? limit,
+    };
   } catch (error) {
     console.error('New products fetch failed:', error);
     return [];
   }
 };
 
-export const getBestSellers = async () => {
+export const getBestSellers = async (page = 1, limit = 5) => {
   try {
-    const data = await getHomepageData();
-    return data.data.bestSellers;
+    const data = await getHomepageData({ bestPage: page, bestLimit: limit });
+    const meta = data.data.metadata?.bestSellers || {};
+    return {
+      products: data.data.bestSellers,
+      totalProducts: meta.totalProducts ?? data.data.bestSellers?.length ?? 0,
+      totalPages: meta.totalPages ?? 1,
+      currentPage: meta.currentPage ?? page,
+      limit: meta.limit ?? limit,
+    };
   } catch (error) {
     console.error('Best sellers fetch failed:', error);
     return [];
@@ -128,7 +139,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const getCachedHomepageData = async () => {
   const now = Date.now();
-  d
+  // Return cached response if still fresh
   if (homepageDataCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION) {
     console.log('Using cached homepage data');
     return homepageDataCache;
@@ -150,9 +161,72 @@ export const getCachedHomepageData = async () => {
   return data;
 };
 
+// Load homepage data with params but still take advantage of simple client-side caching per-URL
+export const loadHomepageWithParams = async (params = {}) => {
+  const startTime = performance.now();
+  const data = await getHomepageData(params);
+  const endTime = performance.now();
+  const dataSize = JSON.stringify(data).length;
+  logPerformanceMetrics(startTime, endTime, dataSize);
+  return data;
+};
+
 // Clear cache function
 export const clearHomepageCache = () => {
   homepageDataCache = null;
   cacheTimestamp = null;
   console.log('Homepage cache cleared');
+};
+
+// Simple selectors that read from the cached homepage response (no params)
+
+// Categories and Brands selectors
+export const getHomepageCategories = async () => {
+  try {
+    const data = await getCachedHomepageData();
+    return data.data?.categories || [];
+  } catch (e) {
+    console.error('getHomepageCategories failed:', e);
+    return [];
+  }
+};
+
+export const getHomepageBrands = async () => {
+  try {
+    const data = await getCachedHomepageData();
+    return data.data?.brands || [];
+  } catch (e) {
+    console.error('getHomepageBrands failed:', e);
+    return [];
+  }
+};
+
+export const getHomepageBanners = async () => {
+  try {
+    const data = await getCachedHomepageData();
+    return data.data?.banners || [];
+  } catch (e) {
+    console.error('getHomepageBanners failed:', e);
+    return [];
+  }
+};
+
+export const getHomepageTopbar = async () => {
+  try {
+    const data = await getCachedHomepageData();
+    return data.data?.topbar || null;
+  } catch (e) {
+    console.error('getHomepageTopbar failed:', e);
+    return null;
+  }
+};
+
+export const getHomepageMenuCategories = async () => {
+  try {
+    const data = await getCachedHomepageData();
+    return data.data?.menuCategories || [];
+  } catch (e) {
+    console.error('getHomepageMenuCategories failed:', e);
+    return [];
+  }
 };

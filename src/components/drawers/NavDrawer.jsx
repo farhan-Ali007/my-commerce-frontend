@@ -1,59 +1,57 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { FaAngleDown, FaAngleRight, FaMobileAlt } from "react-icons/fa";
 import { ImCross } from 'react-icons/im';
+import { FaAngleDown, FaAngleRight, FaMobileAlt } from 'react-icons/fa';
 import Drawer from 'react-modern-drawer';
 import 'react-modern-drawer/dist/index.css';
 import { Link } from 'react-router-dom';
 
-const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
+const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories = [], closeDrawer }) => {
     const [expandedCategories, setExpandedCategories] = useState([]);
     const [allowMotion, setAllowMotion] = useState(true);
 
     useEffect(() => {
         try {
-            const reduceMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const isCoarse = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-            setAllowMotion(!(reduceMotion || isCoarse));
-        } catch (_) {
-            setAllowMotion(true);
+            // Add any motion preference detection logic here if needed
+        } catch (error) {
+            console.error('Error in motion detection:', error);
         }
     }, []);
 
     const toggleCategoryExpansion = useCallback((categoryId) => {
-        setExpandedCategories((prev) => (
-            prev.includes(categoryId)
-                ? prev.filter((id) => id !== categoryId)
+        if (!categoryId) return;
+        
+        setExpandedCategories(prev => 
+            prev.includes(categoryId) 
+                ? prev.filter(id => id !== categoryId)
                 : [...prev, categoryId]
-        ));
+        );
     }, []);
-
-    // Keep the drawer mounted so react-modern-drawer can animate open/close
 
     return (
         <Drawer
             open={isDrawerOpen}
             onClose={toggleDrawer}
-            size={350}
-            direction="left"
-            className="!z-[1200] drawer h-screen overflow-y-auto relative bg-white shadow-md"
+            direction='left'
+            className='bla bla bla'
+            size={300}
         >
-            <div className="p-4" style={{ contentVisibility: 'auto', containIntrinsicSize: '200px' }}>
-                <div className='flex justify-between items-center'>
+            <div className='p-4'>
+                <div className='flex justify-between items-center mb-4'>
                     <div>
-                        <span className="text-xl font-bold mb-4 text-primary">Categories</span>
+                        <h3 className='text-xl font-bold text-primary'>Categories</h3>
                     </div>
                     <div>
-                        <ImCross fontWeight={700} className=' mb-2 text-secondary' size={22} onClick={closeDrawer} />
+                        <ImCross fontWeight={700} className='mb-2 text-secondary' size={22} onClick={closeDrawer} />
                     </div>
                 </div>
-                {categories.map((category) => (
-                    <div key={category._id} className="mb-2">
-                        <div className="flex items-center mt-4 justify-between cursor-pointer" onClick={() => toggleCategoryExpansion(category._id)}>
-                            <Link to={`/category/${category.slug}`} className="text-primary text-[18px] no-underline font-bold capitalize">
-                                {category.name}
+                {(Array.isArray(categories) ? categories : []).map((category, idx) => (
+                    <div key={category?._id || category?.slug || idx} className="mb-2">
+                        <div className="flex items-center mt-4 justify-between cursor-pointer" onClick={() => toggleCategoryExpansion(category?._id)}>
+                            <Link to={`/category/${category?.slug}`} className="text-primary text-[18px] no-underline font-bold capitalize">
+                                {category?.name}
                             </Link>
-                            {category?.subcategories.length > 0 && (
-                                expandedCategories.includes(category._id) ? (
+                            {(category?.subcategories && category.subcategories.length > 0) && (
+                                expandedCategories.includes(category?._id) ? (
                                     <FaAngleDown className="text-secondary font-bold" />
                                 ) : (
                                     <FaAngleRight className="text-secondary font-extrabold" />
@@ -61,18 +59,18 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                             )}
                         </div>
                         <div
-                            className={`overflow-hidden ${allowMotion ? 'transition-all duration-300 ease-in-out' : 'transition-none'} ${expandedCategories.includes(category._id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                            className={`overflow-hidden ${allowMotion ? 'transition-all duration-300 ease-in-out' : 'transition-none'} ${expandedCategories.includes(category?._id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                                 }`}
                         >
-                            {category.subcategories.length > 0 && (
-                                <div className=" mt-2 rounded">
-                                    {category.subcategories.map((subcategory) => (
+                            {(category?.subcategories && category.subcategories.length > 0) && (
+                                <div className="mt-2 rounded">
+                                    {(category?.subcategories || []).map((subcategory) => (
                                         <Link
-                                            key={subcategory._id}
-                                            to={`/category/${category.slug}/subcategory/${subcategory.slug}`}
+                                            key={subcategory?._id}
+                                            to={`/category/${category?.slug}/subcategory/${subcategory?.slug}`}
                                             className={`block capitalize mb-2 bg-transparent bg-opacity-10 border-secondary border-l-4 no-underline text-primary py-1 pl-2 rounded hover:bg-secondary hover:text-white ${allowMotion ? 'transition-colors' : ''}`}
                                         >
-                                            {subcategory.name}
+                                            {subcategory?.name}
                                         </Link>
                                     ))}
                                 </div>
@@ -87,7 +85,6 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories, closeDrawer }) => {
                     0307-1111832
                 </a>
             </div>
-
         </Drawer>
     );
 };

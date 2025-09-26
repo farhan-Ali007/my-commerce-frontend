@@ -1,9 +1,9 @@
 import React, {
   useEffect,
   useRef,
-  useState,
   useCallback,
   useMemo,
+  useState,
 } from "react";
 import {
   FaArrowLeft,
@@ -13,16 +13,16 @@ import {
 } from "react-icons/fa";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
-import { getNewArrivals } from "../functions/product";
 import ProductCard from "./cards/ProductCard";
 import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
 import { motion } from "framer-motion";
 import { BiSolidChevronLeft, BiSolidChevronRight } from "react-icons/bi";
+import { getNewProducts } from "../functions/homepage";
 
 const NewArrivals = React.memo(() => {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const containerRef = useRef(null);
@@ -83,36 +83,33 @@ const NewArrivals = React.memo(() => {
 
   const productsPerPage = 8;
 
-  const fetchProducts = useCallback(
-    async (page) => {
-      setLoading(true);
-      setError(null);
+  const handlePageChange = useCallback((pageNumber) => {
+    if (typeof pageNumber !== 'number') return;
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    setCurrentPage(pageNumber);
+  }, [totalPages]);
+
+  // Fetch new products for the current page
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
       try {
-        const data = await getNewArrivals(page, productsPerPage);
-        setProducts(data?.products || []);
-        setTotalPages(data?.totalPages || 0);
-      } catch (error) {
-        console.error("Error fetching products", error);
+        setLoading(true);
+        const res = await getNewProducts(currentPage, productsPerPage);
+        if (cancelled) return;
+        setProducts(res.products || []);
+        setTotalPages(res.totalPages || 1);
+        setError(null);
+      } catch (e) {
+        if (cancelled) return;
         setError("Failed to load new arrivals. Please try again later.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    },
-    [productsPerPage]
-  );
-
-  const handlePageChange = useCallback(
-    (pageNumber) => {
-      if (pageNumber < 1 || pageNumber > totalPages) return;
-      setCurrentPage(pageNumber);
-      fetchProducts(pageNumber);
-    },
-    [totalPages, fetchProducts]
-  );
-
-  useEffect(() => {
-    fetchProducts(currentPage);
-  }, [currentPage, fetchProducts]);
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [currentPage, productsPerPage]);
 
   const handlePrev = useCallback(() => {
     instanceRef.current?.prev();

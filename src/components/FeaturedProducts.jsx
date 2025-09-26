@@ -1,34 +1,31 @@
 import React, {
   useEffect,
   useRef,
-  useState,
   useCallback,
   useMemo,
+  useState,
 } from "react";
-import {
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa";
-import { BiSolidChevronLeft, BiSolidChevronRight , } from "react-icons/bi";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { BiSolidChevronLeft, BiSolidChevronRight } from "react-icons/bi";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
-import { getFeaturedProducts } from "../functions/product";
 import ProductCard from "./cards/ProductCard";
 import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
 import { motion } from "framer-motion";
+import { getFeaturedProducts } from "../functions/homepage";
 
 const FeaturedProducts = React.memo(() => {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const containerRef = useRef(null);
   const [mountSlider, setMountSlider] = useState(false);
   const [sliderContainerRef, instanceRef] = useKeenSlider({
     loop: true,
-    renderMode: 'precision',
-    slides: { 
+    renderMode: "precision",
+    slides: {
       perView: 2,
       spacing: 8,
     },
@@ -47,8 +44,14 @@ const FeaturedProducts = React.memo(() => {
 
   // Motion gating: skip animations on touch devices or when user prefers reduced motion
   const allowMotion = useMemo(() => {
-    const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isCoarse = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isCoarse =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(pointer: coarse)").matches;
     return !(prefersReduced || isCoarse);
   }, []);
 
@@ -71,22 +74,25 @@ const FeaturedProducts = React.memo(() => {
 
   // Pause autoplay when offscreen to reduce work; resume when visible
   useEffect(() => {
-    if (!('IntersectionObserver' in window)) return;
+    if (!("IntersectionObserver" in window)) return;
     const el = containerRef.current;
     if (!el) return;
 
-    const observer = new IntersectionObserver((entries) => {
-      const [entry] = entries;
-      const api = instanceRef.current;
-      if (!api) return;
-      if (entry.isIntersecting && entry.intersectionRatio > 0) {
-        // Resume autoplay when visible
-        api.moveToIdx && api.moveToIdx(api.track.details.rel);
-      } else {
-        // Pause when not visible (Keen Slider doesn't have explicit pause/play)
-        // We can stop the autoplay by not calling moveToIdx
-      }
-    }, { threshold: 0.1 });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        const api = instanceRef.current;
+        if (!api) return;
+        if (entry.isIntersecting && entry.intersectionRatio > 0) {
+          // Resume autoplay when visible
+          api.moveToIdx && api.moveToIdx(api.track.details.rel);
+        } else {
+          // Pause when not visible (Keen Slider doesn't have explicit pause/play)
+          // We can stop the autoplay by not calling moveToIdx
+        }
+      },
+      { threshold: 0.1 }
+    );
 
     observer.observe(el);
     return () => observer.disconnect();
@@ -99,47 +105,43 @@ const FeaturedProducts = React.memo(() => {
       if (!api) return;
       // Keen Slider handles autoplay automatically, no need for manual pause/play
     };
-    document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
 
-  const fetchProducts = useCallback(
-    async (page) => {
-      setLoading(true);
-      setError(null);
+  const handlePageChange = useCallback((pageNumber) => {
+    if (typeof pageNumber !== "number") return;
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    setCurrentPage(pageNumber);
+  }, [totalPages]);
+
+  // Fetch featured products for the current page
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
       try {
-        const data = await getFeaturedProducts(page, productsPerPage);
-        setProducts(data?.products || []);
-        setTotalPages(data?.totalPages || 0);
-      } catch (error) {
-        console.error("Error fetching products", error);
+        setLoading(true);
+        const res = await getFeaturedProducts(currentPage, productsPerPage);
+        if (cancelled) return;
+        setProducts(res.products || []);
+        setTotalPages(res.totalPages || 1);
+        setError(null);
+      } catch (e) {
+        if (cancelled) return;
         setError("Failed to load products. Please try again later.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    },
-    [productsPerPage]
-  );
-
-  const handlePageChange = useCallback(
-    (pageNumber) => {
-      if (pageNumber < 1 || pageNumber > totalPages) return;
-      setCurrentPage(pageNumber);
-      fetchProducts(pageNumber);
-    },
-    [totalPages, fetchProducts]
-  );
-
-  useEffect(() => {
-    fetchProducts(currentPage);
-  }, [currentPage, fetchProducts]);
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [currentPage, productsPerPage]);
 
   // Mount the heavy slider after first paint so content shows instantly
   useEffect(() => {
     const id = requestAnimationFrame(() => setMountSlider(true));
     return () => cancelAnimationFrame(id);
   }, []);
-
 
   const handlePrev = useCallback(() => {
     instanceRef.current?.prev();
@@ -148,8 +150,6 @@ const FeaturedProducts = React.memo(() => {
   const handleNext = useCallback(() => {
     instanceRef.current?.next();
   }, [instanceRef]);
-
-
 
   const getVisiblePages = useCallback(() => {
     const maxVisible = 5;
@@ -248,14 +248,14 @@ const FeaturedProducts = React.memo(() => {
     <div
       className="w-full px-1 mt-4 overflow-hidden md:px-4 lg:px-6"
       ref={containerRef}
-      style={{ contentVisibility: 'auto', containIntrinsicSize: '560px 420px' }}
+      style={{ contentVisibility: "auto", containIntrinsicSize: "560px 420px" }}
     >
       {/* Heading with lines */}
       <motion.div
         className="flex items-center justify-center w-full px-5 mb-4 md:mb-7"
         variants={headingVariants}
-        initial={allowMotion ? 'hidden' : false}
-        whileInView={allowMotion ? 'visible' : undefined}
+        initial={allowMotion ? "hidden" : false}
+        whileInView={allowMotion ? "visible" : undefined}
         viewport={allowMotion ? { once: true, amount: 0.5 } : undefined}
       >
         <div className="flex-grow h-[0.5px] mr-4 bg-primary"></div>
@@ -273,7 +273,10 @@ const FeaturedProducts = React.memo(() => {
             // Static list before Keen mounts
             <div className="flex gap-2 lg:gap-0 overflow-x-auto scrollbar-hide px-1 lg:px-0">
               {products.map((product) => (
-                <div key={product._id} className="shrink-0 w-[250px] px-1 lg:px-0 py-2">
+                <div
+                  key={product._id}
+                  className="shrink-0 w-[250px] px-1 lg:px-0 py-2"
+                >
                   <ProductCard product={product} />
                 </div>
               ))}
@@ -282,7 +285,10 @@ const FeaturedProducts = React.memo(() => {
             <div className="relative">
               <div ref={sliderContainerRef} className="keen-slider">
                 {products.map((product) => (
-                  <div key={product._id} className="keen-slider__slide px-1 lg:px-[0.1rem] py-2">
+                  <div
+                    key={product._id}
+                    className="keen-slider__slide px-1 lg:px-[0.1rem] py-2"
+                  >
                     <ProductCard product={product} />
                   </div>
                 ))}

@@ -4,7 +4,8 @@ import { FiUpload, FiDownload, FiTrash2, FiPlus, FiChevronUp, FiChevronDown, FiS
 import { saveDraft as apiSaveDraft, publishLayout as apiPublishLayout, getDraftBySlug as apiGetDraftBySlug, getPublishedBySlug as apiGetPublishedBySlug } from "../../functions/pageLayout";
 import { uploadImage as apiUploadImage } from "../../functions/media";
 import { sectionsRegistry, sectionTypes } from "../../components/sections/registry";
-import { getFeaturedProducts, getNewArrivals, getBestSellers, getAllProducts } from "../../functions/product";
+import { getFeaturedProducts, getNewProducts, getBestSellers } from "../../functions/homepage";
+import { getAllProducts } from "../../functions/product";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
@@ -56,7 +57,7 @@ const SectionCard = ({ section, index, onMove, onDelete, onEdit, onEditPartial, 
         let resp;
         // request with small limit just to get metadata
         if (src === 'featured') resp = await getFeaturedProducts(1, 1);
-        else if (src === 'new-arrivals') resp = await getNewArrivals(1, 1);
+        else if (src === 'new-arrivals') resp = await getNewProducts(1, 1);
         else if (src === 'best-sellers') resp = await getBestSellers(1, 1);
         else resp = await getAllProducts(1, 1);
         const total = resp?.totalProducts ?? resp?.total ?? (Array.isArray(resp) ? resp.length : (resp?.products?.length ?? 0));

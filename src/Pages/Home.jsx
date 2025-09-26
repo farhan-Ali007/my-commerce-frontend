@@ -121,6 +121,8 @@ const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Components will fetch from the cached homepage response themselves
+
   // Preload next sections when user scrolls
   const handleScroll = useCallback(() => {
     if (window.scrollY > 200) {

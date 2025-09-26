@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllCategories } from '../functions/categories';
+import { getHomepageCategories } from '../functions/homepage';
 import CategorySkeleton from './skeletons/CategorySkeleton';
 
 const Categories = React.memo(() => {
@@ -18,8 +18,7 @@ const Categories = React.memo(() => {
         try {
             setLoading(true);
             setError(null);
-            const response = await getAllCategories();
-            const list = response?.categories || [];
+            const list = await getHomepageCategories();
             setCategories(list);
             // Warm cache
             try {

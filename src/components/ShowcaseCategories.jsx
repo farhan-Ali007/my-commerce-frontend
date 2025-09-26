@@ -60,7 +60,7 @@ const ShowcaseCategories = ({
           <img
             src={categoryImage}
             alt={categoryName}
-            className="block w-16 h-16 md:w-auto md:max-w-[300px] md:h-auto md:max-h-[380px] lg:w-[300px] lg:h-[380px] md:object-contain lg:object-cover md:bg-transparent lg:bg-gray-100 self-center md:ml-2 rounded shadow-none hover:shadow-md flex-shrink-0"
+            className="block w-16 h-16 md:w-auto md:max-w-[300px] md:h-auto md:max-h-[380px] lg:w-[300px] lg:h-[380px] md:object-contain lg:object-cover md:bg-transparent lg:bg-gray-100 self-center md:ml-2 rounded shadow-none  flex-shrink-0"
             loading="lazy"
             decoding="async"
             width={300}

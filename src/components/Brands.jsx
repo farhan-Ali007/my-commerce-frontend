@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { BiSolidChevronLeft, BiSolidChevronRight } from "react-icons/bi";
-import { getAllBrands } from "../functions/brand";
+import { getHomepageBrands } from "../functions/homepage";
 import { Link } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
 
@@ -20,8 +20,8 @@ const Brands = React.memo(() => {
 
   const fetchBrands = useCallback(async () => {
     try {
-      const response = await getAllBrands();
-      setBrands(response?.brands || []);
+      const list = await getHomepageBrands();
+      setBrands(list || []);
       setError(null);
     } catch (error) {
       console.error("Error in fetching brands", error);

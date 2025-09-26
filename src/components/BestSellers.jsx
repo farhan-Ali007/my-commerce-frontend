@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState,useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import ProductCard from './cards/ProductCard';
 import ProductCardSkeleton from './skeletons/ProductCardSkeleton';
-import { getBestSellers } from '../functions/product';
+import { getBestSellers } from '../functions/homepage';
 
 const BestSellers = React.memo(() => {
     const [loading, setLoading] = useState(true);
     const [bestSellers, setBestSellers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
     const [error, setError] = useState(null);
     const productsPerPage = 5; // Reduced from 5 for better performance
     
@@ -37,16 +37,15 @@ const BestSellers = React.memo(() => {
             setLoading(true);
             setError(null);
             const response = await getBestSellers(page, productsPerPage);
-            if (response?.products) {
-                if (page === 1) {
-                    // For the first page, replace the entire list
-                    setBestSellers(response.products);
-                } else {
-                    // For subsequent pages (Load More), append to the list
-                    setBestSellers((prev) => [...prev, ...response.products]);
-                }
-                setTotalPages(response?.totalPages || 0);
+            const products = response?.products || [];
+            const total = response?.totalPages || 1;
+            if (page === 1) {
+                setBestSellers(products);
+            } else {
+                setBestSellers((prev) => [...prev, ...products]);
             }
+            setTotalPages(total);
+            setCurrentPage(response?.currentPage || page);
         } catch (error) {
             console.error("Error fetching best sellers:", error);
             setError("Failed to load best sellers. Please try again later.");
@@ -64,8 +63,9 @@ const BestSellers = React.memo(() => {
 
     const loadMoreProducts = useCallback(() => {
         if (currentPage < totalPages) {
-            setCurrentPage((prev) => prev + 1);
-            fetchBestSellers(currentPage + 1);
+            const nextPage = currentPage + 1;
+            setCurrentPage(nextPage);
+            fetchBestSellers(nextPage);
         }
     }, [currentPage, totalPages, fetchBestSellers]);
 
@@ -114,7 +114,7 @@ const BestSellers = React.memo(() => {
             <div className="flex justify-center mt-6">
                 <motion.button
                     onClick={loadMoreProducts}
-                    className="px-6 py-2 font-semibold text-secondary transition-all rounded-sm bg-primary opacity-70 hover:opacity-90 md:px-8 md:py-4 hover:bg-opacity-90"
+                    className="px-6 py-2 font-semibold text-secondary transition-all rounded bg-primary opacity-70 hover:opacity-90 md:px-8 md:py-4 hover:bg-opacity-90"
                     variants={buttonVariants}
                     initial="hidden"
                     whileInView="visible"

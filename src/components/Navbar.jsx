@@ -18,7 +18,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logoutAPI } from "../functions/auth";
 import { menuCategories } from "../functions/categories";
 import { getUserLogo } from "../functions/logo";
-import { getActiveBars } from "../functions/topbar";
+import { getHomepageTopbar, getHomepageMenuCategories } from "../functions/homepage";
 import { truncateTitle } from "../helpers/truncateTitle";
 import { setUser } from "../store/authSlice";
 import { fetchSearchResults, setSearchQuery } from "../store/searchSlice";
@@ -142,8 +142,9 @@ const Navbar = React.memo(() => {
 
   const fetchBarTexts = async () => {
     try {
-      const response = await getActiveBars();
-      setTopBar(response?.activeBars);
+      const response = await getHomepageTopbar();
+      const items = response ? [response] : [];
+      setTopBar(items);
     } catch (error) {
       console.log("Error in fetching bar texts.");
     }
@@ -183,8 +184,7 @@ const Navbar = React.memo(() => {
     const ac = new AbortController();
     const fetchSelectedCategories = async () => {
       try {
-        const response = await menuCategories({ signal: ac.signal });
-        const cats = response?.categories || [];
+        const cats = await getHomepageMenuCategories();
         setSelectedCategories(cats);
         try {
           sessionStorage.setItem(

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
-import { getBanners } from "../functions/banner";
+import { getHomepageBanners } from "../functions/homepage";
 
 const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -122,7 +122,7 @@ const Banner = React.memo(() => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getBanners();
+      const response = await getHomepageBanners();
       const raw = Array.isArray(response) ? response : (response?.banners || response?.data || []);
       const list = Array.isArray(raw) ? raw.map((it, idx) => ({
         _id: it?._id || it?.id || String(idx),

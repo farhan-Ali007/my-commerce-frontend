@@ -105,18 +105,8 @@ export const getRelatedProducts = async (categoryId, excludeProductId) => {
     }
 }
 
-export const getBestSellers = async (page = 1, limit = 6) => {
-    try {
-        const response = await axios.get(`${BASE_URL}/product/best-sellers`, {
-            params: { page, limit },
-            withCredentials: true
-        });
-        return response?.data;
-    } catch (error) {
-        console.log("Error in getting best sellers", error);
-        throw error;
-    }
-}
+// getBestSellers moved to homepage.js for better performance
+// Use getBestSellers from '../functions/homepage' instead
 
 export const getProductsBySub = async (subCategory, page = 1, limit = 10) => {
     try {
@@ -148,31 +138,11 @@ export const getProductsByBrand = async (brand, page = 1, limit = 10) => {
     }
 }
 
-export const getFeaturedProducts = async (page = 1, limit = 8) => {
-    try {
-        const response = await axios.get(`${BASE_URL}/product/featured`, {
-            params: { page, limit },
-            withCredentials: true
-        });
-        return response?.data;
-    } catch (error) {
-        console.log("Error in getting featured products", error);
-        throw error;
-    }
-}
+// getFeaturedProducts moved to homepage.js for better performance
+// Use getFeaturedProducts from '../functions/homepage' instead
 
-export const getNewArrivals = async (page = 1, limit = 8) => {
-    try {
-        const response = await axios.get(`${BASE_URL}/product/new-arrivals`, {
-            params: { page, limit },
-            withCredentials: true
-        });
-        return response?.data;
-    } catch (error) {
-        console.log("Error in getting new arrivals", error);
-        throw error;
-    }
-}
+// getNewArrivals moved to homepage.js for better performance  
+// Use getNewProducts from '../functions/homepage' instead
 
 export const uploadDescriptionImage = async (file) => {
     try {
