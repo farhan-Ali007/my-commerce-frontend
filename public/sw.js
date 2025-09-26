@@ -40,6 +40,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  // Only handle GET; let POST/PUT/etc pass through to network
+  if (request.method !== 'GET') return;
   const url = new URL(request.url);
 
   // Cache images with stale-while-revalidate
@@ -50,15 +52,19 @@ self.addEventListener('fetch', (event) => {
           if (response) {
             // Serve from cache, update in background
             fetch(request).then(fetchResponse => {
-              cache.put(request, fetchResponse.clone());
-            });
+              if (fetchResponse && fetchResponse.ok) {
+                try { cache.put(request, fetchResponse.clone()); } catch (_) {}
+              }
+            }).catch(() => {});
             return response;
           }
           // Not in cache, fetch and cache
           return fetch(request).then(fetchResponse => {
-            cache.put(request, fetchResponse.clone());
+            if (fetchResponse && fetchResponse.ok) {
+              try { cache.put(request, fetchResponse.clone()); } catch (_) {}
+            }
             return fetchResponse;
-          });
+          }).catch(() => caches.match(request));
         });
       })
     );
@@ -81,20 +87,24 @@ self.addEventListener('fetch', (event) => {
           }
           
           return fetch(request).then(fetchResponse => {
-            // Create new response with custom header
-            const responseBody = fetchResponse.clone();
-            const headers = new Headers(fetchResponse.headers);
-            headers.set('sw-cache-time', new Date().toISOString());
-            
-            const modifiedResponse = new Response(responseBody.body, {
-              status: fetchResponse.status,
-              statusText: fetchResponse.statusText,
-              headers: headers
-            });
-            
-            cache.put(request, modifiedResponse.clone());
+            if (!fetchResponse) return fetchResponse;
+            // Only cache successful, same-origin GETs
+            const okToCache = fetchResponse.ok && (fetchResponse.type === 'basic' || fetchResponse.type === 'default');
+            if (okToCache) {
+              try {
+                const responseBody = fetchResponse.clone();
+                const headers = new Headers(fetchResponse.headers);
+                headers.set('sw-cache-time', new Date().toISOString());
+                const modifiedResponse = new Response(responseBody.body, {
+                  status: fetchResponse.status,
+                  statusText: fetchResponse.statusText,
+                  headers
+                });
+                cache.put(request, modifiedResponse.clone());
+              } catch (_) {}
+            }
             return fetchResponse;
-          });
+          }).catch(() => caches.match(request));
         });
       })
     );

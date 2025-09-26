@@ -19,6 +19,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Performance: Preconnect to critical origins -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+    <link rel="dns-prefetch" href="//res.cloudinary.com">
+    <!-- If your API is cross-origin, preconnect can reduce handshake latency -->
+    <link rel="preconnect" href="https://etimadmart.up.railway.app" crossorigin>
+    <link rel="dns-prefetch" href="//etimadmart.up.railway.app">
+
+    <!-- Optional: Preload a safe fallback hero banner to improve LCP discovery.
+         If your first banner image is stable, replace the href/srcset with that URL.
+         Otherwise this still gives the browser a head start for a likely hero asset. -->
+    <link
+      rel="preload"
+      as="image"
+      href="/customBanner1.webp"
+      imagesrcset="/customBanner1.webp 480w, /customBanner1.webp 1024w, /customBanner1.webp 1920w"
+      imagesizes="100vw"
+    />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
     <link rel="preconnect" href="https://etimadmart.com" crossorigin>
     <link rel="preconnect" href="https://etimadmart.up.railway.app" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
