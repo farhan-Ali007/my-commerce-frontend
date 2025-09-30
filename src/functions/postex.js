@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { BASE_URL } from '../config/baseURL';
+import axios from "axios";
+import { BASE_URL } from "../config/baseURL";
 
 // PostEx API functions for frontend
 const postexAPI = {
@@ -8,16 +8,22 @@ const postexAPI = {
    */
   pushOrder: async (orderId) => {
     try {
-      const response = await axios.post(`${BASE_URL}/postex/push-order/${orderId}`, {}, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await axios.post(
+        `${BASE_URL}/postex/push-order/${orderId}`,
+        {},
+        {
+          withCredentials: true,
         }
-      });
+      );
 
       return response.data;
     } catch (error) {
-      console.error('PostEx push order error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to push order to PostEx');
+      console.error("PostEx push order error:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to push order to PostEx"
+      );
     }
   },
 
@@ -26,16 +32,21 @@ const postexAPI = {
    */
   trackOrderByCN: async (cn) => {
     try {
-      const response = await axios.get(`${BASE_URL}/postex/track-by-cn/${encodeURIComponent(cn)}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await axios.get(
+        `${BASE_URL}/postex/track-by-cn/${encodeURIComponent(cn)}`,
+        {
+          withCredentials: true,
         }
-      });
+      );
 
       return response.data;
     } catch (error) {
-      console.error('PostEx track order by CN error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to track order');
+      console.error("PostEx track order by CN error:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to track order"
+      );
     }
   },
 
@@ -44,16 +55,22 @@ const postexAPI = {
    */
   cancelOrder: async (orderId) => {
     try {
-      const response = await axios.post(`${BASE_URL}/postex/cancel/${orderId}`, {}, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await axios.post(
+        `${BASE_URL}/postex/cancel/${orderId}`,
+        {},
+        {
+          withCredentials: true,
         }
-      });
+      );
 
       return response.data;
     } catch (error) {
-      console.error('PostEx cancel order error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to cancel order');
+      console.error("PostEx cancel order error:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to cancel order"
+      );
     }
   },
 
@@ -63,16 +80,18 @@ const postexAPI = {
   getCities: async (operationalCityType) => {
     try {
       const response = await axios.get(`${BASE_URL}/postex/cities`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        params: operationalCityType ? { operationalCityType } : undefined
+        withCredentials: true,
+        params: operationalCityType ? { operationalCityType } : undefined,
       });
 
       return response.data;
     } catch (error) {
-      console.error('PostEx get cities error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to fetch cities');
+      console.error("PostEx get cities error:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch cities"
+      );
     }
   },
 
@@ -82,15 +101,17 @@ const postexAPI = {
   getStatus: async () => {
     try {
       const response = await axios.get(`${BASE_URL}/postex/status`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        withCredentials: true,
       });
 
       return response.data;
     } catch (error) {
-      console.error('PostEx get status error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to get PostEx status');
+      console.error("PostEx get status error:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to get PostEx status"
+      );
     }
   },
 
@@ -99,19 +120,22 @@ const postexAPI = {
    */
   bulkPushOrders: async (orderIds) => {
     try {
-      const response = await axios.post(`${BASE_URL}/postex/bulk-push`, 
+      const response = await axios.post(
+        `${BASE_URL}/postex/bulk-push`,
         { orderIds },
         {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+          withCredentials: true,
         }
       );
 
       return response.data;
     } catch (error) {
-      console.error('PostEx bulk push error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to bulk push orders');
+      console.error("PostEx bulk push error:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to bulk push orders"
+      );
     }
   },
 
@@ -121,17 +145,19 @@ const postexAPI = {
   getOrderTypes: async () => {
     try {
       const response = await axios.get(`${BASE_URL}/postex/order-types`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        withCredentials: true,
       });
 
       return response.data;
     } catch (error) {
-      console.error('PostEx get order types error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to fetch order types');
+      console.error("PostEx get order types error:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch order types"
+      );
     }
-  }
+  },
 };
 
 export default postexAPI;
