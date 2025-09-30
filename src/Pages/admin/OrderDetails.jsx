@@ -4,10 +4,12 @@ import { MdArrowBack } from "react-icons/md";
 import { GiMoneyStack } from "react-icons/gi";
 import { IoMdCall } from "react-icons/io";
 import { dateFormatter } from "../../utils/dateFormatter";
-import { trackLcsStatus, updateOrderDetails, deleteOrderById } from "../../functions/order";
+import { trackLcsStatus, updateOrderDetails, deleteOrderById, getOrdersSearch } from "../../functions/order";
+import postexAPI from "../../functions/postex";
 import toast from "react-hot-toast";
 import { getLcsBadgeTheme } from "../../utils/courierStatus";
 import { CiEdit, CiTrash, CiCircleCheck, CiCircleRemove } from "react-icons/ci";
+import PostExManager from "../../components/admin/PostExManager";
 
 const Row = ({ label, children }) => (
   <div className="flex flex-col sm:flex-row sm:items-center gap-1 py-1">
@@ -27,7 +29,7 @@ const OrderDetails = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { orderId } = useParams();
-  const order = state?.order;
+  const [order, setOrder] = useState(state?.order);
   const [tracking, setTracking] = useState(null); // { status, currentCity, lastEventAt, events }
   const [trackLoading, setTrackLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -44,8 +46,23 @@ const OrderDetails = () => {
     streetAddress: order?.shippingAddress?.streetAddress || "",
     additionalInstructions: order?.shippingAddress?.additionalInstructions || "",
   });
+  // Fallback: hydrate order by ID when navigated without state
   useEffect(() => {
-    // Sync form if order changes
+    const hydrate = async () => {
+      if (order || !orderId) return;
+      try {
+        const res = await getOrdersSearch({ q: orderId, limit: 1 });
+        const found = Array.isArray(res?.orders) ? res.orders.find(o => String(o._id) === String(orderId)) : null;
+        if (found) setOrder(found);
+      } catch (e) {
+        // noop; UI will show the fallback message
+      }
+    };
+    hydrate();
+  }, [order, orderId]);
+
+  // Sync form if order changes
+  useEffect(() => {
     setForm({
       fullName: order?.shippingAddress?.fullName || "",
       mobile: order?.shippingAddress?.mobile || "",
@@ -121,15 +138,24 @@ const OrderDetails = () => {
   }, [tracking?.lastEventAt, order?.shippingProvider?.extra]);
 
   const handleRefreshTracking = async () => {
+    const provider = order?.shippingProvider?.provider;
     if (!order?.shippingProvider?.trackingNumber && !order?.shippingProvider?.consignmentNo) return;
     const cn = order?.shippingProvider?.trackingNumber || order?.shippingProvider?.consignmentNo;
     try {
       setTrackLoading(true);
-      const res = await trackLcsStatus(cn);
-      setTracking(res?.data || null);
+      let res;
+      if (provider === 'postex') {
+        // Track via PostEx using CN
+        res = await postexAPI.trackOrderByCN(cn);
+        const latest = res?.data?.data || res?.data || null; // unwrap {success, data}
+        setTracking(latest);
+      } else {
+        // Default to LCS
+        res = await trackLcsStatus(cn);
+        setTracking(res?.data || null);
+      }
     } catch (e) {
       setTracking(null);
-      // optional: could show a toast here if you want
     } finally {
       setTrackLoading(false);
     }
@@ -536,6 +562,17 @@ const OrderDetails = () => {
             ) : (
               <div className="text-sm text-gray-500">Click "Refresh Status" to fetch live courier status.</div>
             )}
+          </div>
+
+          {/* PostEx Management */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">PostEx Management</h2>
+            <PostExManager 
+              order={order} 
+              onUpdate={(updatedOrder) => {
+                setOrder(updatedOrder);
+              }} 
+            />
           </div>
           </div>
         )}
