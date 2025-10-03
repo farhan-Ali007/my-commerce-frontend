@@ -15,7 +15,9 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const location = useLocation();
-  const from = location.state?.from || "/";
+  // Check for redirect from localStorage (e.g., from review modal) or location state
+  const redirectPath = localStorage.getItem('redirectAfterLogin') || location.state?.from || "/";
+  const from = redirectPath;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,6 +32,8 @@ const Login = () => {
         if (role === 'admin') {
           navigateTo('/admin-dashboard', { replace: true });
         } else {
+          // Clear the redirect path from localStorage after successful login
+          localStorage.removeItem('redirectAfterLogin');
           navigateTo(from, { replace: true });
         }
       } else {

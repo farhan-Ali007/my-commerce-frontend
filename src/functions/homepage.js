@@ -1,5 +1,6 @@
 // Optimized homepage data fetching - Single API call instead of multiple
 
+import axios from 'axios';
 import { BASE_URL } from '../config/baseURL';
 
 // Single function to get all homepage data
@@ -7,30 +8,25 @@ import { BASE_URL } from '../config/baseURL';
 // params: { featuredPage, featuredLimit, newPage, newLimit, bestPage, bestLimit }
 export const getHomepageData = async (params = {}) => {
   try {
-    const query = new URLSearchParams();
-    if (params.featuredPage) query.set('featuredPage', params.featuredPage);
-    if (params.featuredLimit) query.set('featuredLimit', params.featuredLimit);
-    if (params.newPage) query.set('newPage', params.newPage);
-    if (params.newLimit) query.set('newLimit', params.newLimit);
-    if (params.bestPage) query.set('bestPage', params.bestPage);
-    if (params.bestLimit) query.set('bestLimit', params.bestLimit);
-
-    const url = `${BASE_URL}/homepage-data${query.toString() ? `?${query.toString()}` : ''}`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    const url = `${BASE_URL}/homepage-data`;
+    const response = await axios.get(url, {
+      // mirror previous query building via axios params
+      params: {
+        featuredPage: params.featuredPage || undefined,
+        featuredLimit: params.featuredLimit || undefined,
+        newPage: params.newPage || undefined,
+        newLimit: params.newLimit || undefined,
+        bestPage: params.bestPage || undefined,
+        bestLimit: params.bestLimit || undefined,
       },
-      // Add cache control for better performance
-      cache: 'default'
+      headers: { 'Content-Type': 'application/json' },
+      // optional timeout to avoid hanging requests
+      timeout: 15000,
+      // no credentials needed; public endpoint
+      withCredentials: false,
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = response.data;
     
     if (!data.success) {
       throw new Error(data.message || 'Failed to fetch homepage data');

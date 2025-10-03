@@ -158,7 +158,14 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
-        <Toaster position="top-center" />
+        <Toaster 
+          position="top-center" 
+          toastOptions={{
+            style: {
+              zIndex: 10020, // Higher than WriteReviewModal z-index (10006)
+            },
+          }}
+        />
       </div>
       <Suspense fallback={null}>
         <Footer />

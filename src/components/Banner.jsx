@@ -108,9 +108,10 @@ const Banner = React.memo(() => {
 
   const preloaded = (typeof window !== 'undefined' && Array.isArray(window.__PRELOADED_BANNERS)) ? window.__PRELOADED_BANNERS : [];
   const [banners, setBanners] = useState(preloaded);
-  // console.log("Banners----->" , banners)
+  // console.log("Banners----->", banners)
   const [loading, setLoading] = useState(preloaded.length === 0);
   const [error, setError] = useState(null);
+  const [imageLoadedStates, setImageLoadedStates] = useState({});
   const mounted = useRef(false);
 
   const fetchBanners = useCallback(async () => {
@@ -131,10 +132,13 @@ const Banner = React.memo(() => {
         alt: it?.alt || `Banner ${idx + 1}`,
       })) : [];
       setBanners(list);
+      // Reset image loaded states when banners change
+      setImageLoadedStates({});
     } catch (e) {
       console.error("Banner fetch failed", e);
       setError("Failed to load banners");
       setBanners([]);
+      setImageLoadedStates({});
     } finally {
       setLoading(false);
     }
@@ -145,6 +149,11 @@ const Banner = React.memo(() => {
     fetchBanners();
     return () => { mounted.current = false; };
   }, [fetchBanners]);
+
+  // Reset image loaded states when banners change
+  useEffect(() => {
+    setImageLoadedStates({});
+  }, [banners]);
 
   // Mount heavy carousel after first paint so LCP can use the static first frame
   useEffect(() => {
@@ -164,10 +173,45 @@ const Banner = React.memo(() => {
     return `${imageUrl}${sep}f_auto&q_auto:eco&dpr=auto&w=${width}&h=${height}&c=fill`;
   }, []);
 
+  const renderBannerSkeleton = useCallback(() => {
+    const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
+    return (
+      <div
+        className="relative w-full overflow-hidden"
+        style={{
+          paddingTop: `${paddingTopPercentage}%`,
+          backgroundColor: '#f3f4f6',
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+          {/* Skeleton content overlay */}
+          <div className="absolute bottom-4 left-4 space-y-2">
+            <div className="w-32 h-4 bg-white/30 rounded"></div>
+            <div className="w-24 h-3 bg-white/20 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }, [bannerDimensions]);
+
+  const handleImageLoad = useCallback((bannerId, isLCP) => {
+    setImageLoadedStates(prev => ({ ...prev, [bannerId]: true }));
+    if (isLCP && typeof window !== 'undefined' && window.performance?.mark) {
+      window.performance.mark('lcp-banner-loaded');
+    }
+  }, []);
+
+  const handleImageError = useCallback((bannerId) => {
+    console.error('Error loading banner image:', bannerId);
+    setImageLoadedStates(prev => ({ ...prev, [bannerId]: true })); // Show skeleton instead of broken image
+  }, []);
+
   const renderBannerImage = useCallback((banner, index) => {
-    if (!banner?.image) return null;
+    if (!banner?.image) return renderBannerSkeleton();
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
     const isLCP = index === 0; // First image is LCP candidate
+    const imageLoaded = imageLoadedStates[banner._id] || false;
     
     return (
       <div
@@ -177,6 +221,16 @@ const Banner = React.memo(() => {
           backgroundColor: '#f3f4f6',
         }}
       >
+        {/* Show skeleton while loading */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            <div className="absolute bottom-4 left-4 space-y-2">
+              <div className="w-32 h-4 bg-white/30 rounded"></div>
+              <div className="w-24 h-3 bg-white/20 rounded"></div>
+            </div>
+          </div>
+        )}
         <picture className="absolute inset-0 block w-full h-full">
           <source
             media="(max-width: 640px)"
@@ -205,26 +259,20 @@ const Banner = React.memo(() => {
             decoding={isLCP ? 'sync' : 'async'}
             fetchpriority={isLCP ? 'high' : 'low'}
             sizes="100vw"
-            className={`absolute inset-0 object-cover object-center w-full h-full ${
+            className={`absolute inset-0 object-cover object-center w-full h-full transition-opacity duration-300 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            } ${
               isLCP ? '' : 'transform transition-transform duration-300 ease-out motion-safe:md:group-hover:scale-105'
             }`}
             width={bannerDimensions.desktop.width}
             height={bannerDimensions.desktop.height}
-            onLoad={isLCP ? () => {
-              // Mark LCP as loaded for performance monitoring
-              if (typeof window !== 'undefined' && window.performance?.mark) {
-                window.performance.mark('lcp-banner-loaded');
-              }
-            } : undefined}
-            onError={(e) => {
-              console.error('Error loading banner image:', e);
-              e.target.style.display = 'none';
-            }}
+            onLoad={() => handleImageLoad(banner._id, isLCP)}
+            onError={() => handleImageError(banner._id)}
           />
         </picture>
       </div>
     );
-  }, [bannerDimensions, getOptimizedImageUrl]);
+  }, [bannerDimensions, getOptimizedImageUrl, renderBannerSkeleton, imageLoadedStates, handleImageLoad, handleImageError]);
 
   const resolvedBanners = banners.length ? banners : staticBanners;
   const firstBanner = resolvedBanners[0];
@@ -258,6 +306,17 @@ const Banner = React.memo(() => {
     //     );
     // }
 
+    // Show skeleton while loading banners
+    if (loading && !resolvedBanners.length) {
+      return (
+        <div className="relative w-full mx-auto">
+          <div className="relative w-full">
+            {renderBannerSkeleton()}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="relative w-full mx-auto">
         <div className="relative w-full">
@@ -269,7 +328,7 @@ const Banner = React.memo(() => {
                 target="_self"
                 rel="noopener noreferrer"
               >
-                {firstBanner && renderBannerImage(firstBanner, 0)}
+                {firstBanner ? renderBannerImage(firstBanner, 0) : renderBannerSkeleton()}
               </a>
             </div>
           ) : (

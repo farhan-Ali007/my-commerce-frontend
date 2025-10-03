@@ -32,6 +32,43 @@ const SectionSkeleton = ({ className = '', height = 'h-40 md:h-60' }) => (
   </div>
 );
 
+// Product section skeleton that matches actual layout
+const ProductSectionSkeleton = ({ count = 8, layout = 'horizontal' }) => {
+  const ProductCardSkeleton = React.lazy(() => import('../components/skeletons/ProductCardSkeleton'));
+  
+  return (
+    <div className="w-full px-1 mt-4 overflow-hidden md:px-4 lg:px-6">
+      {/* Section heading skeleton */}
+      <div className="flex items-center justify-center w-full px-5 mb-4 md:mb-7">
+        <div className="flex-grow h-[0.5px] mr-4 bg-gray-200"></div>
+        <div className="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
+        <div className="flex-grow h-[0.5px] ml-4 bg-gray-200"></div>
+      </div>
+      
+      {/* Products skeleton */}
+      {layout === 'horizontal' ? (
+        <div className="flex gap-2 lg:gap-0 overflow-x-auto scrollbar-hide px-1 lg:px-0">
+          {Array.from({ length: count }).map((_, index) => (
+            <div key={index} className="shrink-0 w-[250px] px-1 lg:px-0 py-2">
+              <Suspense fallback={<div className="w-full h-[350px] bg-gray-200 animate-pulse rounded"></div>}>
+                <ProductCardSkeleton />
+              </Suspense>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 mx-0 md:grid-cols-3 lg:grid-cols-5 md:gap-6 lg:gap-7 md:mx-4 lg:mx-4">
+          {Array.from({ length: count }).map((_, index) => (
+            <Suspense key={index} fallback={<div className="w-full h-[350px] bg-gray-200 animate-pulse rounded"></div>}>
+              <ProductCardSkeleton />
+            </Suspense>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Intersection Observer Hook for lazy loading sections
 const useIntersectionObserver = (threshold = 0.1) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -230,7 +267,7 @@ const Home = () => {
 
       {/* Featured Products - Third priority */}
       <LazySection 
-        fallback={<SectionSkeleton />}
+        fallback={<ProductSectionSkeleton count={8} layout="horizontal" />}
         height="640px"
       >
         <FeaturedProducts />
@@ -238,7 +275,7 @@ const Home = () => {
 
       {/* New Arrivals - Fourth priority */}
       <LazySection 
-        fallback={<SectionSkeleton />}
+        fallback={<ProductSectionSkeleton count={8} layout="horizontal" />}
         height="640px"
       >
         <NewArrivals />
@@ -246,7 +283,7 @@ const Home = () => {
 
       {/* Best Sellers - Fifth priority */}
       <LazySection 
-        fallback={<SectionSkeleton />}
+        fallback={<ProductSectionSkeleton count={5} layout="grid" />}
         height="800px"
       >
         <BestSellers />

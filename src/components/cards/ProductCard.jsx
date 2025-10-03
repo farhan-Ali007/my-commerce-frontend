@@ -272,7 +272,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
     return (
         <motion.div
-            className="group max-w-sm bg-white h-[350px] overflow-hidden rounded shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col items-stretch relative"
+            className="group max-w-sm bg-white h-[350px] overflow-hidden rounded shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col border-[0.1px] border-secondary items-stretch relative"
             style={{ contentVisibility: 'auto', containIntrinsicSize: '320px 320px' }}
             variants={cardVariants}
             initial={allowMotion ? "hidden" : false}

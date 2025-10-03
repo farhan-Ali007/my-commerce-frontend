@@ -123,8 +123,9 @@ const FeaturedProducts = React.memo(() => {
         setLoading(true);
         const res = await getFeaturedProducts(currentPage, productsPerPage);
         if (cancelled) return;
-        setProducts(res.products || []);
-        setTotalPages(res.totalPages || 1);
+        const products = res?.products || [];
+        setProducts(products);
+        setTotalPages(res?.totalPages || 1);
         setError(null);
       } catch (e) {
         if (cancelled) return;
@@ -173,13 +174,13 @@ const FeaturedProducts = React.memo(() => {
 
   const renderSkeletons = useMemo(
     () => (
-      <div className="relative overflow-x-auto scrollbar-hide">
-        <div className="flex" style={{ width: "max-content" }}>
+      <div className="relative">
+        {/* Static grid layout before Keen mounts - matches actual product layout */}
+        <div className="flex gap-2 lg:gap-0 overflow-x-auto scrollbar-hide px-1 lg:px-0">
           {Array.from({ length: productsPerPage }).map((_, index) => (
             <div
               key={index}
-              className="flex-shrink-0 px-2 py-2 md:px-3"
-              style={{ width: "250px" }}
+              className="shrink-0 w-[250px] px-1 lg:px-0 py-2"
             >
               <ProductCardSkeleton />
             </div>
