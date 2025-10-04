@@ -53,7 +53,7 @@ const App = () => {
         const response = await getUserAPI();
         dispatch(setUser(response?.user));
       } catch (error) {
-        console.log("Error fetching user", error);
+        // console.log("Error fetching user", error);
         if (window.location.pathname !== "/signup") {
           navigateTo("/login");
         }

@@ -1,39 +1,115 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { filterByCategory } from "../functions/search";
 import ProductCard from "./cards/ProductCard";
 import ProductCardSkeleton from "./skeletons/ProductCardSkeleton";
 import { Link } from "react-router-dom";
+
+// Global cache for category products to prevent duplicate API calls
+const categoryCache = new Map();
+const pendingRequests = new Map();
 
 const ShowcaseCategories = ({
   categorySlug,
   categoryName,
   categoryImage ,
   limit = 8,
+  lazy = true, // Enable lazy loading by default
+  priority = false, // Set to true for first/critical categories
 }) => {
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [isVisible, setIsVisible] = useState(!lazy || priority); // Load immediately if priority or not lazy
 
   const scrollRef = useRef();
+  const containerRef = useRef();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoadingProducts(true);
-      setProducts([]);
+  // Memoized cache key
+  const cacheKey = useMemo(() => `${categorySlug}-${limit}`, [categorySlug, limit]);
+
+  // Optimized fetch function with caching and request deduplication
+  const fetchProducts = useCallback(async () => {
+    if (!categorySlug) return;
+
+    // Check cache first
+    if (categoryCache.has(cacheKey)) {
+      const cachedData = categoryCache.get(cacheKey);
+      setProducts(cachedData);
+      return;
+    }
+
+    // Check if request is already pending
+    if (pendingRequests.has(cacheKey)) {
       try {
-        const res = await filterByCategory({
-          categories: categorySlug,
-          page: 1,
-          limit,
-        });
-        setProducts(res?.products || []);
+        const result = await pendingRequests.get(cacheKey);
+        setProducts(result);
       } catch (err) {
         setProducts([]);
-      } finally {
-        setLoadingProducts(false);
       }
-    };
-    fetchProducts();
-  }, [categorySlug, limit]);
+      return;
+    }
+
+    setLoadingProducts(true);
+    
+    // Create and store the pending request
+    const requestPromise = filterByCategory({
+      categories: categorySlug,
+      page: 1,
+      limit,
+    }).then(res => {
+      const products = res?.products || [];
+      // Cache the result - longer cache for priority categories
+      const cacheTime = priority ? 10 * 60 * 1000 : 5 * 60 * 1000; // 10min vs 5min
+      categoryCache.set(cacheKey, products);
+      setTimeout(() => categoryCache.delete(cacheKey), cacheTime);
+      return products;
+    }).finally(() => {
+      pendingRequests.delete(cacheKey);
+      setLoadingProducts(false);
+    });
+
+    pendingRequests.set(cacheKey, requestPromise);
+
+    try {
+      const result = await requestPromise;
+      setProducts(result);
+    } catch (err) {
+      console.error(`Error fetching products for ${categorySlug}:`, err);
+      setProducts([]);
+    }
+  }, [categorySlug, limit, cacheKey]);
+
+  // Intersection Observer for lazy loading (skip if priority)
+  useEffect(() => {
+    if (!lazy || isVisible || priority) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        rootMargin: '100px', // Start loading 100px before component is visible
+        threshold: 0.1,
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [lazy, isVisible]);
+
+  // Fetch products when component becomes visible
+  useEffect(() => {
+    if (isVisible) {
+      fetchProducts();
+    }
+  }, [isVisible, fetchProducts]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -48,7 +124,10 @@ const ShowcaseCategories = ({
   }, []);
 
   return (
-    <section className="w-full max-w-screen-xl mx-auto px-1 md:px-8 py-4 md:py-0 lg:py-4">
+    <section 
+      ref={containerRef}
+      className="w-full max-w-screen-xl mx-auto px-1 md:px-8 py-4 md:py-0 lg:py-4"
+    >
       <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch min-h-[300px] md:min-h-[400px]">
         {/* Left: Category Name and Static Image */}
         <div className="w-full md:w-1/4 flex flex-row md:flex-col items-center md:items-center justify-center md:justify-center mb-2 md:mb-0 h-full gap-4 md:gap-0 px-2 md:px-0">

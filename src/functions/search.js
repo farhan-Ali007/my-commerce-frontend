@@ -36,13 +36,16 @@ export const filterByPrice = async ({ price, page = 1, limit = 16 }) => {
 export const filterByCategory = async ({ categories, subcategory, page = 1, limit = 16 }) => {
     try {
         const response = await axios.get(`${BASE_URL}/search/filter/category?page=${page}&limit=${limit}`, {
-            params: { categoryName: categories, subcategory }, // Using destructured values directly
+            params: { categoryName: categories, subcategory },
             withCredentials: true,
+            timeout: 10000, // 10 second timeout
             paramsSerializer: (params) => new URLSearchParams(params).toString(),
         });
         return response?.data;
     } catch (error) {
-        console.log("Error in filtering by category", error);
+        console.error("Error in filtering by category", error);
+        // Return empty result instead of undefined to prevent crashes
+        return { products: [], totalPages: 0, currentPage: page };
     }
 };
 
