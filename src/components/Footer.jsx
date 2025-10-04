@@ -304,6 +304,7 @@ const Footer = () => {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={`Visit our ${link.icon.charAt(0).toUpperCase() + link.icon.slice(1)} page`}
                     variants={socialIconVariants}
                     whileHover="hover"
                     whileTap="tap"
@@ -433,6 +434,7 @@ const Footer = () => {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={`Visit our ${link.icon.charAt(0).toUpperCase() + link.icon.slice(1)} page`}
                     variants={socialIconVariants}
                     whileHover="hover"
                     whileTap="tap"

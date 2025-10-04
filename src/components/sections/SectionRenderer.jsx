@@ -1,11 +1,7 @@
 import React, { Suspense } from "react";
 import { sectionsRegistry } from "./registry";
 
-// Fallback skeleton for lazy-loaded sections
-const SectionSkeleton = ({ className = "" }) => (
-  <div className={`w-full h-40 md:h-60 bg-gray-100 animate-pulse rounded ${className}`} />
-);
-
+// No section skeleton - let individual components handle their own loading states
 const SectionRenderer = ({ layout }) => {
   if (!layout || !Array.isArray(layout.sections)) return null;
 
@@ -16,7 +12,7 @@ const SectionRenderer = ({ layout }) => {
         const Component = def?.component;
         if (!Component) return null;
         return (
-          <Suspense key={section.id || `${section.type}-${idx}`} fallback={<SectionSkeleton />}>
+          <Suspense key={section.id || `${section.type}-${idx}`} fallback={null}>
             <Component settings={section.settings || {}} blocks={section.blocks || []} />
           </Suspense>
         );

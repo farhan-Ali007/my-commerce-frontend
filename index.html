@@ -129,15 +129,90 @@
       <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
     </noscript>
     
-    <!-- CRITICAL CSS FOR PERFORMANCE -->
+    <!-- CRITICAL CSS FOR PERFORMANCE - EXPANDED -->
     <style>
       /* Critical CSS for Above-the-Fold Content - Inlined for best performance */
-      .banner-container{position:relative;width:100%;height:0;padding-top:28.65%;background-color:#f3f4f6;overflow:hidden;contain:layout style paint}.banner-image{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center}.banner-skeleton{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite}@keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}@media (max-width:640px){.banner-container{padding-top:29.17%}}@media (max-width:1024px) and (min-width:641px){.banner-container{padding-top:31.25%}}.navbar{position:sticky;top:0;z-index:1000;background-color:white;box-shadow:0 2px 4px rgba(0,0,0,0.1)}.main-container{min-height:100vh;display:flex;flex-direction:column}.content-wrapper{flex:1}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Oxygen','Ubuntu','Cantarell',sans-serif;line-height:1.6;color:#333;margin:0;padding:0}.prevent-cls{contain:layout style paint}.focus-visible{outline:2px solid #4F46E5;outline-offset:2px}@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}}
+      
+      /* Base styles */
+      *,*::before,*::after{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Oxygen','Ubuntu','Cantarell',sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background-color:#fff}
+      
+      /* Layout containers */
+      .main-container{min-height:100vh;display:flex;flex-direction:column}.content-wrapper{flex:1}
+      
+      /* Navbar critical styles */
+      .navbar{position:sticky;top:0;z-index:1000;background-color:white;box-shadow:0 2px 4px rgba(0,0,0,0.1);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:between}
+      
+      /* Banner critical styles */
+      .banner-container{position:relative;width:100%;height:0;padding-top:28.65%;background-color:#f3f4f6;overflow:hidden;contain:layout style paint}.banner-image{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center}.banner-skeleton{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite}
+      
+      /* Product grid critical styles */
+      .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;padding:1rem}.product-card{background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:transform 0.2s,box-shadow 0.2s}.product-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.15)}
+      
+      /* Button critical styles */
+      .btn{display:inline-flex;align-items:center;justify-content:center;padding:0.5rem 1rem;border-radius:6px;font-weight:500;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s}.btn-primary{background-color:#f59e0b;color:white}.btn-primary:hover{background-color:#d97706}
+      
+      /* Loading animations */
+      @keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+      
+      /* Skeleton loaders */
+      .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite}
+      
+      /* Responsive breakpoints */
+      @media (max-width:640px){.banner-container{padding-top:29.17%}.product-grid{grid-template-columns:repeat(2,1fr);gap:0.5rem;padding:0.5rem}}@media (max-width:1024px) and (min-width:641px){.banner-container{padding-top:31.25%}}
+      
+      /* Performance optimizations */
+      .prevent-cls{contain:layout style paint}.focus-visible{outline:2px solid #4F46E5;outline-offset:2px}
+      
+      /* Reduced motion */
+      @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}}
+      
+      /* Hide non-critical content initially */
+      .below-fold{visibility:hidden}.below-fold.loaded{visibility:visible}
     </style>
+    
+    <!-- CSS Loading Strategy -->
+    <script>
+      // Defer non-critical CSS loading
+      (function() {
+        function loadCSS(href, media) {
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = href;
+          link.media = media || 'all';
+          document.head.appendChild(link);
+        }
+        
+        // Load main CSS after critical rendering
+        if (window.requestIdleCallback) {
+          requestIdleCallback(function() {
+            // Main CSS will be injected by Vite, but we ensure it's non-blocking
+            document.documentElement.classList.add('css-loaded');
+          });
+        } else {
+          setTimeout(function() {
+            document.documentElement.classList.add('css-loaded');
+          }, 100);
+        }
+        
+        // Show below-fold content after initial render
+        document.addEventListener('DOMContentLoaded', function() {
+          setTimeout(function() {
+            var belowFoldElements = document.querySelectorAll('.below-fold');
+            belowFoldElements.forEach(function(el) {
+              el.classList.add('loaded');
+            });
+          }, 50);
+        });
+      })();
+    </script>
+    
+    <!-- CRITICAL RESOURCE PRELOADS -->
+    <link rel="preload" href="/customBanner2.webp" as="image" fetchpriority="high">
+    <link rel="preload" href="https://res.cloudinary.com/dqcfamwuf/image/upload/v1751867708/banners/yuky_v1.webp" as="image" fetchpriority="high">
     
     <!-- ADDITIONAL PERFORMANCE OPTIMIZATIONS -->
     <link rel="dns-prefetch" href="//etimadmart.up.railway.app">
-    <link rel="prefetch" href="/customBanner2.webp">
+    <link rel="dns-prefetch" href="//res.cloudinary.com">
     <meta name="theme-color" content="#ffffff">
     <meta name="color-scheme" content="light">
     
@@ -228,45 +303,58 @@
           performance.mark('head-start');
         }
         
-        // Optimize font loading
-        if ('fonts' in document) {
-          document.fonts.ready.then(function() {
-            if ('performance' in window && 'mark' in performance) {
-              performance.mark('fonts-loaded');
-            }
-          });
+        // Preload critical resources immediately
+        var criticalResources = [
+          { href: '/customBanner2.webp', as: 'image', fetchpriority: 'high' },
+          { href: 'https://res.cloudinary.com/dqcfamwuf/image/upload/v1751867708/banners/yuky_v1.webp', as: 'image', fetchpriority: 'high' }
+        ];
+        
+        criticalResources.forEach(function(resource) {
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = resource.as;
+          link.href = resource.href;
+          if (resource.fetchpriority) link.fetchPriority = resource.fetchpriority;
+          document.head.appendChild(link);
+        });
+        
+        // Resource hints for better performance
+        var resourceHints = [
+          { rel: 'dns-prefetch', href: '//res.cloudinary.com' },
+          { rel: 'preconnect', href: 'https://etimadmart.up.railway.app' }
+        ];
+        
+        resourceHints.forEach(function(hint) {
+          if (!document.querySelector('link[href="' + hint.href + '"]')) {
+            var link = document.createElement('link');
+            link.rel = hint.rel;
+            link.href = hint.href;
+            if (hint.rel === 'preconnect') link.crossOrigin = 'anonymous';
+            document.head.appendChild(link);
+          }
+        });
+        
+        // Critical CSS loaded indicator
+        document.documentElement.classList.add('critical-css-loaded');
+        
+        // Mark when head processing is complete
+        if ('performance' in window && 'mark' in performance) {
+          performance.mark('head-end');
         }
-        
-        // Preload next banner image after LCP
-        window.addEventListener('load', function() {
-          setTimeout(function() {
-            // Prefetch additional resources after initial load
-            var resources = ['/customBanner2.webp', '/api/products', '/api/categories'];
-            resources.forEach(function(href) {
-              var link = document.createElement('link');
-              link.rel = 'prefetch';
-              link.href = href;
-              document.head.appendChild(link);
-            });
-          }, 1000);
-        });
-        
-        // Performance monitoring
-        window.addEventListener('load', function() {
-          setTimeout(function() {
-            if ('performance' in window) {
-              var perfData = performance.getEntriesByType('navigation')[0];
-              if (perfData) {
-                console.log('Performance Metrics:', {
-                  'DOM Content Loaded': Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart),
-                  'Load Complete': Math.round(perfData.loadEventEnd - perfData.loadEventStart),
-                  'Total Load Time': Math.round(perfData.loadEventEnd - perfData.fetchStart)
-                });
-              }
-            }
-          }, 100);
-        });
       })();
+      
+      // Prefetch additional resources after initial load
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var resources = ['/api/products', '/api/categories'];
+          resources.forEach(function(href) {
+            var link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = href;
+            document.head.appendChild(link);
+          });
+        }, 1000);
+      });
     </script>
   </head>
 

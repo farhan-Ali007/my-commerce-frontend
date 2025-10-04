@@ -148,7 +148,7 @@ const NewArrivals = React.memo(() => {
           {Array.from({ length: productsPerPage }).map((_, index) => (
             <div
               key={index}
-              className="shrink-0 w-[250px] px-1 lg:px-0 py-2"
+              className="shrink-0 w-[250px] px-2 lg:px-3 py-2"
             >
               <ProductCardSkeleton />
             </div>
@@ -181,7 +181,7 @@ const NewArrivals = React.memo(() => {
           <button
             key={page}
             onClick={() => handlePageChange(page)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
               currentPage === page
                 ? "bg-primary text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -239,9 +239,12 @@ const NewArrivals = React.memo(() => {
         <div className="relative">
           {!mountSlider ? (
             // Static list before Keen mounts
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide px-1">
+            <div className="flex gap-2  overflow-x-auto scrollbar-hide px-1 ">
               {products.map((product) => (
-                <div key={product._id} className="shrink-0 w-[250px] px-1 py-2">
+                <div
+                  key={product._id}
+                  className="shrink-0 w-[250px] px-1  py-2"
+                >
                   <ProductCard product={product} />
                 </div>
               ))}
@@ -252,7 +255,7 @@ const NewArrivals = React.memo(() => {
                 {products.map((product) => (
                   <div
                     key={product._id}
-                    className="keen-slider__slide px-1 py-2"
+                    className="keen-slider__slide shrink-0 w-[250px] px-1 py-2"
                   >
                     <ProductCard product={product} />
                   </div>
@@ -262,7 +265,6 @@ const NewArrivals = React.memo(() => {
               <button
                 onClick={handlePrev}
                 className="absolute left-0 md:-left-3 top-1/2 md:top-[45%] lg:top-1/2 transform -translate-y-1/2 bg-primary opacity-70 text-secondary hover:text-white p-1 rounded-full z-10 hover:opacity-90"
-                aria-label="Previous slide"
               >
                 <BiSolidChevronLeft />
               </button>

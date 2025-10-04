@@ -180,7 +180,7 @@ const FeaturedProducts = React.memo(() => {
           {Array.from({ length: productsPerPage }).map((_, index) => (
             <div
               key={index}
-              className="shrink-0 w-[250px] px-1 lg:px-0 py-2"
+              className="shrink-0 w-[250px] px-2 lg:px-3 py-2"
             >
               <ProductCardSkeleton />
             </div>
@@ -213,7 +213,7 @@ const FeaturedProducts = React.memo(() => {
           <button
             key={page}
             onClick={() => handlePageChange(page)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
               currentPage === page
                 ? "bg-primary text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -276,7 +276,7 @@ const FeaturedProducts = React.memo(() => {
               {products.map((product) => (
                 <div
                   key={product._id}
-                  className="shrink-0 w-[250px] px-1 lg:px-0 py-2"
+                  className="shrink-0 w-[250px] px-2 lg:px-3 py-2"
                 >
                   <ProductCard product={product} />
                 </div>

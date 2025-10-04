@@ -48,12 +48,12 @@ const ShowcaseCategories = ({
   }, []);
 
   return (
-    <section className="w-full max-w-screen-xl mx-auto px-1 md:px-8 py-4 md:py-0">
+    <section className="w-full max-w-screen-xl mx-auto px-1 md:px-8 py-4 md:py-0 lg:py-4">
       <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch min-h-[300px] md:min-h-[400px]">
         {/* Left: Category Name and Static Image */}
         <div className="w-full md:w-1/4 flex flex-row md:flex-col items-center md:items-center justify-center md:justify-center mb-2 md:mb-0 h-full gap-4 md:gap-0 px-2 md:px-0">
-          <Link className="no-underline flex-1 md:flex-none max-w-[50%] md:max-w-none" to={`/category/${categorySlug}`}> 
-            <h2 className="text-lg md:text-2xl font-bold text-secondary font-space mb-0 md:mb-4 text-center md:text-left md:ml-4 block truncate">
+          <Link className="no-underline flex-1 md:flex-none max-w-[60%] md:max-w-none" to={`/category/${categorySlug}`}> 
+            <h2 className="text-base md:text-xl lg:text-2xl font-bold text-secondary font-space mb-0 md:mb-4 text-center md:text-left md:ml-4 block leading-tight break-words hyphens-auto">
               {categoryName}
             </h2>
           </Link>

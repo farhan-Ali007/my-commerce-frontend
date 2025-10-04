@@ -107,9 +107,20 @@ const Banner = React.memo(() => {
   ];
 
   const preloaded = (typeof window !== 'undefined' && Array.isArray(window.__PRELOADED_BANNERS)) ? window.__PRELOADED_BANNERS : [];
-  const [banners, setBanners] = useState(preloaded);
+  const [banners, setBanners] = useState(() => {
+    // Try to get cached banners first to prevent re-fetching on HMR
+    if (typeof window !== 'undefined' && window.__BANNER_CACHE) {
+      return window.__BANNER_CACHE;
+    }
+    return preloaded;
+  });
   // console.log("Banners----->", banners)
-  const [loading, setLoading] = useState(preloaded.length === 0);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined' && window.__BANNER_CACHE) {
+      return false;
+    }
+    return preloaded.length === 0;
+  });
   const [error, setError] = useState(null);
   const [imageLoadedStates, setImageLoadedStates] = useState({});
   const mounted = useRef(false);
@@ -132,6 +143,10 @@ const Banner = React.memo(() => {
         alt: it?.alt || `Banner ${idx + 1}`,
       })) : [];
       setBanners(list);
+      // Cache banners to prevent re-fetching on HMR
+      if (typeof window !== 'undefined') {
+        window.__BANNER_CACHE = list;
+      }
       // Reset image loaded states when banners change
       setImageLoadedStates({});
     } catch (e) {
@@ -284,16 +299,19 @@ const Banner = React.memo(() => {
   const renderDots = useCallback(() => (
     <div className="flex justify-center my-2">
       {resolvedBanners.map((_, index) => (
-        <div
+        <button
           key={index}
-          className={`w-2 h-2 md:w-3 md:h-3 rounded-full cursor-pointer mx-[2px] transition-transform duration-200 ease-out ${
-            index === currentSlide ? 'bg-secondary md:scale-110' : 'bg-primary'
-          } md:hover:scale-125`}
+          className={`min-w-[10px] min-h-[30px] w-6 h-6 md:h-8 md:w-8 rounded-full cursor-pointer  transition-all duration-200 ease-out flex items-center justify-center hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent`}
           onClick={() => handleDotClick(index)}
           aria-label={`Go to slide ${index + 1}`}
-          role="button"
-          tabIndex={0}
-        />
+          type="button"
+        >
+          <div className={`w-3 h-3 rounded-full transition-all duration-200 ${
+            index === currentSlide 
+              ? 'bg-secondary w-3 h-3 shadow-lg' 
+              : 'bg-primary hover:bg-primary/80'
+          }`} />
+        </button>
       ))}
     </div>
   ), [resolvedBanners, currentSlide, handleDotClick]);
@@ -301,7 +319,6 @@ const Banner = React.memo(() => {
     // if (error) {
     //     return (
     //         <div className="w-full py-8 text-center text-red-500">
-    //             {error}
     //         </div>
     //     );
     // }
