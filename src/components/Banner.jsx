@@ -97,12 +97,14 @@ const Banner = React.memo(() => {
       image: '/customBanner1.webp',
       link: '#',
       alt: 'Custom Banner 1',
+      priority: true, // Mark as LCP candidate
     },
     {
       _id: 'custom2',
       image: '/customBanner2.webp',
       link: '#',
       alt: 'Custom Banner 2',
+      priority: false,
     },
   ];
 
@@ -225,7 +227,7 @@ const Banner = React.memo(() => {
   const renderBannerImage = useCallback((banner, index) => {
     if (!banner?.image) return renderBannerSkeleton();
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
-    const isLCP = index === 0; // First image is LCP candidate
+    const isLCP = index === 0 || banner.priority; // First image or priority flag is LCP candidate
     const imageLoaded = imageLoadedStates[banner._id] || false;
     
     return (

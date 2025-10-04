@@ -56,35 +56,58 @@
     <link rel="preconnect" href="https://etimadmart.up.railway.app" crossorigin>
     <link rel="dns-prefetch" href="//etimadmart.up.railway.app">
 
-    <!-- Optional: Preload a safe fallback hero banner to improve LCP discovery.
-         If your first banner image is stable, replace the href/srcset with that URL.
-         Otherwise this still gives the browser a head start for a likely hero asset. -->
+    <!-- Critical LCP Image Preload - First Banner -->
     <link
       rel="preload"
       as="image"
       href="/customBanner1.webp"
       imagesrcset="/customBanner1.webp 480w, /customBanner1.webp 1024w, /customBanner1.webp 1920w"
-      imagesizes="100vw"
+      imagesizes="(max-width: 640px) 480px, (max-width: 1024px) 1024px, 1920px"
+      fetchpriority="high"
     />
+    
+    <!-- Critical Resource Hints -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-    <link rel="preconnect" href="https://etimadmart.com" crossorigin>
     <link rel="preconnect" href="https://etimadmart.up.railway.app" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Preconnect to Facebook for better caching -->
-    <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
-    <link rel="dns-prefetch" href="https://www.facebook.com">
-
-    <!-- Performance: Preload LCP hero image (first banner) -->
-    <link
-      rel="preload"
-      as="image"
-      href="/customBanner1.webp"
-      imagesrcset="/customBanner1.webp 800w, /customBanner1.webp 1200w, /customBanner1.webp 1920w"
-      imagesizes="100vw"
-    />
+    
+    <!-- DNS Prefetch for non-critical resources -->
+    <link rel="dns-prefetch" href="//connect.facebook.net">
+    <link rel="dns-prefetch" href="//www.facebook.com">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
     <!-- Preload splash logo early so it appears instantly -->
     <link rel="preload" as="image" href="/f-logo.png" />
+    
+    <!-- Critical CSS for LCP optimization -->
+    <style>
+      /* Critical above-the-fold styles to prevent layout shift */
+      .banner-container {
+        width: 100%;
+        max-width: 100vw;
+        aspect-ratio: 1920/550;
+        background-color: #f3f4f6;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .banner-image {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+      }
+      
+      /* Prevent layout shift for navigation dots */
+      .banner-dots {
+        display: flex;
+        justify-content: center;
+        margin: 8px 0;
+        min-height: 32px;
+      }
+    </style>
     <!-- Content Security Policy Meta Tag (Backup for cPanel) -->
     <meta
       http-equiv="Content-Security-Policy"
