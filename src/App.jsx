@@ -9,8 +9,8 @@ import MetaPixelTracker from './components/MetaPixelTracker';
 import Navbar from "./components/Navbar";
 import Popup from "./components/Popup";
 import { getUserAPI } from "./functions/auth";
-import { setUser } from "./store/authSlice";
 import { recordVisit } from "./functions/traffic";
+import { setUser } from "./store/authSlice";
 
 
 

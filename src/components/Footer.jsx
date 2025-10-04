@@ -142,7 +142,7 @@ const Footer = () => {
   }, []);
 
   // Fallbacks
-  const logoUrl = footerData?.logoUrl || "/f-logo.png";
+  const logoUrl = footerData?.logoUrl || "/f-logo.webp";
   const aboutText = footerData?.aboutText || "Shopping karain Etimad ke sath";
   // Ensure Contact Us is always included in quick links
   const defaultQuickLinks = [
@@ -205,11 +205,13 @@ const Footer = () => {
             <motion.div className="text-center" variants={itemVariants}>
               <a href="/">
                 <motion.img
-                  src={logoUrl}
+                  src={logoUrl || "/f-logo.webp"}
                   alt="Logo"
                   className="bg-transparent mx-auto h-16 object-contain"
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 400 }}
+                  width="160"
+                  height="64"
                 />
               </a>
               <motion.p
@@ -322,11 +324,13 @@ const Footer = () => {
             <motion.div variants={itemVariants}>
               <a href="/">
                 <motion.img
-                  src={logoUrl}
+                  src={logoUrl || "/f-logo.webp"}
                   alt="Logo"
                   className="bg-transparent mx-auto h-20 md:h-28 lg:h-32 object-cover"
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 400 }}
+                  width="224"
+                  height="96"
                 />
               </a>
               <motion.p

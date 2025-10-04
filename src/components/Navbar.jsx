@@ -1,12 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React, {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import Marquee from "react-fast-marquee";
 import toast from "react-hot-toast";
 import { CgMenu } from "react-icons/cg";
 import { CiMobile3 } from "react-icons/ci";
@@ -16,7 +17,10 @@ import { HiOutlineShoppingBag, HiOutlineShoppingCart } from "react-icons/hi2";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logoutAPI } from "../functions/auth";
-import { getHomepageMenuCategories, getHomepageTopbar } from "../functions/homepage";
+import {
+  getHomepageMenuCategories,
+  getHomepageTopbar,
+} from "../functions/homepage";
 import { getUserLogo } from "../functions/logo";
 import { truncateTitle } from "../helpers/truncateTitle";
 import { setUser } from "../store/authSlice";
@@ -24,6 +28,7 @@ import { fetchSearchResults, setSearchQuery } from "../store/searchSlice";
 import CategoryBar from "./CategoryBar";
 import NavDrawer from "./drawers/NavDrawer";
 import NotificationBell from "./NotificationBell";
+const Marquee = lazy(() => import("react-fast-marquee"));
 const Navbar = React.memo(() => {
   const hideCategoryBarOn = useMemo(
     () => [
@@ -483,7 +488,7 @@ const Navbar = React.memo(() => {
     <>
       {/* Top bar */}
       <motion.div
-        className="text-white py-2 px-1 md:px-4 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
+        className="text-white  px-1 text-center text-sm md:flex md:justify-between md:items-center lg:items-center"
         style={{
           background:
             "linear-gradient(90deg, var(--color-primary, #5a67d8), var(--color-secondary, #3182ce))",
@@ -492,16 +497,21 @@ const Navbar = React.memo(() => {
         initial="hidden"
         animate="visible"
       >
-        <div className="pr-3 hidden md:flex mb-2 md:mb-0">
-          <Marquee className="text-sm font-bold" speed={50} gradient={false}>
-            {topBar && topBar.length > 0
-              ? topBar.map((bar, idx) => (
-                  <span key={bar._id || idx} className="mx-6">
-                    {bar.text}
-                  </span>
-                ))
-              : "Welcome to our store! Enjoy the best deals."}
-          </Marquee>
+        <div
+          className="pr-3 hidden md:flex mb-2 md:mb-0 h-8 md:h-10 items-center overflow-hidden"
+          style={{ contentVisibility: "visible" }}
+        >
+          <Suspense fallback={<div className="w-full h-full" />}> 
+            <Marquee className="text-sm font-bold" speed={50} gradient={false}>
+              {topBar && topBar.length > 0
+                ? topBar.map((bar, idx) => (
+                    <span key={bar._id || idx} className="mx-6 whitespace-nowrap">
+                      {bar.text}
+                    </span>
+                  ))
+                : "Welcome to our store! Enjoy the best deals."}
+            </Marquee>
+          </Suspense>
         </div>
         <div className="flex justify-center gap-4 text-sm md:text-base">
           {/* <Link to="/about" className="text-gray-200 no-underline hover:text-white hover:underline">About Us</Link>
@@ -540,6 +550,8 @@ const Navbar = React.memo(() => {
                   alt="Logo"
                   className="h-12"
                   loading="eager"
+                  width="160"
+                  height="48"
                 />
               </motion.a>
             </div>
