@@ -99,8 +99,8 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             ...prev,
             ...newPreviews,
         ]);
-        console.log("New images added:", newImages);
-        console.log("New image previews generated:", newPreviews);
+        // console.log("New images added:", newImages);
+        // console.log("New image previews generated:", newPreviews);
     };
 
     const handleImageRemove = (index) => {

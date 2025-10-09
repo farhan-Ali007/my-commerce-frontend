@@ -10,7 +10,9 @@ import {
   FaTags,
   FaUsers,
 } from "react-icons/fa";
+import { BsPencilSquare } from "react-icons/bs";
 import { GiVerticalBanner } from "react-icons/gi";
+import { LuTableOfContents } from "react-icons/lu";
 import { RiCoupon2Line } from "react-icons/ri";
 import { IoNotifications } from "react-icons/io5";
 import { LuChartColumnDecreasing } from "react-icons/lu";
@@ -45,6 +47,7 @@ import MenuCategories from "./MenuCategories";
 import NewOrders from "./NewOrders";
 import AdminTopbarText from "./TopBar";
 import Coupons from "./Coupons";
+import AdminBlog from "./AdminBlog";
 
 const AdminDashboard = () => {
   const location = useLocation();
@@ -71,7 +74,7 @@ const AdminDashboard = () => {
     const stateTab = location?.state?.tab;
     if (stateTab) {
       setSelectedPage(stateTab);
-      try { localStorage.setItem('selectedPage', stateTab); } catch {}
+      try { localStorage.setItem('selectedPage', stateTab); } catch { }
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -80,7 +83,7 @@ const AdminDashboard = () => {
     const queryTab = params.get('tab');
     if (queryTab) {
       setSelectedPage(queryTab);
-      try { localStorage.setItem('selectedPage', queryTab); } catch {}
+      try { localStorage.setItem('selectedPage', queryTab); } catch { }
     } else {
       const savedPage = localStorage.getItem("selectedPage");
       if (savedPage) setSelectedPage(savedPage);
@@ -91,7 +94,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     try {
       localStorage.setItem("adminSidebarCollapsed", String(isSidebarCollapsed));
-    } catch {}
+    } catch { }
   }, [isSidebarCollapsed]);
 
   useEffect(() => {
@@ -240,6 +243,12 @@ const AdminDashboard = () => {
             <Coupons />
           </div>
         );
+      case "blog":
+        return (
+          <div>
+            <AdminBlog />
+          </div>
+        );
       default:
         return <div>Select a page from the navigation</div>;
     }
@@ -257,11 +266,9 @@ const AdminDashboard = () => {
 
       {/* Sidebar */}
       <div
-        className={`w-full ${
-          isSidebarCollapsed ? "lg:w-16" : "lg:w-64"
-        } bg-gray-800 z-[100] h-auto lg:h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:transform-none transition-transform duration-200 ease-in-out`}
+        className={`w-full ${isSidebarCollapsed ? "lg:w-16" : "lg:w-64"
+          } bg-gray-800 z-[100] h-auto lg:h-[calc(100vh+64px)] text-white flex flex-col absolute lg:relative transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } lg:transform-none transition-transform duration-200 ease-in-out`}
       >
         <div className="flex items-center justify-between p-4">
           <h2 className={`text-2xl font-bold ${isSidebarCollapsed ? "lg:hidden" : ""}`}>Admin Panel</h2>
@@ -280,7 +287,7 @@ const AdminDashboard = () => {
               title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {isSidebarCollapsed ? (
-                <TbLayoutSidebar  className="text-lg" />
+                <TbLayoutSidebar className="text-lg" />
               ) : (
                 <TbLayoutSidebarRight className="text-lg" />
               )}
@@ -290,11 +297,10 @@ const AdminDashboard = () => {
         <nav className="flex flex-col gap-2 text-white">
           {/* Dashboard */}
           <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "dashboard"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-lg"
-            }`}
+            className={`flex items-center gap-3 py-2 px-4 text-left ${selectedPage === "dashboard"
+              ? "bg-gray-700 rounded-full"
+              : "hover:bg-gray-700 rounded-lg"
+              }`}
             onClick={() => {
               setSelectedPage("dashboard");
               navigate('/admin-dashboard');
@@ -454,11 +460,10 @@ const AdminDashboard = () => {
 
           {/* Keep Users standalone */}
           <button
-            className={`flex items-center gap-3 py-2 px-4 text-left ${
-              selectedPage === "allUsers"
-                ? "bg-gray-700 rounded-full"
-                : "hover:bg-gray-700 rounded-full"
-            }`}
+            className={`flex items-center gap-3 py-2 px-4 text-left ${selectedPage === "allUsers"
+              ? "bg-gray-700 rounded-full"
+              : "hover:bg-gray-700 rounded-full"
+              }`}
             onClick={() => {
               setSelectedPage("allUsers");
               setIsSidebarOpen(false);
@@ -605,15 +610,6 @@ const AdminDashboard = () => {
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
-                    setSelectedPage("dynamicPages");
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <FaFileAlt /> Pages
-                </button>
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
-                  onClick={() => {
                     setSelectedPage("adminBanner");
                     setIsSidebarOpen(false);
                   }}
@@ -682,15 +678,6 @@ const AdminDashboard = () => {
                 <button
                   className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
                   onClick={() => {
-                    setSelectedPage("dynamicPages");
-                    setIsSidebarOpen(false);
-                  }}
-                >
-                  <FaFileAlt /> Pages
-                </button>
-                <button
-                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
-                  onClick={() => {
                     setSelectedPage("adminBanner");
                     setIsSidebarOpen(false);
                   }}
@@ -741,6 +728,61 @@ const AdminDashboard = () => {
                   }}
                 >
                   <IoNotifications /> Popup
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="relative group">
+            <button
+              className={`w-full flex items-center gap-3 py-2 px-4 text-left ${"hover:bg-gray-700 rounded-lg"}`}
+              onClick={() => toggleSection("content")}
+            >
+              <LuTableOfContents className="text-lg" />
+              <span className={`${isSidebarCollapsed ? "lg:hidden" : ""}`}>Content</span>
+            </button>
+            {/* Hover submenu for desktop */}
+            <div className="absolute left-full -top-1 -ml-2 hidden lg:group-hover:block z-50">
+              <div className="min-w-[220px] bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("dynamicPages");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaFileAlt /> Pages
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("blog");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <BsPencilSquare /> Blog
+                </button>
+              </div>
+            </div>
+            {/* Collapsible submenu for mobile/tablet */}
+            <div className={`lg:hidden ${openSection === "content" ? "block" : "hidden"} pl-6 pt-1`}>
+              <div className="flex flex-col gap-1 pb-2">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("dynamicPages");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <FaFileAlt /> Pages
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-700 rounded"
+                  onClick={() => {
+                    setSelectedPage("blog");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <BsPencilSquare /> Blog
                 </button>
               </div>
             </div>

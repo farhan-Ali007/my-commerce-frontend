@@ -71,7 +71,6 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
         }
 
         navigateTo(`/category/${categorySlug}/subcategory/${subcategorySlug}`);
-        console.log("Navigating to:", `/category/${categorySlug}/subcategory/${subcategorySlug}`);
 
         setModalState({ isOpen: false, selectedCategory: null });
     }, [modalState.selectedCategory, navigateTo, setModalState]);

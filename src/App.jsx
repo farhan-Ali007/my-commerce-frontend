@@ -37,6 +37,8 @@ const NewOrders = lazy(() => import("./Pages/admin/NewOrders"));
 const Footer = lazy(() => import("./components/Footer"));
 const ManualOrder = lazy(() => import('./Pages/admin/ManualOrder'));
 const Coupons = lazy(() => import('./Pages/admin/Coupons'));
+const Blog = lazy(() => import('./Pages/Blog'));
+const BlogPost = lazy(() => import('./Pages/BlogPost'));
 
 const App = () => {
   const navigateTo = useNavigate();
@@ -134,7 +136,8 @@ const App = () => {
             <Route path="/category/:categorySlug/subcategory/:subcategorySlug" element={<ProductsBySub />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/brand/:brandSlug" element={<ProductsByBrand />} />
-
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
 
             {/* Protected Routes for Admin Only */}
             <Route element={<AdminRoute />}>

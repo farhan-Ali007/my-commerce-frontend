@@ -134,9 +134,6 @@ const Popup = () => {
         if (popup && !isButtonLoading) {
             try {
                 setIsButtonLoading(true);
-                console.log('Popup data:', popup);
-                console.log('Product link:', popup.productLink);
-                
                 // Track the click
                 await trackPopupInteraction(popup._id, 'click');
                 
@@ -147,20 +144,16 @@ const Popup = () => {
                 
                 // Navigate to the product link
                 if (popup.productLink) {
-                    console.log('Attempting to navigate to:', popup.productLink);
                     
                     // Check if it's an internal link (starts with /) or external
                     if (popup.productLink.startsWith('/')) {
                         // Internal navigation
-                        console.log('Internal navigation to:', popup.productLink);
                         navigate(popup.productLink);
                     } else if (popup.productLink.startsWith('http')) {
                         // External link - open in same tab
-                        console.log('External navigation to:', popup.productLink);
                         window.location.href = popup.productLink;
                     } else {
                         // Assume it's a relative path
-                        console.log('Relative navigation to:', popup.productLink);
                         navigate(popup.productLink);
                     }
                 } else {
