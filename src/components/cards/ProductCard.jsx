@@ -272,7 +272,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
     return (
         <motion.div
-            className="group max-w-sm bg-white min-h-[300px] max-h-[350px] overflow-hidden rounded shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col border-[0.1px] border-secondary items-stretch relative"
+            className="group max-w-sm bg-white min-h-[250px] max-h-[300px] md:max-h-[350px] overflow-hidden rounded shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col border-[0.1px] border-secondary items-stretch relative"
             style={{ contentVisibility: 'auto', containIntrinsicSize: '320px 320px' }}
             variants={cardVariants}
             initial={allowMotion ? "hidden" : false}
@@ -283,7 +283,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             onMouseLeave={allowMotion ? () => setIsHovered(false) : undefined}
         >
             {/* Image container with hover buttons */}
-            <div className="relative w-full mb-0 lg:mb-4 overflow-hidden">
+            <div className="relative w-full mb-0 lg:mb-2 overflow-hidden">
                 <Link to={`/product/${slug}`} className="block w-full">
                     {/* Square container to avoid horizontal gaps on mobile */}
                     <div 
@@ -294,7 +294,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                         }}
                     >
                         <motion.img
-                            className="absolute inset-0 w-full h-full object-cover transition-transform"
+                            className="absolute inset-0 w-full rounded-t h-full object-cover transition-transform"
                             src={getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
                             srcSet={getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
                             sizes={`(max-width: 768px) 50vw, ${imageWidth}px`}
@@ -372,10 +372,10 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             )}
 
 
-            <div className="justify-start mx-2 md:mt-0 mb-4 font-roboto">
+            <div className="justify-start mx-2 md:mt-0 mb-2 font-roboto">
                 <Link to={`/product/${slug}`} className='text-black no-underline'>
-                    <h2 className="mb-2 text-xs md:text-sm  font-medium">
-                        {truncateTitle(title, 45)}
+                    <h2 className="mb-2 mt-1 md:mt-0 text-xs md:text-sm  font-medium">
+                        {truncateTitle(title, 44)}
                     </h2>
                 </Link>
                 <div className="flex items-center gap-1 mb-1">
