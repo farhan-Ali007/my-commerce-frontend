@@ -424,7 +424,7 @@ const Navbar = React.memo(() => {
         {menuDisplay && searchState.results.length > 0 && (
           <motion.div
             ref={searchMenuRef}
-            className="absolute top-full left-0 right-0 mt-2 mx-auto bg-transparent w-full max-w-md lg:max-w-lg xl:max-w-lg overflow-hidden backdrop-blur-md z-10"
+            className="absolute top-full left-0 right-0 md:right-10 lg:right-[70px] mt-2 mx-auto bg-transparent w-full max-w-md lg:max-w-lg xl:max-w-lg overflow-hidden backdrop-blur-md z-10"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}

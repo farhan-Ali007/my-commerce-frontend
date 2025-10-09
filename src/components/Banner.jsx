@@ -85,7 +85,6 @@ const Banner = React.memo(() => {
     tablet: { width: 1024, height: 320 },
     mobile: { width: 480, height: 140 }
   }), []);
-
   const aspectRatio = useMemo(() => 
     bannerDimensions.desktop.width / bannerDimensions.desktop.height,
     [bannerDimensions]
@@ -98,6 +97,8 @@ const Banner = React.memo(() => {
       link: '#',
       alt: 'Custom Banner 1',
       priority: true, // Mark as LCP candidate
+      width: 1920,
+      height: 550,
     },
     {
       _id: 'custom2',
@@ -105,6 +106,8 @@ const Banner = React.memo(() => {
       link: '#',
       alt: 'Custom Banner 2',
       priority: false,
+      width: 1920,
+      height: 550,
     },
   ];
 
@@ -114,14 +117,16 @@ const Banner = React.memo(() => {
     if (typeof window !== 'undefined' && window.__BANNER_CACHE) {
       return window.__BANNER_CACHE;
     }
-    return preloaded;
+    // Use preloaded banners if available, otherwise use static banners for LCP
+    return preloaded.length > 0 ? preloaded : staticBanners;
   });
   // console.log("Banners----->", banners)
   const [loading, setLoading] = useState(() => {
     if (typeof window !== 'undefined' && window.__BANNER_CACHE) {
       return false;
     }
-    return preloaded.length === 0;
+    // Never show loading since we always have static banners
+    return false;
   });
   const [error, setError] = useState(null);
   const [imageLoadedStates, setImageLoadedStates] = useState({});
@@ -133,8 +138,14 @@ const Banner = React.memo(() => {
       setLoading(false);
       return;
     }
+    
+    // Always use static banners first for better LCP
+    setBanners(staticBanners);
+    setLoading(false);
+    
+    // Optionally fetch API banners in background (commented out for LCP optimization)
+    /*
     try {
-      setLoading(true);
       setError(null);
       const response = await getHomepageBanners();
       const raw = Array.isArray(response) ? response : (response?.banners || response?.data || []);
@@ -144,22 +155,23 @@ const Banner = React.memo(() => {
         link: it?.link || '#',
         alt: it?.alt || `Banner ${idx + 1}`,
       })) : [];
-      setBanners(list);
-      // Cache banners to prevent re-fetching on HMR
-      if (typeof window !== 'undefined') {
-        window.__BANNER_CACHE = list;
+      
+      // Only update if API banners are different and valid
+      if (list.length > 0) {
+        setBanners(list);
+        // Cache banners to prevent re-fetching on HMR
+        if (typeof window !== 'undefined') {
+          window.__BANNER_CACHE = list;
+        }
+        // Reset image loaded states when banners change
+        setImageLoadedStates({});
       }
-      // Reset image loaded states when banners change
-      setImageLoadedStates({});
     } catch (e) {
-      console.error("Banner fetch failed", e);
-      setError("Failed to load banners");
-      setBanners([]);
-      setImageLoadedStates({});
-    } finally {
-      setLoading(false);
+      console.error("Banner fetch failed, using static banners", e);
+      // Keep static banners on API failure
     }
-  }, []);
+    */
+  }, [staticBanners]);
 
   useEffect(() => {
     mounted.current = true;
