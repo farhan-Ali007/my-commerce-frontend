@@ -243,7 +243,7 @@ const NewArrivals = React.memo(() => {
               {products.map((product) => (
                 <div
                   key={product._id}
-                  className="shrink-0 w-[250px] px-1  py-2"
+                  className="shrink-0 w-[280px] px-1  py-2"
                 >
                   <ProductCard product={product} />
                 </div>
@@ -255,7 +255,7 @@ const NewArrivals = React.memo(() => {
                 {products.map((product) => (
                   <div
                     key={product._id}
-                    className="keen-slider__slide shrink-0 w-[250px] px-1 py-2"
+                    className="keen-slider__slide shrink-0 w-[280px] px-1 py-2"
                   >
                     <ProductCard product={product} />
                   </div>

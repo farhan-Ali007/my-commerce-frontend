@@ -272,7 +272,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
     return (
         <motion.div
-            className="group max-w-sm bg-white h-[350px] overflow-hidden rounded shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col border-[0.1px] border-secondary items-stretch relative"
+            className="group max-w-sm bg-white min-h-[300px] max-h-[350px] overflow-hidden rounded shadow-md mb-2 hover:shadow-lg transition-shadow duration-300 flex flex-col border-[0.1px] border-secondary items-stretch relative"
             style={{ contentVisibility: 'auto', containIntrinsicSize: '320px 320px' }}
             variants={cardVariants}
             initial={allowMotion ? "hidden" : false}
@@ -286,7 +286,13 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             <div className="relative w-full mb-0 lg:mb-4 overflow-hidden">
                 <Link to={`/product/${slug}`} className="block w-full">
                     {/* Square container to avoid horizontal gaps on mobile */}
-                    <div className="relative w-full aspect-square" style={{ aspectRatio: '1 / 1' }}>
+                    <div 
+                        className="relative w-full overflow-hidden"
+                        style={{ 
+                            aspectRatio: '1 / 1',
+                            height: 'auto'
+                        }}
+                    >
                         <motion.img
                             className="absolute inset-0 w-full h-full object-cover transition-transform"
                             src={getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
@@ -294,8 +300,6 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                             sizes={`(max-width: 768px) 50vw, ${imageWidth}px`}
                             alt={title}
                             loading="lazy"
-                            width={imageWidth}
-                            height={imageHeight}
                             decoding="async"  
                             variants={imageVariants}
                             initial="initial"
@@ -346,11 +350,11 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             </div>
 
             {/* Mobile action buttons - shown on all screen sizes below the content */}
-            <div className="flex lg:hidden justify-between gap-0 mx-0 mb-0">
-                <button onClick={handleAddToCart} className="flex-1 bg-primary/95 text-white font-semibold py-2 text-xs hover:bg-primary transition-colors duration-200 shadow-lg">
+            <div className="flex lg:hidden justify-between gap-0 mx-0 mb-1">
+                <button onClick={handleAddToCart} className="flex-1 bg-primary/95 text-white font-semibold py-1 text-[10px] hover:bg-primary transition-colors duration-200 shadow-lg">
                     Add To Cart
                 </button>
-                <button onClick={handleByNow} className="flex-1 bg-secondary/95 text-white font-semibold py-2 text-xs hover:bg-secondary transition-colors duration-200 shadow-lg">
+                <button onClick={handleByNow} className="flex-1 bg-secondary/95 text-white font-semibold py-1 text-[10px] hover:bg-secondary transition-colors duration-200 shadow-lg">
                     Buy Now
                 </button>
             </div>
@@ -370,15 +374,15 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
             <div className="justify-start mx-2 md:mt-0 mb-4 font-roboto">
                 <Link to={`/product/${slug}`} className='text-black no-underline'>
-                    <h2 className="mb-2 text-sm font-medium">
+                    <h2 className="mb-2 text-xs md:text-sm  font-medium">
                         {truncateTitle(title, 45)}
                     </h2>
                 </Link>
                 <div className="flex items-center gap-1 mb-1">
-                    <div className="flex items-center gap-1">
+                    {/* <div className="flex items-center gap-1">
                         {memoizedStars}
                         {totalReviews > 0 && <span className="ml-2 text-sm font-bold text-primary">({totalReviews})</span>}
-                    </div>
+                    </div> */}
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p className="flex flex-col text-sm font-semibold text-primary/90 leading-snug">

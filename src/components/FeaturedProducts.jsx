@@ -276,7 +276,7 @@ const FeaturedProducts = React.memo(() => {
               {products.map((product) => (
                 <div
                   key={product._id}
-                  className="shrink-0 w-[250px] px-2 lg:px-3 py-2"
+                  className="shrink-0 w-[280px] px-1 py-2"
                 >
                   <ProductCard product={product} />
                 </div>
@@ -288,7 +288,7 @@ const FeaturedProducts = React.memo(() => {
                 {products.map((product) => (
                   <div
                     key={product._id}
-                    className="keen-slider__slide px-1 lg:px-[0.1rem] py-2"
+                    className="keen-slider__slide px-1 py-2 w-[280px]"
                   >
                     <ProductCard product={product} />
                   </div>
