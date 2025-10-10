@@ -138,7 +138,7 @@
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' data: https://fonts.gstatic.com;
     img-src 'self' data: https: blob: https://res.cloudinary.com https://www.facebook.com;
-    connect-src 'self' https://etimadmart.com   https://etimadmart.up.railway.app https://etimadmart.com/api/v1 https://www.google-analytics.com https://res.cloudinary.com https://www.facebook.com;
+    connect-src 'self' https://etimadmart.com https://etimadmart.up.railway.app https://etimadmart.com/api/v1 https://www.google-analytics.com https://res.cloudinary.com https://www.facebook.com https://connect.facebook.net https://*.run.app;
     frame-src 'self';
     object-src 'none';
     base-uri 'self';
@@ -378,6 +378,19 @@
               
               console.log('🔧 Meta Pixel initialized for domain:', w.location.hostname);
               
+              // Debug: Check if there are multiple pixels
+              setTimeout(function() {
+                if (w.fbq && w.fbq._fbq && w.fbq._fbq.pixelsByID) {
+                  var pixelIds = Object.keys(w.fbq._fbq.pixelsByID);
+                  console.log('🔍 Active Pixel IDs:', pixelIds);
+                  if (pixelIds.length > 1) {
+                    console.warn('⚠️ Multiple pixels detected:', pixelIds);
+                    console.log('Expected: 2204362540002843');
+                    console.log('Unexpected pixels:', pixelIds.filter(id => id !== '2204362540002843'));
+                  }
+                }
+              }, 1000);
+              
               // Track simple PageView without extra parameters
               fbq('track', 'PageView'); 
               
@@ -414,8 +427,7 @@
               } else {
                 console.log('🚀 Production Meta Pixel ready for real events');
                 // Send a minimal test event to verify connection
-                w.fbq('track', 'CustomEvent', { 
-                  test: 'production_pixel_test',
+                w.fbq('trackCustom', 'ProductionPixelTest', { 
                   domain: w.location.hostname,
                   timestamp: Date.now()
                 });
