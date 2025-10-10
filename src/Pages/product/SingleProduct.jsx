@@ -1105,10 +1105,12 @@ const SingleProduct = () => {
     )}`;
     window.open(url, "_blank");
 
-    // Facebook Pixel tracking - AddToCart event
-    track("startConversation", {
+    // Facebook Pixel tracking - StartConversation event
+    track("StartConversation", {
       content_ids: [product._id],
       content_name: product.title,
+      content_category: 'Product Inquiry',
+      source: 'product_page_whatsapp_button',
       value: product.salePrice ? product.salePrice : product.price,
       currency: "PKR",
     });

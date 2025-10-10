@@ -113,7 +113,7 @@ const useFacebookPixel = () => {
     };
 
     // Critical events (AddToCart, Purchase) track immediately but with small delay to ensure pixel is ready
-    const criticalEvents = ['AddToCart', 'Purchase', 'InitiateCheckout'];
+    const criticalEvents = ['AddToCart', 'Purchase', 'InitiateCheckout', 'StartConversation'];
     if (criticalEvents.includes(event)) {
       // Small delay to ensure pixel is fully initialized
       setTimeout(trackEvent, 100);
