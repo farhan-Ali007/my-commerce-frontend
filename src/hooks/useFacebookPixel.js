@@ -74,11 +74,16 @@ const useFacebookPixel = () => {
           
           console.log('🚀 About to send event:', event, eventData);
           
-          // Try both standard and alternative methods
-          window.fbq('track', event, eventData);
+          // Use trackSingle for more reliable delivery with specific pixel ID
+          console.log('🎯 Using trackSingle for reliable delivery');
+          window.fbq('trackSingle', '4178050992439851', event, eventData);
           
-          // Also try trackSingle for more reliable delivery
-          window.fbq('trackSingle', '2204362540002843', event, eventData);
+          // Also try standard track as backup
+          try {
+            window.fbq('track', event, eventData);
+          } catch (trackError) {
+            console.warn('⚠️ Standard track failed, but trackSingle should work:', trackError);
+          }
           
           // Verify the request was sent by checking network activity
           setTimeout(() => {

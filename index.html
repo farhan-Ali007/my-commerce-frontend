@@ -139,10 +139,10 @@
     font-src 'self' data: https://fonts.gstatic.com;
     img-src 'self' data: https: blob: https://res.cloudinary.com https://www.facebook.com;
     connect-src 'self' https://etimadmart.com https://etimadmart.up.railway.app https://etimadmart.com/api/v1 https://www.google-analytics.com https://res.cloudinary.com https://www.facebook.com https://connect.facebook.net https://*.run.app;
-    frame-src 'self';
+    frame-src 'self' https://www.facebook.com;
     object-src 'none';
     base-uri 'self';
-    form-action 'self'
+    form-action 'self' https://www.facebook.com
   "
     />
     <meta
@@ -373,23 +373,83 @@
             try { 
               console.log('📡 Meta Pixel script loaded successfully');
               
-              // Standard pixel initialization - avoid advanced features that can cause issues
-              fbq('init', '2204362540002843'); 
-              
-              console.log('🔧 Meta Pixel initialized for domain:', w.location.hostname);
+              // Robust pixel initialization with conflict handling
+              try {
+                // Initialize the correct pixel ID
+                fbq('init', '4178050992439851');
+                console.log('🔧 Meta Pixel initialized for domain:', w.location.hostname);
+                
+                // Verify initialization worked
+                setTimeout(function() {
+                  if (w.fbq && w.fbq._fbq && w.fbq._fbq.pixelsByID && w.fbq._fbq.pixelsByID['4178050992439851']) {
+                    console.log('✅ Pixel 4178050992439851 successfully initialized');
+                  } else {
+                    console.error('❌ Pixel 4178050992439851 failed to initialize');
+                    // Try alternative initialization
+                    console.log('🔄 Attempting alternative initialization...');
+                    fbq('init', '4178050992439851', {}, { agent: 'plethora' });
+                  }
+                }, 500);
+                
+              } catch (initError) {
+                console.error('❌ Pixel initialization error:', initError);
+                // Fallback initialization
+                console.log('🔄 Attempting fallback initialization...');
+                w.fbq('init', '4178050992439851');
+              }
               
               // Debug: Check if there are multiple pixels
               setTimeout(function() {
-                if (w.fbq && w.fbq._fbq && w.fbq._fbq.pixelsByID) {
-                  var pixelIds = Object.keys(w.fbq._fbq.pixelsByID);
-                  console.log('🔍 Active Pixel IDs:', pixelIds);
-                  if (pixelIds.length > 1) {
-                    console.warn('⚠️ Multiple pixels detected:', pixelIds);
-                    console.log('Expected: 2204362540002843');
-                    console.log('Unexpected pixels:', pixelIds.filter(id => id !== '2204362540002843'));
+                console.log('🔍 Checking for multiple pixels...');
+                
+                // Check fbq internal structure
+                if (w.fbq && w.fbq._fbq) {
+                  console.log('📊 fbq._fbq exists:', !!w.fbq._fbq);
+                  
+                  if (w.fbq._fbq.pixelsByID) {
+                    var pixelIds = Object.keys(w.fbq._fbq.pixelsByID);
+                    console.log('🔍 Active Pixel IDs:', pixelIds);
+                    
+                    if (pixelIds.length > 1) {
+                      console.warn('⚠️ Multiple pixels detected:', pixelIds);
+                      console.log('✅ Expected: 2204362540002843');
+                      console.log('❌ Unexpected pixels:', pixelIds.filter(id => id !== '2204362540002843'));
+                      
+                      // Try to disable the duplicate pixel
+                      pixelIds.forEach(function(id) {
+                        if (id !== '2204362540002843') {
+                          console.log('🚫 Attempting to disable duplicate pixel:', id);
+                          try {
+                            delete w.fbq._fbq.pixelsByID[id];
+                            console.log('✅ Disabled pixel:', id);
+                          } catch (e) {
+                            console.warn('❌ Could not disable pixel:', id, e);
+                          }
+                        }
+                      });
+                    } else {
+                      console.log('✅ Only one pixel active:', pixelIds[0]);
+                    }
+                  } else {
+                    console.log('📊 pixelsByID not found');
+                  }
+                } else {
+                  console.log('📊 fbq._fbq not available');
+                }
+                
+                // Check for any scripts with the duplicate pixel ID
+                var scripts = d.querySelectorAll('script');
+                var duplicateFound = false;
+                for (var i = 0; i < scripts.length; i++) {
+                  if (scripts[i].innerHTML && scripts[i].innerHTML.includes('4178050992439851')) {
+                    console.warn('🚨 Found duplicate pixel in script:', scripts[i]);
+                    duplicateFound = true;
                   }
                 }
-              }, 1000);
+                if (!duplicateFound) {
+                  console.log('🔍 No duplicate pixel found in scripts - may be from external source');
+                }
+              }, 2000);
               
               // Track simple PageView without extra parameters
               fbq('track', 'PageView'); 
@@ -401,6 +461,16 @@
           };
         }
 
+        // Check for existing pixels before loading
+        console.log('🔍 Pre-load pixel check...');
+        if (w.fbq && w.fbq._fbq && w.fbq._fbq.pixelsByID) {
+          var existingPixels = Object.keys(w.fbq._fbq.pixelsByID);
+          if (existingPixels.length > 0) {
+            console.warn('⚠️ Pixels already exist before our script:', existingPixels);
+            console.log('🔍 This suggests another script/extension is loading Meta Pixel');
+          }
+        }
+        
         // Load immediately for better event tracking
         loadFbPixel();
         
