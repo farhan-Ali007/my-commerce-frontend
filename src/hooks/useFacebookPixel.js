@@ -43,8 +43,22 @@ const useFacebookPixel = () => {
     const trackEvent = () => {
       if (window.fbq && typeof window.fbq === 'function') {
         try {
-          window.fbq('track', event, data);
-          console.log('✅ Meta Pixel Event Sent:', event, data);
+          // Enhanced event data for production
+          const enhancedData = {
+            ...data,
+            // Add production-specific metadata
+            source: 'website',
+            domain: window.location.hostname,
+            page_url: window.location.href,
+            timestamp: Date.now(),
+            // Add user agent for better tracking
+            user_agent: navigator.userAgent,
+            // Add referrer information
+            referrer: document.referrer || 'direct'
+          };
+          
+          window.fbq('track', event, enhancedData);
+          console.log('✅ Meta Pixel Event Sent:', event, enhancedData);
         } catch (error) {
           console.warn('❌ Facebook Pixel tracking error:', error);
         }
