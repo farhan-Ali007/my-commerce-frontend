@@ -36,29 +36,66 @@ const useFacebookPixel = () => {
       return;
     }
 
-    // Debug logging
-    console.log('🎯 Meta Pixel Event:', event, data);
+    // Enhanced debug logging for production troubleshooting
+    const isProduction = window.location.hostname !== 'localhost' && 
+                        !window.location.hostname.includes('127.0.0.1');
+    
+    if (isProduction) {
+      console.log('🚀 PRODUCTION Meta Pixel Event:', event, data, 'Domain:', window.location.hostname);
+    } else {
+      console.log('🎯 DEV Meta Pixel Event:', event, data);
+    }
 
     // Use requestIdleCallback for non-critical events
     const trackEvent = () => {
+      console.log('🔍 trackEvent called - fbq available:', typeof window.fbq);
+      
       if (window.fbq && typeof window.fbq === 'function') {
         try {
-          // Enhanced event data for production
-          const enhancedData = {
-            ...data,
-            // Add production-specific metadata
-            source: 'website',
-            domain: window.location.hostname,
-            page_url: window.location.href,
-            timestamp: Date.now(),
-            // Add user agent for better tracking
-            user_agent: navigator.userAgent,
-            // Add referrer information
-            referrer: document.referrer || 'direct'
-          };
+          // Clean event data - remove problematic fields that can cause activation issues
+          const cleanData = { ...data };
           
-          window.fbq('track', event, enhancedData);
-          console.log('✅ Meta Pixel Event Sent:', event, enhancedData);
+          // Remove fields that might cause issues in production
+          delete cleanData.user_agent;
+          delete cleanData.timestamp;
+          delete cleanData.referrer;
+          delete cleanData.source;
+          delete cleanData.domain;
+          delete cleanData.page_url;
+          
+          // Only keep essential e-commerce fields
+          const eventData = {};
+          if (cleanData.content_ids) eventData.content_ids = cleanData.content_ids;
+          if (cleanData.content_name) eventData.content_name = cleanData.content_name;
+          if (cleanData.content_type) eventData.content_type = cleanData.content_type;
+          if (cleanData.value) eventData.value = parseFloat(cleanData.value);
+          if (cleanData.currency) eventData.currency = cleanData.currency;
+          if (cleanData.num_items) eventData.num_items = parseInt(cleanData.num_items);
+          
+          console.log('🚀 About to send event:', event, eventData);
+          
+          // Try both standard and alternative methods
+          window.fbq('track', event, eventData);
+          
+          // Also try trackSingle for more reliable delivery
+          window.fbq('trackSingle', '2204362540002843', event, eventData);
+          
+          // Verify the request was sent by checking network activity
+          setTimeout(() => {
+            const fbRequests = performance.getEntriesByName('https://www.facebook.com/tr');
+            console.log('🌐 Facebook network requests found:', fbRequests.length);
+            if (fbRequests.length === 0) {
+              console.warn('⚠️ No Facebook network requests detected - events may not be reaching Facebook');
+            }
+          }, 1000);
+          
+          if (isProduction) {
+            console.log('✅ PRODUCTION Event Sent:', event, 'Domain:', window.location.hostname);
+            console.log('📊 Clean Event Data:', eventData);
+            console.log('🔍 Check Network tab for requests to facebook.com/tr');
+          } else {
+            console.log('✅ DEV Event Sent:', event, eventData);
+          }
         } catch (error) {
           console.warn('❌ Facebook Pixel tracking error:', error);
         }
@@ -70,16 +107,17 @@ const useFacebookPixel = () => {
       }
     };
 
-    // Critical events (AddToCart, Purchase) track immediately
+    // Critical events (AddToCart, Purchase) track immediately but with small delay to ensure pixel is ready
     const criticalEvents = ['AddToCart', 'Purchase', 'InitiateCheckout'];
     if (criticalEvents.includes(event)) {
-      trackEvent();
+      // Small delay to ensure pixel is fully initialized
+      setTimeout(trackEvent, 100);
     } else {
       // Non-critical events can be deferred
       if (window.requestIdleCallback) {
         window.requestIdleCallback(trackEvent, { timeout: 2000 });
       } else {
-        setTimeout(trackEvent, 50);
+        setTimeout(trackEvent, 200);
       }
     }
   }, []);

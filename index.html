@@ -345,7 +345,7 @@
           n.queue = []; n.version = '2.0'; n.loaded = false; w.fbq = n; w._fbq = n;
         }
         
-        // Load the pixel script
+        // Load the pixel script with fallback
         function loadFbPixel() {
           if (w.__fbPixelLoaded) return;
           w.__fbPixelLoaded = true;
@@ -355,29 +355,35 @@
           s.src = 'https://connect.facebook.net/en_US/fbevents.js';
           s.crossOrigin = 'anonymous';
           s.referrerPolicy = 'strict-origin-when-cross-origin';
+          
+          // Add error handling for script loading
+          s.onerror = function() {
+            console.error('❌ Failed to load Meta Pixel script');
+            console.log('🔍 Possible causes:');
+            console.log('- Ad blocker blocking Facebook scripts');
+            console.log('- Network connectivity issues');
+            console.log('- CSP (Content Security Policy) blocking');
+            console.log('- DNS resolution issues');
+          };
+          
           var first = d.getElementsByTagName('script')[0];
           first.parentNode.insertBefore(s, first);
+          
           s.onload = function(){
             try { 
-              // Production-specific configuration
-              fbq('init', '2204362540002843', {
-                // Enable automatic advanced matching for better tracking
-                em: 'auto',
-                // Enable external ID for better user matching
-                external_id: 'auto',
-                // Set your domain for proper attribution
-                domain_name: window.location.hostname
-              }); 
+              console.log('📡 Meta Pixel script loaded successfully');
               
-              // Track PageView with enhanced data
-              fbq('track', 'PageView', {
-                source: 'website',
-                domain: window.location.hostname,
-                page_title: document.title,
-                page_url: window.location.href
-              }); 
+              // Standard pixel initialization - avoid advanced features that can cause issues
+              fbq('init', '2204362540002843'); 
+              
+              console.log('🔧 Meta Pixel initialized for domain:', w.location.hostname);
+              
+              // Track simple PageView without extra parameters
+              fbq('track', 'PageView'); 
+              
+              console.log('📊 Initial PageView tracked');
             } catch(e) {
-              console.warn('Meta Pixel error:', e);
+              console.error('❌ Meta Pixel initialization error:', e);
             }
           };
         }
@@ -385,25 +391,47 @@
         // Load immediately for better event tracking
         loadFbPixel();
         
-        // Debug: Test pixel after load
+        // Enhanced production debugging
         setTimeout(function() {
           var isProduction = w.location.hostname !== 'localhost' && 
                            !w.location.hostname.includes('127.0.0.1') &&
                            !w.location.hostname.includes('localhost');
           
+          console.log('🔍 Meta Pixel Debug Info:');
+          console.log('- Domain:', w.location.hostname);
+          console.log('- Is Production:', isProduction);
+          console.log('- fbq exists:', typeof w.fbq);
+          console.log('- fbq function:', typeof w.fbq === 'function');
+          
           if (w.fbq && typeof w.fbq === 'function') {
             console.log('✅ Meta Pixel loaded successfully on', w.location.hostname);
             
-            // Only send test event in development
-            if (!isProduction) {
-              w.fbq('track', 'CustomEvent', { test: 'pixel_loaded', environment: 'development' });
-            } else {
-              console.log('🚀 Production Meta Pixel ready for real events');
+            // Test pixel functionality
+            try {
+              if (!isProduction) {
+                w.fbq('track', 'CustomEvent', { test: 'pixel_loaded', environment: 'development' });
+                console.log('🧪 Test event sent (development)');
+              } else {
+                console.log('🚀 Production Meta Pixel ready for real events');
+                // Send a minimal test event to verify connection
+                w.fbq('track', 'CustomEvent', { 
+                  test: 'production_pixel_test',
+                  domain: w.location.hostname,
+                  timestamp: Date.now()
+                });
+                console.log('🧪 Production test event sent');
+              }
+            } catch (testError) {
+              console.error('❌ Error sending test event:', testError);
             }
           } else {
             console.warn('❌ Meta Pixel failed to load');
+            console.log('🔍 Debugging info:');
+            console.log('- Script loaded:', !!d.querySelector('script[src*="fbevents.js"]'));
+            console.log('- Network blocked:', 'Check browser console for network errors');
+            console.log('- Ad blocker:', 'Check if ad blocker is blocking Facebook scripts');
           }
-        }, 2000);
+        }, 3000);
       })(window, document);
     </script>
     <!-- End Meta Pixel -->
