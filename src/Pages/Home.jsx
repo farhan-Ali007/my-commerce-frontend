@@ -4,6 +4,7 @@ import Banner from '../components/Banner';
 import { FaWhatsapp } from 'react-icons/fa'; 
 import websiteSchema from '../helpers/getWebsiteSchema';
 import organizationSchema from '../helpers/getOrgSchema';
+import useFacebookPixel from '../hooks/useFacebookPixel';
 
 // Lazy-load components with intersection observer for better performance
 const Categories = lazy(() => import('../components/Categories'));
@@ -141,6 +142,7 @@ const showcaseCategories = [
 const Home = () => {
   // Performance optimization: Preload critical data
   const [criticalDataLoaded, setCriticalDataLoaded] = useState(false);
+  const { track } = useFacebookPixel();
 
   useEffect(() => {
     // Mark when critical above-the-fold content is ready
@@ -312,6 +314,14 @@ const Home = () => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Contact us on WhatsApp"
+          onClick={() => {
+            // Track StartConversation event
+            track('StartConversation', {
+              content_name: 'WhatsApp Contact',
+              content_category: 'Customer Support',
+              source: 'homepage_floating_button'
+            });
+          }}
         >
           <FaWhatsapp className="text-3xl" size={36} />
         </a>

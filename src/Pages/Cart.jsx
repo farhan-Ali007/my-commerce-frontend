@@ -59,7 +59,10 @@ const Cart = () => {
     const message = `Hello! I want to place an order. Here are my cart details:\n\n${productLines}\n\nDelivery Charges: Rs. ${deliveryCharges}\nTotal Bill: Rs. ${totalBill}`;
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
-    track("startConversation", {
+    track("StartConversation", {
+      content_name: 'WhatsApp Order',
+      content_category: 'Cart Checkout',
+      source: 'cart_page_whatsapp_button',
       value: totalBill,
       currency: "PKR",
       num_items: cartItems.length,
