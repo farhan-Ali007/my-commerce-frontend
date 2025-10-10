@@ -6,7 +6,9 @@ import { getHomepageBanners } from "../functions/homepage";
 const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
-  const [mountSlider, setMountSlider] = useState(true); // Start true for immediate display
+  // Mobile optimization: disable slider on mobile for better performance
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const [mountSlider, setMountSlider] = useState(!isMobile); // Disable slider on mobile
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
     let timeoutId;
@@ -80,10 +82,11 @@ const Banner = React.memo(() => {
     [autoplay(4000)]
   );
 
+  // Mobile-first dimensions for better LCP
   const bannerDimensions = useMemo(() => ({
-    desktop: { width: 1920, height: 550 },
+    mobile: { width: 480, height: 140 },
     tablet: { width: 1024, height: 320 },
-    mobile: { width: 480, height: 140 }
+    desktop: { width: 1920, height: 550 }
   }), []);
   const aspectRatio = useMemo(() =>
     bannerDimensions.desktop.width / bannerDimensions.desktop.height,
@@ -198,8 +201,11 @@ const Banner = React.memo(() => {
     if (!imageUrl) return '';
     if (imageUrl.startsWith('/')) return imageUrl;
     const sep = imageUrl.includes('?') ? '&' : '?';
-    // Use modern defaults for mobile: auto format, economical quality, and device DPR scaling
-    return `${imageUrl}${sep}f_auto&q_auto:eco&dpr=auto&w=${width}&h=${height}&c=fill`;
+    // Mobile-optimized: aggressive compression for mobile, better quality for desktop
+    const isMobile = width <= 640;
+    const quality = isMobile ? 'q_auto:low' : 'q_auto:good';
+    const format = 'f_webp'; // Force WebP for better compression
+    return `${imageUrl}${sep}${format}&${quality}&dpr=auto&w=${width}&h=${height}&c=fill`;
   }, []);
 
   const renderBannerSkeleton = useCallback(() => {
@@ -252,6 +258,7 @@ const Banner = React.memo(() => {
       >
         {/* No skeleton for banner images - immediate display for LCP */}
         <picture className="absolute inset-0 block w-full h-full">
+          {/* Mobile-first: Load smallest image first */}
           <source
             media="(max-width: 640px)"
             srcSet={getOptimizedImageUrl(
@@ -259,6 +266,7 @@ const Banner = React.memo(() => {
               bannerDimensions.mobile.width,
               bannerDimensions.mobile.height
             )}
+            type="image/webp"
           />
           <source
             media="(max-width: 1024px)"
@@ -267,6 +275,7 @@ const Banner = React.memo(() => {
               bannerDimensions.tablet.width,
               bannerDimensions.tablet.height
             )}
+            type="image/webp"
           />
           <img
             src={getOptimizedImageUrl(
@@ -278,7 +287,7 @@ const Banner = React.memo(() => {
             loading="eager"
             decoding="sync"
             fetchpriority="high"
-            sizes="100vw"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
             className="absolute inset-0 object-cover object-center w-full h-full opacity-100"
             width={bannerDimensions.desktop.width}
             height={bannerDimensions.desktop.height}

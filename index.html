@@ -48,21 +48,34 @@
     </script>
     <!-- End Optimized Google Tag Manager -->
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Performance: Preconnect to critical origins -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Mobile performance hints -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <!-- Performance: Preconnect to critical origins with mobile priority -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-    <link rel="dns-prefetch" href="//res.cloudinary.com">
-    <!-- If your API is cross-origin, preconnect can reduce handshake latency -->
     <link rel="preconnect" href="https://etimadmart.up.railway.app" crossorigin>
+    <link rel="dns-prefetch" href="//res.cloudinary.com">
     <link rel="dns-prefetch" href="//etimadmart.up.railway.app">
+    
+    <!-- Mobile-specific preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Critical LCP Image Preload - First Banner -->
+    <!-- Critical LCP Image Preload - Mobile First -->
     <link
       rel="preload"
       as="image"
       href="/customBanner1.webp"
-      imagesrcset="/customBanner1.webp 480w, /customBanner1.webp 1024w, /customBanner1.webp 1920w"
-      imagesizes="(max-width: 640px) 480px, (max-width: 1024px) 1024px, 1920px"
+      media="(max-width: 640px)"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/customBanner1.webp"
+      media="(min-width: 641px)"
       fetchpriority="high"
     />
     
@@ -188,8 +201,26 @@
       /* Skeleton loaders */
       .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite}
       
-      /* Responsive breakpoints */
-      @media (max-width:640px){.banner-container{padding-top:29.17%}.product-grid{grid-template-columns:repeat(2,1fr);gap:0.5rem;padding:0.5rem}}@media (max-width:1024px) and (min-width:641px){.banner-container{padding-top:31.25%}}
+      /* Mobile-first responsive breakpoints with exact aspect ratios */
+      @media (max-width:640px){
+        .banner-container{padding-top:29.17%;min-height:140px;background-color:transparent}
+        .product-grid{grid-template-columns:repeat(2,1fr);gap:0.5rem;padding:0.5rem}
+        /* Mobile navigation optimization */
+        .navbar{padding:0.5rem;font-size:0.875rem}
+        /* Mobile-specific optimizations */
+        body{font-size:14px;line-height:1.4}
+        .container{padding:0.5rem}
+        /* Reduce mobile margins for faster paint */
+        .my-8{margin-top:1rem!important;margin-bottom:1rem!important}
+        .py-8{padding-top:1rem!important;padding-bottom:1rem!important}
+      }
+      @media (max-width:1024px) and (min-width:641px){
+        .banner-container{padding-top:31.25%;min-height:320px}
+      }
+      /* Desktop optimization */
+      @media (min-width:1025px){
+        .banner-container{padding-top:28.65%;min-height:550px}
+      }
       
       /* Performance optimizations */
       .prevent-cls{contain:layout style paint}.focus-visible{outline:2px solid #4F46E5;outline-offset:2px}
@@ -374,17 +405,23 @@
         }
       })();
       
-      // Prefetch additional resources after initial load
+      // Mobile-optimized resource loading
       window.addEventListener('load', function() {
+        var isMobile = window.innerWidth <= 768;
+        var delay = isMobile ? 2000 : 1000; // Longer delay on mobile
+        
         setTimeout(function() {
-          var resources = ['/api/products', '/api/categories'];
+          var resources = isMobile 
+            ? ['/api/products'] // Only essential API on mobile
+            : ['/api/products', '/api/categories', '/api/banners'];
+          
           resources.forEach(function(href) {
             var link = document.createElement('link');
             link.rel = 'prefetch';
             link.href = href;
             document.head.appendChild(link);
           });
-        }, 1000);
+        }, delay);
       });
     </script>
   </head>
