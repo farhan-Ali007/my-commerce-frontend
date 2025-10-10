@@ -6,7 +6,7 @@ import { getHomepageBanners } from "../functions/homepage";
 const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
-  const [mountSlider, setMountSlider] = useState(false);
+  const [mountSlider, setMountSlider] = useState(true); // Start true for immediate display
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
     let timeoutId;
@@ -30,7 +30,7 @@ const Banner = React.memo(() => {
           clear();
           return;
         }
-      } catch {}
+      } catch { }
 
       const onMouseOver = () => { mouseOver = true; clear(); };
       const onMouseOut = () => { mouseOver = false; next(); };
@@ -46,7 +46,7 @@ const Banner = React.memo(() => {
           entries.forEach((e) => { stopped = !e.isIntersecting; stopped ? clear() : next(); });
         });
         io.observe(container);
-      } catch {}
+      } catch { }
 
       next();
 
@@ -59,7 +59,7 @@ const Banner = React.memo(() => {
         container.removeEventListener('mouseout', onMouseOut);
         document.removeEventListener('visibilitychange', onVisibility);
         if (io) {
-          try { io.disconnect(); } catch {}
+          try { io.disconnect(); } catch { }
         }
         clear();
       });
@@ -85,7 +85,7 @@ const Banner = React.memo(() => {
     tablet: { width: 1024, height: 320 },
     mobile: { width: 480, height: 140 }
   }), []);
-  const aspectRatio = useMemo(() => 
+  const aspectRatio = useMemo(() =>
     bannerDimensions.desktop.width / bannerDimensions.desktop.height,
     [bannerDimensions]
   );
@@ -138,11 +138,11 @@ const Banner = React.memo(() => {
       setLoading(false);
       return;
     }
-    
+
     // Always use static banners first for better LCP
     setBanners(staticBanners);
     setLoading(false);
-    
+
     // Optionally fetch API banners in background (commented out for LCP optimization)
     /*
     try {
@@ -184,11 +184,11 @@ const Banner = React.memo(() => {
     setImageLoadedStates({});
   }, [banners]);
 
-  // Mount heavy carousel after first paint so LCP can use the static first frame
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setMountSlider(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
+  // Slider is mounted immediately for best LCP performance
+  // useEffect(() => {
+  //   const id = requestAnimationFrame(() => setMountSlider(true));
+  //   return () => cancelAnimationFrame(id);
+  // }, []);
 
   const handleDotClick = useCallback((index) => {
     instanceRef.current?.moveToIdx(index);
@@ -240,26 +240,17 @@ const Banner = React.memo(() => {
     if (!banner?.image) return renderBannerSkeleton();
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
     const isLCP = index === 0 || banner.priority; // First image or priority flag is LCP candidate
-    const imageLoaded = imageLoadedStates[banner._id] || false;
-    
+    // For static banners, assume they're preloaded and ready
+    const imageLoaded = imageLoadedStates[banner._id] || banner.image?.startsWith('/') || true;
+
     return (
       <div
         className="relative w-full overflow-hidden"
         style={{
           paddingTop: `${paddingTopPercentage}%`,
-          backgroundColor: '#f3f4f6',
         }}
       >
-        {/* Show skeleton while loading */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            <div className="absolute bottom-4 left-4 space-y-2">
-              <div className="w-32 h-4 bg-white/30 rounded"></div>
-              <div className="w-24 h-3 bg-white/20 rounded"></div>
-            </div>
-          </div>
-        )}
+        {/* No skeleton for banner images - immediate display for LCP */}
         <picture className="absolute inset-0 block w-full h-full">
           <source
             media="(max-width: 640px)"
@@ -284,15 +275,11 @@ const Banner = React.memo(() => {
               bannerDimensions.desktop.height
             )}
             alt={banner.alt || `Banner ${index + 1}`}
-            loading={isLCP ? 'eager' : 'lazy'}
-            decoding={isLCP ? 'sync' : 'async'}
-            fetchpriority={isLCP ? 'high' : 'low'}
+            loading="eager"
+            decoding="sync"
+            fetchpriority="high"
             sizes="100vw"
-            className={`absolute inset-0 object-cover object-center w-full h-full transition-opacity duration-300 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            } ${
-              isLCP ? '' : 'transform transition-transform duration-300 ease-out motion-safe:md:group-hover:scale-105'
-            }`}
+            className="absolute inset-0 object-cover object-center w-full h-full opacity-100"
             width={bannerDimensions.desktop.width}
             height={bannerDimensions.desktop.height}
             onLoad={() => handleImageLoad(banner._id, isLCP)}
@@ -320,68 +307,67 @@ const Banner = React.memo(() => {
           aria-label={`Go to slide ${index + 1}`}
           type="button"
         >
-          <div className={`w-3 h-3 rounded-full transition-all duration-200 ${
-            index === currentSlide 
-              ? 'bg-secondary w-3 h-3 shadow-lg' 
+          <div className={`w-3 h-3 rounded-full transition-all duration-200 ${index === currentSlide
+              ? 'bg-secondary w-3 h-3 shadow-lg'
               : 'bg-primary hover:bg-primary/80'
-          }`} />
+            }`} />
         </button>
       ))}
     </div>
   ), [resolvedBanners, currentSlide, handleDotClick]);
 
-    // if (error) {
-    //     return (
-    //         <div className="w-full py-8 text-center text-red-500">
-    //         </div>
-    //     );
-    // }
+  // if (error) {
+  //     return (
+  //         <div className="w-full py-8 text-center text-red-500">
+  //         </div>
+  //     );
+  // }
 
-    // Show skeleton while loading banners
-    if (loading && !resolvedBanners.length) {
-      return (
-        <div className="relative w-full mx-auto">
-          <div className="relative w-full">
-            {renderBannerSkeleton()}
+  // Never show loading skeleton - always show static banners immediately
+  // if (loading && !resolvedBanners.length) {
+  //   return (
+  //     <div className="relative w-full mx-auto">
+  //       <div className="relative w-full">
+  //         {renderBannerSkeleton()}
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
+  return (
+    <div className="relative w-full mx-auto">
+      <div className="relative w-full">
+        {!mountSlider ? (
+          <div className="w-full">
+            <a
+              href={firstBanner?.link || '#'}
+              className="block w-full h-full group"
+              target="_self"
+              rel="noopener noreferrer"
+            >
+              {firstBanner ? renderBannerImage(firstBanner, 0) : renderBannerImage(staticBanners[0], 0)}
+            </a>
           </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="relative w-full mx-auto">
-        <div className="relative w-full">
-          {!mountSlider ? (
-            <div className="w-full">
-              <a
-                href={firstBanner?.link || '#'}
-                className="block w-full h-full group"
-                target="_self"
-                rel="noopener noreferrer"
-              >
-                {firstBanner ? renderBannerImage(firstBanner, 0) : renderBannerSkeleton()}
-              </a>
-            </div>
-          ) : (
-            <div ref={sliderContainerRef} className="keen-slider">
-              {resolvedBanners.map((banner, index) => (
-                <div key={banner._id} className="keen-slider__slide">
-                  <a
-                    href={banner.link}
-                    className="block w-full h-full group"
-                    target="_self"
-                    rel="noopener noreferrer"
-                  >
-                    {renderBannerImage(banner, index)}
-                  </a>
-                </div>
-              ))}
-            </div>
-          )}
-          {mountSlider && resolvedBanners.length > 1 && renderDots()}
-        </div>
+        ) : (
+          <div ref={sliderContainerRef} className="keen-slider">
+            {resolvedBanners.map((banner, index) => (
+              <div key={banner._id} className="keen-slider__slide">
+                <a
+                  href={banner.link}
+                  className="block w-full h-full group"
+                  target="_self"
+                  rel="noopener noreferrer"
+                >
+                  {renderBannerImage(banner, index)}
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+        {mountSlider && resolvedBanners.length > 1 && renderDots()}
       </div>
-    );
+    </div>
+  );
 });
 
 Banner.displayName = 'Banner';

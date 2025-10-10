@@ -114,7 +114,7 @@ const App = () => {
         <Suspense
           fallback={
             <div className="w-screen h-screen flex justify-center items-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-main opacity-90"></div>
+              <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-secondary opacity-90"></div>
             </div>
           }
         >
