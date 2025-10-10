@@ -6,9 +6,9 @@ import { getHomepageBanners } from "../functions/homepage";
 const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
-  // Mobile optimization: disable slider on mobile for better performance
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-  const [mountSlider, setMountSlider] = useState(!isMobile); // Disable slider on mobile
+  // Ultra-aggressive mobile optimization: disable all heavy features
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+  const [mountSlider, setMountSlider] = useState(false); // Always start with single image
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
     let timeoutId;
@@ -187,11 +187,13 @@ const Banner = React.memo(() => {
     setImageLoadedStates({});
   }, [banners]);
 
-  // Slider is mounted immediately for best LCP performance
-  // useEffect(() => {
-  //   const id = requestAnimationFrame(() => setMountSlider(true));
-  //   return () => cancelAnimationFrame(id);
-  // }, []);
+  // Mount slider only on desktop after initial render
+  useEffect(() => {
+    if (!isMobile) {
+      const id = requestAnimationFrame(() => setMountSlider(true));
+      return () => cancelAnimationFrame(id);
+    }
+  }, [isMobile]);
 
   const handleDotClick = useCallback((index) => {
     instanceRef.current?.moveToIdx(index);
@@ -242,8 +244,34 @@ const Banner = React.memo(() => {
     setImageLoadedStates(prev => ({ ...prev, [bannerId]: true })); // Show skeleton instead of broken image
   }, []);
 
+  // Mobile-optimized simple banner render
+  const renderMobileBanner = useCallback((banner) => {
+    if (!banner?.image) return null;
+    
+    return (
+      <div className="banner-container">
+        <img
+          src={banner.image}
+          alt={banner.alt || 'Banner'}
+          loading="eager"
+          decoding="sync"
+          fetchpriority="high"
+          width="480"
+          height="140"
+          style={{ display: 'block' }}
+        />
+      </div>
+    );
+  }, []);
+
   const renderBannerImage = useCallback((banner, index) => {
     if (!banner?.image) return renderBannerSkeleton();
+    
+    // Use simple mobile banner for better performance
+    if (isMobile) {
+      return renderMobileBanner(banner);
+    }
+    
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
     const isLCP = index === 0 || banner.priority; // First image or priority flag is LCP candidate
     // For static banners, assume they're preloaded and ready

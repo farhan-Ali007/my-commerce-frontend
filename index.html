@@ -59,9 +59,9 @@
     <link rel="dns-prefetch" href="//res.cloudinary.com">
     <link rel="dns-prefetch" href="//etimadmart.up.railway.app">
     
-    <!-- Mobile-specific preconnects -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Only preconnect fonts on desktop to avoid mobile blocking -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" media="(min-width: 769px)">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin media="(min-width: 769px)">
 
     <!-- Critical LCP Image Preload - Mobile First -->
     <link
@@ -203,16 +203,35 @@
       
       /* Mobile-first responsive breakpoints with exact aspect ratios */
       @media (max-width:640px){
-        .banner-container{padding-top:29.17%;min-height:140px;background-color:transparent}
+        /* Critical banner layout for mobile LCP */
+        .banner-container{
+          padding-top:29.17%;
+          min-height:140px;
+          background-color:transparent;
+          position:relative;
+          width:100%;
+          overflow:hidden;
+        }
+        .banner-container img{
+          position:absolute;
+          top:0;
+          left:0;
+          width:100%;
+          height:100%;
+          object-fit:cover;
+          object-position:center;
+        }
         .product-grid{grid-template-columns:repeat(2,1fr);gap:0.5rem;padding:0.5rem}
         /* Mobile navigation optimization */
-        .navbar{padding:0.5rem;font-size:0.875rem}
+        .navbar{padding:0.25rem;font-size:0.875rem;min-height:auto}
         /* Mobile-specific optimizations */
-        body{font-size:14px;line-height:1.4}
-        .container{padding:0.5rem}
+        body{font-size:14px;line-height:1.4;font-display:swap}
+        .container{padding:0.25rem}
         /* Reduce mobile margins for faster paint */
-        .my-8{margin-top:1rem!important;margin-bottom:1rem!important}
-        .py-8{padding-top:1rem!important;padding-bottom:1rem!important}
+        .my-8{margin-top:0.5rem!important;margin-bottom:0.5rem!important}
+        .py-8{padding-top:0.5rem!important;padding-bottom:0.5rem!important}
+        /* Hide non-critical elements on mobile initially */
+        .mobile-hidden{display:none!important}
       }
       @media (max-width:1024px) and (min-width:641px){
         .banner-container{padding-top:31.25%;min-height:320px}
@@ -317,27 +336,20 @@
       // Fallback: load after 4 seconds
       setTimeout(loadOnce, 4000);
     </script>
-    <!-- Ultra-light Meta Pixel (load only on conversion pages) -->
+    <!-- Meta Pixel (Facebook Pixel) - Fixed for all pages -->
     <script>
       (function (w, d) {
-        // Only load Facebook Pixel on pages where conversions happen
-        var path = (w.location && w.location.pathname) || '/';
-        var isConversionPage = /\b(product|cart|checkout|thank)\b/.test(path);
-        
-        if (!isConversionPage) {
-          // Just stub fbq for non-conversion pages to prevent errors
-          w.fbq = w.fbq || function(){ (w.fbq.q = w.fbq.q || []).push(arguments); };
-          return;
-        }
-        
-        // Full pixel only on conversion pages
+        // Initialize Facebook Pixel on all pages
         if (!w.fbq) {
           var n = function(){ n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
           n.queue = []; n.version = '2.0'; n.loaded = false; w.fbq = n; w._fbq = n;
         }
-
+        
+        // Load the pixel script
         function loadFbPixel() {
-          if (w.__fbPixelLoaded) return; w.__fbPixelLoaded = true;
+          if (w.__fbPixelLoaded) return;
+          w.__fbPixelLoaded = true;
+          
           var s = d.createElement('script');
           s.async = true;
           s.src = 'https://connect.facebook.net/en_US/fbevents.js';
@@ -346,15 +358,31 @@
           var first = d.getElementsByTagName('script')[0];
           first.parentNode.insertBefore(s, first);
           s.onload = function(){
-            try { fbq('init', '2204362540002843'); fbq('track', 'PageView'); } catch(e) {}
+            try { 
+              fbq('init', '2204362540002843'); 
+              fbq('track', 'PageView'); 
+            } catch(e) {
+              console.warn('Meta Pixel error:', e);
+            }
           };
         }
 
-        // Load after minimal delay on conversion pages
-        (w.requestIdleCallback || function(cb){ setTimeout(cb, 500); })(loadFbPixel);
+        // Load immediately for better event tracking
+        loadFbPixel();
+        
+        // Debug: Test pixel after load
+        setTimeout(function() {
+          if (w.fbq && typeof w.fbq === 'function') {
+            console.log('✅ Meta Pixel loaded successfully');
+            // Test event
+            w.fbq('track', 'CustomEvent', { test: 'pixel_loaded' });
+          } else {
+            console.warn('❌ Meta Pixel failed to load');
+          }
+        }, 2000);
       })(window, document);
     </script>
-    <!-- End Ultra-light Meta Pixel -->
+    <!-- End Meta Pixel -->
     
     <!-- PERFORMANCE MONITORING & OPTIMIZATION SCRIPT -->
     <script>

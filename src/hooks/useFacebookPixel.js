@@ -36,14 +36,23 @@ const useFacebookPixel = () => {
       return;
     }
 
+    // Debug logging
+    console.log('🎯 Meta Pixel Event:', event, data);
+
     // Use requestIdleCallback for non-critical events
     const trackEvent = () => {
       if (window.fbq && typeof window.fbq === 'function') {
         try {
           window.fbq('track', event, data);
+          console.log('✅ Meta Pixel Event Sent:', event, data);
         } catch (error) {
-          console.warn('Facebook Pixel tracking error:', error);
+          console.warn('❌ Facebook Pixel tracking error:', error);
         }
+      } else {
+        console.warn('❌ Facebook Pixel not loaded. Event queued:', event, data);
+        // Queue the event for when fbq becomes available
+        window.fbq = window.fbq || function(){ (window.fbq.q = window.fbq.q || []).push(arguments); };
+        window.fbq('track', event, data);
       }
     };
 
