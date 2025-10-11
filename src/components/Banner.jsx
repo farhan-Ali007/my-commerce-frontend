@@ -6,9 +6,9 @@ import { getHomepageBanners } from "../functions/homepage";
 const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
-  // Ultra-aggressive mobile optimization: disable all heavy features
+  // Mobile detection with responsive behavior
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
-  const [mountSlider, setMountSlider] = useState(false); // Always start with single image
+  const [mountSlider, setMountSlider] = useState(false);
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
     let timeoutId;
@@ -187,13 +187,14 @@ const Banner = React.memo(() => {
     setImageLoadedStates({});
   }, [banners]);
 
-  // Mount slider only on desktop after initial render
+  // Mount slider after initial render if there are multiple banners
   useEffect(() => {
-    if (!isMobile) {
+    const resolvedBanners = banners.length ? banners : staticBanners;
+    if (resolvedBanners.length > 1) {
       const id = requestAnimationFrame(() => setMountSlider(true));
       return () => cancelAnimationFrame(id);
     }
-  }, [isMobile]);
+  }, [banners, staticBanners]);
 
   const handleDotClick = useCallback((index) => {
     instanceRef.current?.moveToIdx(index);
@@ -391,9 +392,10 @@ const Banner = React.memo(() => {
               <div key={banner._id} className="keen-slider__slide">
                 <a
                   href={banner.link}
-                  className="block w-full h-full group"
+                  className="block w-full group"
                   target="_self"
                   rel="noopener noreferrer"
+                  style={{ height: 'auto' }}
                 >
                   {renderBannerImage(banner, index)}
                 </a>
