@@ -249,16 +249,21 @@ const Banner = React.memo(() => {
     if (!banner?.image) return null;
     
     return (
-      <div className="banner-container">
+      <div className="banner-container w-full" style={{ height: 'auto', overflow: 'visible' }}>
         <img
           src={banner.image}
           alt={banner.alt || 'Banner'}
           loading="eager"
           decoding="sync"
           fetchpriority="high"
-          width="480"
-          height="140"
-          style={{ display: 'block' }}
+          className="w-full h-auto"
+          style={{ 
+            display: 'block',
+            objectFit: 'contain',
+            height: 'auto',
+            maxHeight: 'none',
+            minHeight: 'auto'
+          }}
         />
       </div>
     );
@@ -278,14 +283,9 @@ const Banner = React.memo(() => {
     const imageLoaded = imageLoadedStates[banner._id] || banner.image?.startsWith('/') || true;
 
     return (
-      <div
-        className="relative w-full overflow-hidden"
-        style={{
-          paddingTop: `${paddingTopPercentage}%`,
-        }}
-      >
+      <div className="banner-container w-full">
         {/* No skeleton for banner images - immediate display for LCP */}
-        <picture className="absolute inset-0 block w-full h-full">
+        <picture className="block w-full h-auto">
           {/* Mobile-first: Load smallest image first */}
           <source
             media="(max-width: 640px)"
@@ -316,9 +316,8 @@ const Banner = React.memo(() => {
             decoding="sync"
             fetchpriority="high"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
-            className="absolute inset-0 object-cover object-center w-full h-full opacity-100"
-            width={bannerDimensions.desktop.width}
-            height={bannerDimensions.desktop.height}
+            className="w-full h-auto object-cover object-center"
+            style={{ display: 'block' }}
             onLoad={() => handleImageLoad(banner._id, isLCP)}
             onError={() => handleImageError(banner._id)}
           />
@@ -372,15 +371,16 @@ const Banner = React.memo(() => {
   // }
 
   return (
-    <div className="relative w-full mx-auto">
-      <div className="relative w-full">
+    <div className="relative w-full mx-auto" style={{ height: 'auto', overflow: 'visible' }}>
+      <div className="relative w-full" style={{ height: 'auto', overflow: 'visible' }}>
         {!mountSlider ? (
-          <div className="w-full">
+          <div className="w-full" style={{ height: 'auto', overflow: 'visible' }}>
             <a
               href={firstBanner?.link || '#'}
-              className="block w-full h-full group"
+              className="block w-full group"
               target="_self"
               rel="noopener noreferrer"
+              style={{ height: 'auto' }}
             >
               {firstBanner ? renderBannerImage(firstBanner, 0) : renderBannerImage(staticBanners[0], 0)}
             </a>
