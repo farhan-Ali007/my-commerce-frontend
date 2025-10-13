@@ -32,8 +32,9 @@ const NavDrawer = ({ isDrawerOpen, toggleDrawer, categories = [], closeDrawer })
             open={isDrawerOpen}
             onClose={toggleDrawer}
             direction='left'
-            className='bla bla bla'
+            className='nav-drawer-container'
             size={300}
+            style={{ zIndex: 1500 }}
         >
             <div className='p-4'>
                 <div className='flex justify-between items-center mb-4'>

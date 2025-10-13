@@ -30,6 +30,28 @@ a {
   left: 0;
 }
 
+/* Ensure react-modern-drawer appears above navbar */
+.react-modern-drawer-overlay {
+  z-index: 1400 !important;
+}
+
+.react-modern-drawer {
+  z-index: 1500 !important;
+}
+
+/* Additional specificity for drawer content */
+div[class*="react-modern-drawer"] {
+  z-index: 1500 !important;
+}
+
+/* Specific styling for nav drawer */
+.nav-drawer-container {
+  z-index: 1500 !important;
+}
+
+.nav-drawer-container > div {
+  z-index: 1500 !important;
+}
 
 .ql-container {
   height: 100% !important;
