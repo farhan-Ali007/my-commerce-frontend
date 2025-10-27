@@ -85,7 +85,7 @@ const Categories = React.memo(() => {
     const renderCategories = useMemo(() => {
         if (loading) {
             // Return tiles directly so they use the same outer grid container
-            const skeletonCount = isMobile ? 6 : 8;
+            const skeletonCount = isMobile ? 8 : 14;
             return Array.from({ length: skeletonCount }).map((_, idx) => (
                 <CategorySkeleton key={idx} />
             ));
@@ -101,8 +101,8 @@ const Categories = React.memo(() => {
 
         // Stage rendering: fewer tiles first, hydrate remaining after idle
         const eagerCount = isMobile ? 2 : 4;
-        const initialCount = isMobile ? 6 : 8;
-        const maxCount = showAll ? 14 : initialCount;
+        const initialCount = isMobile ? 8 : 14;
+        const maxCount = initialCount;
 
         return categories?.slice(0, maxCount).map((category, index) => (
             <div
@@ -135,7 +135,7 @@ const Categories = React.memo(() => {
                 </span>
             </div>
         ));
-    }, [categories, loading, error, getOptimizedImageUrl]);
+    }, [categories, loading, error, isMobile, getOptimizedImageUrl]);
 
     return (
         <div className="max-w-screen-xl px-4 py-2 mx-auto overflow-visible md:py-4 md:px-12 lg:px-14">

@@ -169,7 +169,10 @@ const SingleProduct = () => {
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        setMobileTabsVisible(entry.isIntersecting);
+        // Once the sentinel becomes visible, keep tabs visible permanently
+        if (entry.isIntersecting) {
+          setMobileTabsVisible(true);
+        }
       },
       { root: null, threshold: 0 }
     );

@@ -3,6 +3,28 @@ import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
 import { getHomepageBanners } from "../functions/homepage";
 
+// Static banners moved outside component to prevent recreation on every render
+const staticBanners = [
+  {
+    _id: 'custom1',
+    image: '/customBanner1.webp',
+    link: '#',
+    alt: 'Custom Banner 1',
+    priority: true, // Mark as LCP candidate
+    width: 1920,
+    height: 550,
+  },
+  {
+    _id: 'custom2',
+    image: '/customBanner2.webp',
+    link: '#',
+    alt: 'Custom Banner 2',
+    priority: false,
+    width: 1920,
+    height: 550,
+  },
+];
+
 const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
@@ -93,27 +115,6 @@ const Banner = React.memo(() => {
     [bannerDimensions]
   );
 
-  const staticBanners = [
-    {
-      _id: 'custom1',
-      image: '/customBanner1.webp',
-      link: '#',
-      alt: 'Custom Banner 1',
-      priority: true, // Mark as LCP candidate
-      width: 1920,
-      height: 550,
-    },
-    {
-      _id: 'custom2',
-      image: '/customBanner2.webp',
-      link: '#',
-      alt: 'Custom Banner 2',
-      priority: false,
-      width: 1920,
-      height: 550,
-    },
-  ];
-
   const preloaded = (typeof window !== 'undefined' && Array.isArray(window.__PRELOADED_BANNERS)) ? window.__PRELOADED_BANNERS : [];
   const [banners, setBanners] = useState(() => {
     // Try to get cached banners first to prevent re-fetching on HMR
@@ -174,7 +175,7 @@ const Banner = React.memo(() => {
       // Keep static banners on API failure
     }
     */
-  }, [staticBanners]);
+  }, []);
 
   useEffect(() => {
     mounted.current = true;
@@ -194,7 +195,7 @@ const Banner = React.memo(() => {
       const id = requestAnimationFrame(() => setMountSlider(true));
       return () => cancelAnimationFrame(id);
     }
-  }, [banners, staticBanners]);
+  }, [banners]);
 
   const handleDotClick = useCallback((index) => {
     instanceRef.current?.moveToIdx(index);
