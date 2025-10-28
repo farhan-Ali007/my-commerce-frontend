@@ -27,6 +27,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         metaDescription: "",
         volumeTierEnabled: false,
         volumeTiers: [{ quantity: "", price: "", image: null }],
+        faqs: [{ question: "", answer: "" }],
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [freeShipping, setFreeShipping] = useState(false);
@@ -48,6 +49,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             tags: [],
             variants: [{ name: "", values: [{ value: "", image: "" }] }],
             metaDescription: "",
+            faqs: [{ question: "", answer: "" }],
         });
         imagePreviews.forEach((url) => URL.revokeObjectURL(url));
         setImagePreviews([]);
@@ -139,6 +141,20 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             updatedVariants[variantIndex].values[valueIndex].price = value;
         }
         setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+    };
+
+    const handleFaqChange = (index, field, value) => {
+        const updated = [...formData.faqs];
+        updated[index] = { ...updated[index], [field]: value };
+        setFormData(prev => ({ ...prev, faqs: updated }));
+    };
+
+    const addFaq = () => {
+        setFormData(prev => ({ ...prev, faqs: [...prev.faqs, { question: "", answer: "" }] }));
+    };
+
+    const removeFaq = (index) => {
+        setFormData(prev => ({ ...prev, faqs: prev.faqs.filter((_, i) => i !== index) }));
     };
 
     const addVariant = () => {
@@ -268,6 +284,13 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                 return tier;
             });
         submissionData.append('volumeTiers', JSON.stringify(tiersPayload));
+
+        const faqsPayload = (formData.faqs || [])
+            .map(f => ({ question: (f.question || '').trim(), answer: (f.answer || '').trim() }))
+            .filter(f => f.question && f.answer);
+        if (faqsPayload.length > 0) {
+            submissionData.append('faqs', JSON.stringify(faqsPayload));
+        }
 
         // Handle variants
         const validVariants = formData.variants
@@ -514,6 +537,38 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                     placeholder="Enter a short summary for SEO (max 165 characters)"
                     maxLength={165}
                 />
+            </div>
+
+            <div className="mb-6">
+                <label className="block font-medium mb-2 text-primaryondary">FAQs</label>
+                <div className="space-y-4">
+                    {formData.faqs.map((f, idx) => (
+                        <div key={idx} className="border border-gray-200 p-4 rounded-md">
+                            <input
+                                type="text"
+                                placeholder="Question"
+                                value={f.question}
+                                onChange={(e) => handleFaqChange(idx, 'question', e.target.value)}
+                                className="w-full border px-4 py-2 rounded-md mb-2"
+                            />
+                            <textarea
+                                placeholder="Answer"
+                                value={f.answer}
+                                onChange={(e) => handleFaqChange(idx, 'answer', e.target.value)}
+                                className="w-full border px-4 py-2 rounded-md"
+                                rows={3}
+                            />
+                            <div className="mt-2 flex justify-end">
+                                <button type="button" onClick={() => removeFaq(idx)} className="text-red-600 flex items-center gap-1">
+                                    <IoTrash /> Remove
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    <button type="button" onClick={addFaq} className="flex items-center gap-1 bg-blue-500 text-white px-4 py-2 rounded-md">
+                        <IoAddCircle /> Add FAQ
+                    </button>
+                </div>
             </div>
 
             {/* Weight */}

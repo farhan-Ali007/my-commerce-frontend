@@ -36,6 +36,7 @@ const EditProductForm = ({
     stock: "",
     tags: [],
     variants: [{ name: "", values: [{ value: "", image: "", price: "" }] }],
+    faqs: [{ question: "", answer: "" }],
     specialOfferEnabled: false,
     specialOfferPrice: "",
     specialOfferStart: "",
@@ -74,6 +75,9 @@ const EditProductForm = ({
         variants: transformedVariants,
         brand: defaultValues.brand?.name || "",
         metaDescription: defaultValues.metaDescription || "",
+        faqs: Array.isArray(defaultValues.faqs) && defaultValues.faqs.length > 0
+          ? defaultValues.faqs.map(f => ({ question: f.question || "", answer: f.answer || "" }))
+          : [{ question: "", answer: "" }],
         categories: Array.isArray(defaultValues.categories) 
           ? defaultValues.categories.map(cat => ({ _id: cat._id, name: cat.name }))
           : defaultValues.category 
@@ -229,6 +233,20 @@ const EditProductForm = ({
     const updatedVariants = [...formData.variants];
     updatedVariants[variantIndex].values[valueIndex][field] = value;
     setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+  };
+
+  const handleFaqChange = (index, field, value) => {
+    const updated = [...formData.faqs];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData(prev => ({ ...prev, faqs: updated }));
+  };
+
+  const addFaq = () => {
+    setFormData(prev => ({ ...prev, faqs: [...prev.faqs, { question: "", answer: "" }] }));
+  };
+
+  const removeFaq = (index) => {
+    setFormData(prev => ({ ...prev, faqs: prev.faqs.filter((_, i) => i !== index) }));
   };
 
   const addVariant = () => {
@@ -414,6 +432,14 @@ const EditProductForm = ({
         submissionData.append("images", image);
       }
     });
+
+    // Add FAQs payload
+    const faqsPayload = (formData.faqs || [])
+      .map(f => ({ question: (f.question || '').trim(), answer: (f.answer || '').trim() }))
+      .filter(f => f.question && f.answer);
+    if (faqsPayload.length > 0) {
+      submissionData.append('faqs', JSON.stringify(faqsPayload));
+    }
 
     // Add existing image references (support string URLs and objects { url, public_id })
     const existingImageRefs = (formData.images || [])
@@ -773,6 +799,39 @@ const EditProductForm = ({
           placeholder="Enter a short summary for SEO (max 165 characters)"
           maxLength={165}
         />
+      </div>
+
+      {/* FAQs */}
+      <div className="mb-6">
+        <label className="block font-medium mb-2 text-primaryondary">FAQs</label>
+        <div className="space-y-4">
+          {formData.faqs.map((f, idx) => (
+            <div key={idx} className="border border-gray-200 p-4 rounded-md">
+              <input
+                type="text"
+                placeholder="Question"
+                value={f.question}
+                onChange={(e) => handleFaqChange(idx, 'question', e.target.value)}
+                className="w-full border px-4 py-2 rounded-md mb-2"
+              />
+              <textarea
+                placeholder="Answer"
+                value={f.answer}
+                onChange={(e) => handleFaqChange(idx, 'answer', e.target.value)}
+                className="w-full border px-4 py-2 rounded-md"
+                rows={3}
+              />
+              <div className="mt-2 flex justify-end">
+                <button type="button" onClick={() => removeFaq(idx)} className="text-red-600 flex items-center gap-1">
+                  <IoTrash /> Remove
+                </button>
+              </div>
+            </div>
+          ))}
+          <button type="button" onClick={addFaq} className="flex items-center gap-1 bg-blue-500 text-white px-4 py-2 rounded-md">
+            <IoAddCircle /> Add FAQ
+          </button>
+        </div>
       </div>
 
       {/* Weight */}

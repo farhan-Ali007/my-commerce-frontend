@@ -24,6 +24,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import ReviewsDrawer from "../../components/reviews/ReviewsDrawer";
 import RightEdgeTab from "../../components/reviews/RightEdgeTab";
 import SpecificationsDrawer from "../../components/reviews/SpecificationsDrawer";
+import FaqsDrawer from "../../components/reviews/FaqsDrawer";
 import WriteReviewModal from "../../components/reviews/WriteReviewModal";
 import SingleProductSkeleton from "../../components/skeletons/SingleProductSkeleton";
 import { addItemToCart } from "../../functions/cart";
@@ -135,6 +136,8 @@ const SingleProduct = () => {
   const [specsOpen, setSpecsOpen] = useState(false);
   const [mobileTabsVisible, setMobileTabsVisible] = useState(false);
   const afterImageSentinelRef = useRef(null);
+  const [openFaqs, setOpenFaqs] = useState(new Set());
+  const [faqsOpen, setFaqsOpen] = useState(false);
 
   const getImageUrl = useCallback((img) => {
     if (!img) return "";
@@ -169,10 +172,8 @@ const SingleProduct = () => {
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        // Once the sentinel becomes visible, keep tabs visible permanently
-        if (entry.isIntersecting) {
-          setMobileTabsVisible(true);
-        }
+        // Show tabs when we've SCROLLED PAST the gallery (i.e., sentinel is NOT visible)
+        setMobileTabsVisible(!entry.isIntersecting);
       },
       { root: null, threshold: 0 }
     );
@@ -1979,6 +1980,8 @@ const SingleProduct = () => {
                 </div>
               </motion.div>
             )}
+
+            {/* FAQs moved to RightEdgeTab + Drawer for cleaner layout */}
           </motion.div>
         </motion.div>
       </div>
@@ -1990,14 +1993,23 @@ const SingleProduct = () => {
       <RightEdgeTab
         onClick={() => setReviewsOpen(true)}
         label="Reviews"
-        positionClass="top-1/2"
+        positionClass="top-[44%]"
         translateClass="-translate-y-1/2"
         mobileVisible={mobileTabsVisible}
       />
+        {Array.isArray(product?.faqs) && product.faqs.length > 0 && (
+        <RightEdgeTab
+          onClick={() => setFaqsOpen(true)}
+          label="FAQs"
+          positionClass="top-[calc(54%)]"
+          translateClass=""
+          mobileVisible={mobileTabsVisible}
+        />
+      )}
       <RightEdgeTab
         onClick={() => setSpecsOpen(true)}
-        label="Specifications"
-        positionClass="top-[calc(50%+60px)]"
+        label="Specs"
+        positionClass="top-[calc(68%)]"
         translateClass=""
         mobileVisible={mobileTabsVisible}
       />
@@ -2056,6 +2068,11 @@ const SingleProduct = () => {
         onClose={() => setSpecsOpen(false)}
         title="Specifications"
         html={product?.description || "<p>No specifications available.</p>"}
+      />
+      <FaqsDrawer
+        open={faqsOpen}
+        onClose={() => setFaqsOpen(false)}
+        faqs={product?.faqs || []}
       />
 
       {/* Image Preview Overlay */}

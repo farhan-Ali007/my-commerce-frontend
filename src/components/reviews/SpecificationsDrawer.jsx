@@ -30,7 +30,8 @@ const SpecificationsDrawer = ({ open, onClose, title = "Specifications", html = 
               transition={{ type: "spring", stiffness: 260, damping: 22 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center bg-secondary justify-between p-4 border-b">
+                <h2></h2>
                 <h3 className="text-xl font-semibold">{title}</h3>
                 <button aria-label="Close" onClick={onClose} className="p-2 rounded hover:bg-gray-100">
                   <AiOutlineClose className="w-6 h-6" />
