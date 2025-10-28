@@ -1997,7 +1997,7 @@ const SingleProduct = () => {
         translateClass="-translate-y-1/2"
         mobileVisible={mobileTabsVisible}
       />
-        {Array.isArray(product?.faqs) && product.faqs.length > 0 && (
+       
         <RightEdgeTab
           onClick={() => setFaqsOpen(true)}
           label="FAQs"
@@ -2005,7 +2005,6 @@ const SingleProduct = () => {
           translateClass=""
           mobileVisible={mobileTabsVisible}
         />
-      )}
       <RightEdgeTab
         onClick={() => setSpecsOpen(true)}
         label="Specs"
