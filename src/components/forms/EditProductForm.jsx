@@ -36,7 +36,7 @@ const EditProductForm = ({
     stock: "",
     tags: [],
     variants: [{ name: "", values: [{ value: "", image: "", price: "" }] }],
-    faqs: [{ question: "", answer: "" }],
+    faqs: [],
     specialOfferEnabled: false,
     specialOfferPrice: "",
     specialOfferStart: "",
@@ -75,9 +75,9 @@ const EditProductForm = ({
         variants: transformedVariants,
         brand: defaultValues.brand?.name || "",
         metaDescription: defaultValues.metaDescription || "",
-        faqs: Array.isArray(defaultValues.faqs) && defaultValues.faqs.length > 0
+        faqs: Array.isArray(defaultValues.faqs)
           ? defaultValues.faqs.map(f => ({ question: f.question || "", answer: f.answer || "" }))
-          : [{ question: "", answer: "" }],
+          : [],
         categories: Array.isArray(defaultValues.categories) 
           ? defaultValues.categories.map(cat => ({ _id: cat._id, name: cat.name }))
           : defaultValues.category 
@@ -433,13 +433,11 @@ const EditProductForm = ({
       }
     });
 
-    // Add FAQs payload
+    // Add FAQs payload (always send, can be empty array)
     const faqsPayload = (formData.faqs || [])
       .map(f => ({ question: (f.question || '').trim(), answer: (f.answer || '').trim() }))
       .filter(f => f.question && f.answer);
-    if (faqsPayload.length > 0) {
-      submissionData.append('faqs', JSON.stringify(faqsPayload));
-    }
+    submissionData.append('faqs', JSON.stringify(faqsPayload));
 
     // Add existing image references (support string URLs and objects { url, public_id })
     const existingImageRefs = (formData.images || [])

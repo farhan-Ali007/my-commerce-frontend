@@ -27,7 +27,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         metaDescription: "",
         volumeTierEnabled: false,
         volumeTiers: [{ quantity: "", price: "", image: null }],
-        faqs: [{ question: "", answer: "" }],
+        faqs: [],
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [freeShipping, setFreeShipping] = useState(false);
@@ -49,7 +49,7 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             tags: [],
             variants: [{ name: "", values: [{ value: "", image: "" }] }],
             metaDescription: "",
-            faqs: [{ question: "", answer: "" }],
+            faqs: [],
         });
         imagePreviews.forEach((url) => URL.revokeObjectURL(url));
         setImagePreviews([]);
@@ -288,9 +288,8 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         const faqsPayload = (formData.faqs || [])
             .map(f => ({ question: (f.question || '').trim(), answer: (f.answer || '').trim() }))
             .filter(f => f.question && f.answer);
-        if (faqsPayload.length > 0) {
-            submissionData.append('faqs', JSON.stringify(faqsPayload));
-        }
+        // Always send faqs (can be empty array) so backend can clear when removed
+        submissionData.append('faqs', JSON.stringify(faqsPayload));
 
         // Handle variants
         const validVariants = formData.variants
