@@ -29,6 +29,11 @@ import CategoryBar from "./CategoryBar";
 import NavDrawer from "./drawers/NavDrawer";
 import NotificationBell from "./NotificationBell";
 const Marquee = lazy(() => import("react-fast-marquee"));
+const getOptimizedLogo = (url, w, h, mode = 'fit') => {
+  if (!url) return '';
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}f_auto&q_auto&dpr=auto&w=${w}&h=${h}&c=${mode}`;
+};
 const Navbar = React.memo(() => {
   const hideCategoryBarOn = useMemo(
     () => [
@@ -184,7 +189,7 @@ const Navbar = React.memo(() => {
       ) {
         setSelectedCategories(cached.items);
       }
-    } catch {}
+    } catch { }
 
     const ac = new AbortController();
     const fetchSelectedCategories = async () => {
@@ -196,7 +201,7 @@ const Navbar = React.memo(() => {
             CACHE_KEY,
             JSON.stringify({ ts: Date.now(), items: cats })
           );
-        } catch {}
+        } catch { }
       } catch (error) {
         if (error?.name !== "AbortError" && error?.name !== "CanceledError") {
           console.error("Error fetching selected categories:", error);
@@ -440,9 +445,8 @@ const Navbar = React.memo(() => {
                 >
                   <Link
                     to={`/product/${product.slug}`}
-                    className={`block px-4 py-2 no-underline hover:bg-gray-100 hover:border-primary hover:border-l-[6px] font-medium font-poppins shadow-sm rounded-full md:rounded bg-white ${
-                      selectedIndex === index ? "bg-gray-200" : ""
-                    }`}
+                    className={`block px-4 py-2 no-underline hover:bg-gray-100 hover:border-primary hover:border-l-[6px] font-medium font-poppins shadow-sm rounded-full md:rounded bg-white ${selectedIndex === index ? "bg-gray-200" : ""
+                      }`}
                     onMouseEnter={() => handleMouseEnter(index)}
                     onClick={() => handleProductSelect(product.slug)}
                   >
@@ -502,14 +506,14 @@ const Navbar = React.memo(() => {
           className="pr-3 hidden md:flex mb-2 md:mb-0 h-8 md:h-10 items-center overflow-hidden"
           style={{ contentVisibility: "visible" }}
         >
-          <Suspense fallback={<div className="w-full h-full" />}> 
+          <Suspense fallback={<div className="w-full h-full" />}>
             <Marquee className="text-sm font-bold" speed={50} gradient={false}>
               {topBar && topBar.length > 0
                 ? topBar.map((bar, idx) => (
-                    <span key={bar._id || idx} className="mx-6 whitespace-nowrap">
-                      {bar.text}
-                    </span>
-                  ))
+                  <span key={bar._id || idx} className="mx-6 whitespace-nowrap">
+                    {bar.text}
+                  </span>
+                ))
                 : "Welcome to our store! Enjoy the best deals."}
             </Marquee>
           </Suspense>
@@ -547,12 +551,20 @@ const Navbar = React.memo(() => {
                 animate="visible"
               >
                 <img
-                  src={logo?.image || "/logo.png"}
+                  src={getOptimizedLogo(logo?.image || "/logo.png", 160, 48)}
+                  srcSet={[
+                    `${getOptimizedLogo(logo?.image || "/logo.png", 120, 36)} 120w`,
+                    `${getOptimizedLogo(logo?.image || "/logo.png", 140, 42)} 140w`,
+                    `${getOptimizedLogo(logo?.image || "/logo.png", 160, 48)} 160w`,
+                    `${getOptimizedLogo(logo?.image || "/logo.png", 200, 60)} 200w`,
+                  ].join(', ')}
+                  sizes="(min-width: 1280px) 160px, (min-width: 768px) 140px, 120px"
                   alt="Logo"
                   className="h-12"
                   loading="eager"
                   width="160"
                   height="48"
+                  decoding="async"
                 />
               </motion.a>
             </div>
@@ -651,10 +663,19 @@ const Navbar = React.memo(() => {
               animate="visible"
             >
               <img
-                src={logo?.image || "/logo.png"}
+                src={getOptimizedLogo(logo?.image || "/logo.png", 120, 36)}
+                srcSet={[
+                  `${getOptimizedLogo(logo?.image || "/logo.png", 120, 36)} 120w`,
+                  `${getOptimizedLogo(logo?.image || "/logo.png", 140, 42)} 140w`,
+                  `${getOptimizedLogo(logo?.image || "/logo.png", 160, 48)} 160w`,
+                ].join(', ')}
+                sizes="(min-width: 768px) 140px, 120px"
                 alt="Logo"
                 className="h-10"
                 loading="eager"
+                width="120"
+                height="36"
+                decoding="async"
               />
             </motion.a>
 

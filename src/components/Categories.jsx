@@ -110,7 +110,7 @@ const Categories = React.memo(() => {
                 className="flex flex-col items-center overflow-visible transform transition-transform duration-300 ease-out motion-safe:md:hover:-translate-y-1"
             >
                 <Link to={`/category/${category.slug}`} className="relative w-full cursor-pointer group">
-                    <div className="relative w-20 h-20 overflow-hidden rounded-lg shadow-sm md:h-24 md:w-24 lg:h-36 lg:w-36 transition-shadow duration-300 ease-out md:group-hover:shadow-[0_0_28px_rgba(17,24,39,0.22)]">
+                    <div className="relative w-20 h-20 aspect-square overflow-hidden rounded-lg shadow-sm md:h-24 md:w-24 lg:h-36 lg:w-36 transition-shadow duration-300 ease-out md:group-hover:shadow-[0_0_28px_rgba(17,24,39,0.22)]">
                         <img
                             src={getOptimizedImageUrl(category?.Image, 144, 144)}
                             srcSet={[
@@ -130,9 +130,11 @@ const Categories = React.memo(() => {
                     </div>
                 </Link>
 
-                <span className="mt-2 text-sm font-medium text-center capitalize font-poppins md:block transition-colors duration-200 ease-out md:group-hover:text-gray-800">
-                    {category?.name}
-                </span>
+                <div className="mt-2 w-full min-h-[20px] md:min-h-[24px]">
+                    <span className="block text-sm font-medium text-center capitalize font-poppins transition-colors duration-200 ease-out md:group-hover:text-gray-800 line-clamp-2 leading-snug">
+                        {category?.name}
+                    </span>
+                </div>
             </div>
         ));
     }, [categories, loading, error, isMobile, getOptimizedImageUrl]);

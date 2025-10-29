@@ -50,13 +50,20 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
             } else {
                 const categoryElement = categoryRefs.current[category._id];
                 if (categoryElement) {
-                    const rect = categoryElement.getBoundingClientRect();
-                    setModalPosition({
-                        top: rect.bottom + window.scrollY,
-                        left: rect.left + window.scrollX,
+                    // Batch layout read and state writes across frames to avoid forced reflow
+                    window.requestAnimationFrame(() => {
+                        const rect = categoryElement.getBoundingClientRect();
+                        window.requestAnimationFrame(() => {
+                            setModalPosition({
+                                top: rect.bottom + window.scrollY,
+                                left: rect.left + window.scrollX,
+                            });
+                            setModalState({ isOpen: true, selectedCategory: category });
+                        });
                     });
+                } else {
+                    setModalState({ isOpen: true, selectedCategory: category });
                 }
-                setModalState({ isOpen: true, selectedCategory: category });
             }
         }
     }, [modalState.selectedCategory, setModalPosition, setModalState]);
@@ -82,14 +89,19 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
             } else {
                 const categoryElement = categoryRefs.current[category._id];
                 if (categoryElement) {
-                    const rect = categoryElement.getBoundingClientRect();
-                    setModalPosition({
-                        top: rect.bottom + window.scrollY,
-                        left: rect.left + window.scrollX,
+                    window.requestAnimationFrame(() => {
+                        const rect = categoryElement.getBoundingClientRect();
+                        window.requestAnimationFrame(() => {
+                            setModalPosition({
+                                top: rect.bottom + window.scrollY,
+                                left: rect.left + window.scrollX,
+                            });
+                            setModalState({ isOpen: true, selectedCategory: category });
+                        });
                     });
+                } else {
+                    setModalState({ isOpen: true, selectedCategory: category });
                 }
-
-                setModalState({ isOpen: true, selectedCategory: category });
             }
         } else {
             if (category.slug) {
