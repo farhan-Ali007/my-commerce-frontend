@@ -30,6 +30,9 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         faqs: [],
     });
     const [imagePreviews, setImagePreviews] = useState([]);
+    const [imageAlts, setImageAlts] = useState([]);
+    const [expandedAltIndex, setExpandedAltIndex] = useState(null);
+    const [expandedVariantAlt, setExpandedVariantAlt] = useState(null); // { vi, vxi }
     const [freeShipping, setFreeShipping] = useState(false);
     const quillRef = useRef();
 
@@ -52,7 +55,14 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             faqs: [],
         });
         imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        // Revoke any variant preview URLs
+        try {
+            (formData.variants || []).forEach(v => (v.values || []).forEach(val => {
+                if (val.previewUrl) URL.revokeObjectURL(val.previewUrl);
+            }));
+        } catch {}
         setImagePreviews([]);
+        setImageAlts([]);
     };
 
     useImperativeHandle(ref, () => ({
@@ -136,9 +146,22 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         } else if (field === "value") {
             updatedVariants[variantIndex].values[valueIndex].value = value;
         } else if (field === "image") {
-            updatedVariants[variantIndex].values[valueIndex].image = value;
+            const current = updatedVariants[variantIndex].values[valueIndex];
+            // Clear existing preview if any
+            if (current.previewUrl) {
+                try { URL.revokeObjectURL(current.previewUrl); } catch {}
+            }
+            if (value && value instanceof File) {
+                current.image = value;
+                current.previewUrl = URL.createObjectURL(value);
+            } else {
+                current.image = null;
+                current.previewUrl = null;
+            }
         } else if (field === "price") {
             updatedVariants[variantIndex].values[valueIndex].price = value;
+        } else if (field === "alt") {
+            updatedVariants[variantIndex].values[valueIndex].alt = value;
         }
         setFormData((prev) => ({ ...prev, variants: updatedVariants }));
     };
@@ -285,40 +308,48 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             });
         submissionData.append('volumeTiers', JSON.stringify(tiersPayload));
 
+        // Product images and alts (backend expects req.files.images)
+        const altsForImages = [];
+        (formData.images || []).forEach((img, idx) => {
+            if (img instanceof File) {
+                submissionData.append('images', img);
+                altsForImages.push((imageAlts[idx] || '').trim());
+            }
+        });
+        if (altsForImages.length > 0) {
+            submissionData.append('imageAlts', JSON.stringify(altsForImages));
+        }
+
         const faqsPayload = (formData.faqs || [])
             .map(f => ({ question: (f.question || '').trim(), answer: (f.answer || '').trim() }))
             .filter(f => f.question && f.answer);
         // Always send faqs (can be empty array) so backend can clear when removed
         submissionData.append('faqs', JSON.stringify(faqsPayload));
 
-        // Handle variants
-        const validVariants = formData.variants
-            .filter(variant => variant.name && variant.values.length > 0)
-            .flatMap((variant, variantIndex) =>
-                variant.values.map((value, valueIndex) => {
-                    const variantData = {
-                        name: variant.name,
-                        value: value.value,
-                        price: value.price
-                    };
-
-                    if (value.image && value.image instanceof File) {
-                        submissionData.append(`variantImages`, value.image); // Append image file
-                        variantData.imageIndex = variantIndex * variant.values.length + valueIndex; // Save index for association
-                    }
-
-                    return variantData;
-                })
-            );
-
-        submissionData.append("variants", JSON.stringify(validVariants.length > 0 ? validVariants : []));
-
-        // Handle product images
-        formData.images.forEach((image, index) => {
-            if (image instanceof File) {
-                submissionData.append("images", image);
-            }
-        });
+        // Handle variants (flatten values, support alt and imageIndex)
+        let variantImageCounter = 0;
+        const variantPayload = [];
+        (formData.variants || [])
+          .filter(variant => variant.name && Array.isArray(variant.values) && variant.values.length > 0)
+          .forEach((variant) => {
+            variant.values.forEach((value) => {
+              if (!value || !value.value) return;
+              const variantData = {
+                name: variant.name,
+                value: value.value,
+                price: value.price !== undefined && value.price !== "" ? Number(value.price) : null,
+                alt: (value.alt || '').trim(),
+              };
+              const maybeImage = value.image;
+              if (maybeImage && maybeImage instanceof File) {
+                submissionData.append('variantImages', maybeImage);
+                variantData.imageIndex = variantImageCounter;
+                variantImageCounter += 1;
+              }
+              variantPayload.push(variantData);
+            });
+          });
+        submissionData.append('variants', JSON.stringify(variantPayload));
 
         onSubmit(submissionData);
     };
@@ -537,6 +568,8 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                     maxLength={165}
                 />
             </div>
+
+            
 
             <div className="mb-6">
                 <label className="block font-medium mb-2 text-primaryondary">FAQs</label>
@@ -768,12 +801,45 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                                 </div>
                                 {value.image && (
                                     <div className="mt-2">
-                                        <img
-                                            src={value.image instanceof File ? URL.createObjectURL(value.image) : value.image}
-                                            alt="Variant Preview"
-                                            className="w-20 h-20 object-cover rounded-md"
-                                        />
+                                        <div className="relative w-24 h-28 rounded-md overflow-hidden border border-gray-200 bg-white">
+                                            <img
+                                                src={value.previewUrl || (value.image instanceof File ? URL.createObjectURL(value.image) : value.image)}
+                                                alt={value.alt || 'Variant Preview'}
+                                                className="w-full h-20 object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleVariantChange(variantIndex, 'image', null, valueIndex)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-[10px]"
+                                                title="Remove image"
+                                            >
+                                                ×
+                                            </button>
+                                            <input
+                                                type="text"
+                                                value={value.alt || ''}
+                                                onChange={(e)=>handleVariantChange(variantIndex,'alt',e.target.value,valueIndex)}
+                                                onFocus={()=>setExpandedVariantAlt({vi:variantIndex,vxi:valueIndex})}
+                                                placeholder="Alt..."
+                                                className="absolute bottom-0 left-0 right-0 text-[10px] px-2 py-1 border-t outline-none"
+                                            />
+                                        </div>
                                     </div>
+                                )}
+                                {expandedVariantAlt && expandedVariantAlt.vi===variantIndex && expandedVariantAlt.vxi===valueIndex && (
+                                  <div className="mt-2 p-3 border rounded-md bg-gray-50">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-sm font-medium text-gray-700">Variant Alt ({value.value || 'Value'})</span>
+                                      <button type="button" className="text-sm text-blue-600" onClick={()=>setExpandedVariantAlt(null)}>Close</button>
+                                    </div>
+                                    <textarea
+                                      rows={2}
+                                      value={value.alt || ''}
+                                      onChange={(e)=>handleVariantChange(variantIndex,'alt',e.target.value,valueIndex)}
+                                      placeholder="Describe this variant image"
+                                      className="w-full border px-3 py-2 rounded-md"
+                                    />
+                                  </div>
                                 )}
                             </div>
                         ))}
@@ -847,12 +913,12 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
-                                                    className="relative w-24 h-24 rounded-md overflow-hidden"
+                                                    className="relative w-24 h-28 rounded-md overflow-hidden border border-gray-200 bg-white"
                                                 >
                                                     <img
                                                         src={preview}
                                                         alt="Preview"
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-20 object-cover"
                                                     />
                                                     <button
                                                         type="button"
@@ -861,6 +927,18 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                                                     >
                                                         <IoTrash />
                                                     </button>
+                                                    <input
+                                                        type="text"
+                                                        value={imageAlts[index] || ''}
+                                                        onChange={(e) => {
+                                                            const arr = [...imageAlts];
+                                                            arr[index] = e.target.value;
+                                                            setImageAlts(arr);
+                                                        }}
+                                                        onFocus={() => setExpandedAltIndex(index)}
+                                                        placeholder="Alt..."
+                                                        className="absolute bottom-0 left-0 right-0 text-[10px] px-2 py-1 border-t outline-none"
+                                                    />
                                                 </div>
                                             )}
                                         </Draggable>
@@ -871,7 +949,26 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                         </Droppable>
                     </DragDropContext>
                 </div>
-
+                {/* Expanded alt editor */}
+                {expandedAltIndex !== null && (
+                  <div className="mt-3 p-3 border rounded-md bg-gray-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Image {expandedAltIndex + 1} Alt Text</span>
+                      <button type="button" className="text-sm text-blue-600" onClick={() => setExpandedAltIndex(null)}>Close</button>
+                    </div>
+                    <textarea
+                      rows={2}
+                      value={imageAlts[expandedAltIndex] || ''}
+                      onChange={(e)=>{
+                        const arr=[...imageAlts];
+                        arr[expandedAltIndex]=e.target.value;
+                        setImageAlts(arr);
+                      }}
+                      placeholder="Describe this image for accessibility and SEO"
+                      className="w-full border px-3 py-2 rounded-md"
+                    />
+                  </div>
+                )}
             </div>
             {/* Free shipping */}
             <div className="mb-4">

@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 const AdminCategories = () => {
   const [categoryName, setCategoryName] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
+  const [alt, setAlt] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,7 @@ const AdminCategories = () => {
   const resetForm = () => {
     setCategoryName("");
     setMetaDescription("");
+    setAlt("");
     setImageFile(null);
     setEditMode(false);
     setEditCategoryId(null);
@@ -51,6 +53,7 @@ const AdminCategories = () => {
       const formData = new FormData();
       formData.append("name", categoryName);
       formData.append("metaDescription", metaDescription);
+      formData.append("alt", (alt || '').trim());
       if (imageFile) formData.append("image", imageFile);
 
       try {
@@ -91,6 +94,7 @@ const AdminCategories = () => {
   const handleEditCategory = (cat) => {
     setCategoryName(cat.name);
     setMetaDescription(cat.metaDescription || "");
+    setAlt(cat.alt || "");
     setEditMode(true);
     setEditCategoryId(cat._id);
     setImageFile(null); // User can choose to update image
@@ -120,6 +124,13 @@ const AdminCategories = () => {
             placeholder="Enter meta description"
             className="border outline-none border-gray-300 p-3 rounded-md w-full focus:ring-1 focus:ring-gray-200 transition"
           />
+          <input
+            type="text"
+            value={alt}
+            onChange={(e) => setAlt(e.target.value)}
+            placeholder="Alt text for category image"
+            className="border outline-none border-gray-300 p-3 rounded-md w-full focus:ring-1 focus:ring-gray-200 transition"
+          />
           <div className="flex flex-col w-full md:w-1/3 items-center justify-center">
             {/* Image Preview */}
             {editMode &&
@@ -132,7 +143,7 @@ const AdminCategories = () => {
                   return (
                     <img
                       src={cat.Image}
-                      alt="Current"
+                      alt={cat.alt || 'Current'}
                       className="w-20 h-20 object-cover rounded-md mb-2 border"
                     />
                   );
@@ -143,7 +154,7 @@ const AdminCategories = () => {
             {imageFile && (
               <img
                 src={URL.createObjectURL(imageFile)}
-                alt="Preview"
+                alt={alt || 'Preview'}
                 className="w-20 h-20 object-cover rounded-md mb-2 border"
               />
             )}
@@ -205,12 +216,15 @@ const AdminCategories = () => {
               <div className="flex items-center gap-4">
                 <img
                   src={cat?.Image}
-                  alt={cat?.name}
+                  alt={cat?.alt || cat?.name}
                   loading="lazy"
                   className="w-20 h-20 border-2 border-gray-200 rounded-md"
                 />
                 <div>
                   <h3 className="text-xl capitalize font-semibold">{cat?.name}</h3>
+                  {cat?.alt && (
+                    <p className="text-xs text-gray-500 mt-1">Alt: {cat.alt}</p>
+                  )}
                   {cat?.metaDescription && (
                     <p className="text-xs text-gray-400 mt-1">
                       {cat.metaDescription}

@@ -70,7 +70,7 @@ const Brands = React.memo(() => {
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center shadow-sm overflow-hidden">
                 <img
                   src={brand?.logo}
-                  alt={brand.name}
+                  alt={brand.alt}
                   loading="lazy"
                   decoding="async"
                   sizes="(min-width: 1024px) 112px, (min-width: 768px) 80px, 56px"

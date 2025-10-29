@@ -41,9 +41,9 @@ const useFacebookPixel = () => {
                         !window.location.hostname.includes('127.0.0.1');
     
     if (isProduction) {
-      console.log('🚀 PRODUCTION Meta Pixel Event:', event, data, 'Domain:', window.location.hostname);
+      // console.log('🚀 PRODUCTION Meta Pixel Event:', event, data, 'Domain:', window.location.hostname);
     } else {
-      console.log('🎯 DEV Meta Pixel Event:', event, data);
+      // console.log('🎯 DEV Meta Pixel Event:', event, data);
     }
 
     // Use requestIdleCallback for non-critical events
@@ -72,10 +72,10 @@ const useFacebookPixel = () => {
           if (cleanData.currency) eventData.currency = cleanData.currency;
           if (cleanData.num_items) eventData.num_items = parseInt(cleanData.num_items);
           
-          console.log('🚀 About to send event:', event, eventData);
+          // console.log('🚀 About to send event:', event, eventData);
           
           // Use trackSingle for more reliable delivery with specific pixel ID
-          console.log('🎯 Using trackSingle for reliable delivery');
+          // console.log('🎯 Using trackSingle for reliable delivery');
           window.fbq('trackSingle', '4178050992439851', event, eventData);
           
           // Also try standard track as backup
@@ -88,18 +88,18 @@ const useFacebookPixel = () => {
           // Verify the request was sent by checking network activity
           setTimeout(() => {
             const fbRequests = performance.getEntriesByName('https://www.facebook.com/tr');
-            console.log('🌐 Facebook network requests found:', fbRequests.length);
+            // console.log('🌐 Facebook network requests found:', fbRequests.length);
             if (fbRequests.length === 0) {
               console.warn('⚠️ No Facebook network requests detected - events may not be reaching Facebook');
             }
           }, 1000);
           
           if (isProduction) {
-            console.log('✅ PRODUCTION Event Sent:', event, 'Domain:', window.location.hostname);
-            console.log('📊 Clean Event Data:', eventData);
-            console.log('🔍 Check Network tab for requests to facebook.com/tr');
+            // console.log('✅ PRODUCTION Event Sent:', event, 'Domain:', window.location.hostname);
+            // console.log('📊 Clean Event Data:', eventData);
+            // console.log('🔍 Check Network tab for requests to facebook.com/tr');
           } else {
-            console.log('✅ DEV Event Sent:', event, eventData);
+            // console.log('✅ DEV Event Sent:', event, eventData);
           }
         } catch (error) {
           console.warn('❌ Facebook Pixel tracking error:', error);

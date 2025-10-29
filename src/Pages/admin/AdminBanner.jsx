@@ -9,6 +9,7 @@ const AdminBanner = () => {
     const [image, setImage] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [link, setLink] = useState("");
+    const [alt, setAlt] = useState("");
     const [isActive, setIsActive] = useState(true);
     const [editMode, setEditMode] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -43,6 +44,7 @@ const AdminBanner = () => {
         const formData = new FormData();
         formData.append("image", image);
         formData.append("link", link);
+        formData.append("alt", (alt || '').trim());
         formData.append("isActive", isActive);
 
         setLoading(true);
@@ -61,6 +63,7 @@ const AdminBanner = () => {
         const formData = new FormData();
         if (image) formData.append("image", image);
         formData.append("link", link);
+        formData.append("alt", (alt || '').trim());
         formData.append("isActive", isActive);
 
         try {
@@ -86,6 +89,7 @@ const AdminBanner = () => {
         setLink(banner.link);
         setIsActive(banner.isActive);
         setPreviewImage(banner.image); // Show the existing image
+        setAlt(banner.alt || "");
     };
 
     const handleDelete = async (id) => {
@@ -109,6 +113,7 @@ const AdminBanner = () => {
         setImage(null);
         setPreviewImage(null);
         setLink("");
+        setAlt("");
         setIsActive(true);
         setEditMode(false);
         setEditId(null);
@@ -143,9 +148,20 @@ const AdminBanner = () => {
                 {previewImage && (
                     <div className="mb-4">
                         <p className="text-sm font-medium text-gray-600">Preview:</p>
-                        <img src={previewImage} alt="Preview" className="w-32 h-16 object-cover rounded-lg" />
+                        <img src={previewImage} alt={alt || 'Preview'} className="w-32 h-16 object-cover rounded-lg" />
                     </div>
                 )}
+
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-600">Alt Text</label>
+                    <input
+                        type="text"
+                        value={alt}
+                        onChange={(e) => setAlt(e.target.value)}
+                        className="w-full border rounded-lg p-2"
+                        placeholder="Describe the banner (SEO alt text)"
+                    />
+                </div>
 
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-600">Banner Link</label>
@@ -188,7 +204,7 @@ const AdminBanner = () => {
                             <div key={banner._id} className="flex flex-col md:flex-row max-w-full items-center justify-between bg-gray-50 p-4 rounded-lg">
                                 <img
                                     src={banner.image}
-                                    alt="Banner"
+                                    alt={banner.alt || 'Banner'}
                                     loading="lazy"
                                     className="w-32 h-16 object-contain rounded-lg"
                                 />
@@ -197,6 +213,9 @@ const AdminBanner = () => {
                                         className="text-blue-500 hover:underline inline-block w-[260px] md:max-w-full break-words">
                                         {banner.link}
                                     </a>
+                                    {banner.alt && (
+                                        <p className="text-xs text-gray-500 mt-1">Alt: {banner.alt}</p>
+                                    )}
 
                                     <p className="text-sm text-gray-500">{banner.isActive ? "Active" : "Inactive"}</p>
                                 </div>

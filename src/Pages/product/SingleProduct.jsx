@@ -146,6 +146,34 @@ const SingleProduct = () => {
     return "";
   }, []);
 
+  const getImageAlt = useCallback((url) => {
+    try {
+      const imgs = product?.images || [];
+      const found = imgs.find((img) => {
+        const src = typeof img === 'string' ? img : (img?.url || '');
+        return src === url;
+      });
+      if (found && typeof found === 'object' && found.alt) return found.alt;
+    } catch {}
+    return product?.title || 'Product Image';
+  }, [product]);
+
+  // Resolve alt for a variant image URL by scanning variant values
+  const getVariantImageAlt = useCallback((url) => {
+    if (!url || !product?.variants) return 'Variant Image';
+    try {
+      for (const v of product.variants) {
+        for (const val of v.values || []) {
+          const src = getImageUrl(val?.image);
+          if (src && src === url) {
+            return val?.alt || val?.value || 'Variant Image';
+          }
+        }
+      }
+    } catch {}
+    return 'Variant Image';
+  }, [product, getImageUrl]);
+
   useEffect(() => {
     if (product) {
       track("ViewContent", {
@@ -1207,7 +1235,7 @@ const SingleProduct = () => {
                 >
                   <img
                     src={previousImage}
-                    alt="Previous Image"
+                    alt={getImageAlt(previousImage)}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -1224,7 +1252,7 @@ const SingleProduct = () => {
                 <img
                   ref={imageRef}
                   src={selectedImage || "https://via.placeholder.com/500"}
-                  alt={product?.title || "Product Image"}
+                  alt={getImageAlt(selectedImage)}
                   width="1000"
                   height="1000"
                   className="w-full h-full object-cover cursor-pointer"
@@ -1475,7 +1503,7 @@ const SingleProduct = () => {
                           <img
                             src={val.image || "https://via.placeholder.com/50"}
                             className="w-full h-full object-cover"
-                            alt={val.value}
+                            alt={val.alt || val.value}
                           />
                         </div>
                         <span className="mt-2 inline-block bg-primary text-white text-xs px-2 py-0.5 rounded-full">
@@ -1828,7 +1856,7 @@ const SingleProduct = () => {
                                 variant.image ||
                                 "https://via.placeholder.com/50"
                               }
-                              alt={value.value}
+                              alt={value.alt || value.value}
                               className="object-cover w-12 h-12"
                               onError={(e) =>
                                 (e.target.src =
@@ -2099,7 +2127,7 @@ const SingleProduct = () => {
           >
             <img
               src={hoveredVariantImage}
-              alt="Variant Preview"
+              alt={getVariantImageAlt(hoveredVariantImage)}
               className="object-contain w-full h-full"
             />
           </motion.div>
@@ -2204,7 +2232,7 @@ const SingleProduct = () => {
                             "https://via.placeholder.com/50"
                           }
                           className="w-full h-full object-cover"
-                          alt={val.value}
+                          alt={val.alt || val.value}
                         />
                         {/* Checkmark for selected */}
                         {isSelected && (

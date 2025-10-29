@@ -337,7 +337,7 @@ const ShopCard = ({ product }) => {
               }
               srcSet={imgLoaded ? getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0])) : undefined}
               sizes="(max-width: 768px) 50vw, 200px"
-              alt={title}
+              alt={images[0].alt}
               loading="lazy"
               width={200}
               height={200}

@@ -298,7 +298,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                             src={getOptimizedImageUrl(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
                             srcSet={getOptimizedSrcSet(isHovered && images[1] ? getImageUrl(images[1]) : getImageUrl(images[0]))}
                             sizes={`(max-width: 768px) 50vw, ${imageWidth}px`}
-                            alt={title}
+                            alt={images[0].alt}
                             loading="lazy"
                             decoding="async"  
                             variants={imageVariants}

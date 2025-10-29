@@ -12,6 +12,7 @@ const AdminBrands = () => {
   const [editingBrand, setEditingBrand] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
+    alt: "",
   });
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -56,6 +57,7 @@ const AdminBrands = () => {
     try {
       const submitData = new FormData();
       submitData.append('name', formData.name);
+      submitData.append('alt', (formData.alt || '').trim());
       
       if (selectedImage) {
         submitData.append('logo', selectedImage);
@@ -85,6 +87,7 @@ const AdminBrands = () => {
     setEditingBrand(brand);
     setFormData({
       name: brand.name.replace(/-/g, ' '),
+      alt: brand.alt || '',
     });
     setImagePreview(brand.logo || "");
     setSelectedImage(null);
@@ -106,6 +109,7 @@ const AdminBrands = () => {
   const resetForm = () => {
     setFormData({
       name: "",
+      alt: "",
     });
     setSelectedImage(null);
     setImagePreview("");
@@ -189,7 +193,7 @@ const AdminBrands = () => {
                         {brand.logo && (
                           <img
                             src={brand.logo}
-                            alt={brand.name}
+                            alt={brand.alt || brand.name}
                             className="w-12 h-12 rounded-lg object-cover mr-4"
                           />
                         )}
@@ -197,6 +201,9 @@ const AdminBrands = () => {
                           <div className="text-sm font-medium text-gray-900">
                             {brand.name.replace(/-/g, ' ')}
                           </div>
+                          {brand.alt && (
+                            <div className="text-xs text-gray-500">Alt: {brand.alt}</div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -279,6 +286,21 @@ const AdminBrands = () => {
                     />
                   </div>
 
+                  {/* Alt Text */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Alt Text
+                    </label>
+                    <input
+                      type="text"
+                      name="alt"
+                      value={formData.alt}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="Brand logo alt (e.g., 'Acme logo')"
+                    />
+                  </div>
+
                   {/* Image Upload */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -297,7 +319,7 @@ const AdminBrands = () => {
                       <div className="mt-2">
                         <img
                           src={imagePreview}
-                          alt="Preview"
+                          alt={formData.alt || 'Preview'}
                           className="w-32 h-32 object-cover rounded-lg"
                         />
                       </div>

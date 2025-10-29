@@ -119,7 +119,7 @@ const Categories = React.memo(() => {
                                 `${getOptimizedImageUrl(category?.Image, 144, 144)} 144w`,
                             ].join(', ')}
                             sizes="(min-width: 1024px) 144px, (min-width: 768px) 96px, 80px"
-                            alt={category?.name}
+                            alt={category?.alt}
                             className="object-cover w-full h-full transform transition-transform duration-300 ease-in-out motion-safe:md:group-hover:scale-105"
                             loading={index < eagerCount ? 'eager' : 'lazy'}
                             decoding="async"

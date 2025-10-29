@@ -45,6 +45,10 @@ const EditProductForm = ({
     volumeTiers: [],
   });
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [newImageAltMap, setNewImageAltMap] = useState({});
+  const [existingImageAltMap, setExistingImageAltMap] = useState({});
+  const [expandedAltIndex, setExpandedAltIndex] = useState(null);
+  const [expandedVariantAlt, setExpandedVariantAlt] = useState(null); // {vi, vxi}
   const [freeShipping, setFreeShipping] = useState(false);
   const [tempSpecialOfferStart, setTempSpecialOfferStart] = useState(null);
   const [tempSpecialOfferEnd, setTempSpecialOfferEnd] = useState(null);
@@ -64,6 +68,7 @@ const EditProductForm = ({
           value: val.value,
           image: val.image,
           price: val.price,
+          alt: val.alt || '',
         })),
       }));
 
@@ -117,6 +122,18 @@ const EditProductForm = ({
           return null;
         }).filter(Boolean)
       );
+
+      // Build map of existing image alts for editing
+      try {
+        const map = {};
+        (defaultValues.images || []).forEach((img) => {
+          if (img && typeof img === 'object') {
+            const key = img.public_id || img.publicId || img.url || img.secure_url;
+            if (key) map[key] = img.alt || '';
+          }
+        });
+        setExistingImageAltMap(map);
+      } catch {}
 
       setTempSpecialOfferStart(
         defaultValues.specialOfferStart
@@ -374,6 +391,7 @@ const EditProductForm = ({
               const valueData = {
                 value: val.value,
                 price: val.price, // Include price in the variant data
+                alt: (val.alt || '').trim(),
               };
 
               // Handle variant images: preserve existing URLs, upload new files
@@ -426,18 +444,42 @@ const EditProductForm = ({
       console.log("No variant changes detected, skipping variant update");
     }
 
-    // Add new images
+    // Add new images and collect their alts in the same order
+    const newImageAlts = [];
     formData.images.forEach((image) => {
       if (image instanceof File) {
         submissionData.append("images", image);
+        newImageAlts.push((newImageAltMap[image.name] || '').trim());
       }
     });
+    if (newImageAlts.length > 0) {
+      submissionData.append('newImageAlts', JSON.stringify(newImageAlts));
+    }
 
     // Add FAQs payload (always send, can be empty array)
     const faqsPayload = (formData.faqs || [])
       .map(f => ({ question: (f.question || '').trim(), answer: (f.answer || '').trim() }))
       .filter(f => f.question && f.answer);
     submissionData.append('faqs', JSON.stringify(faqsPayload));
+
+    // Add imageAltUpdates for existing images (identified by public_id or url)
+    const updates = [];
+    (formData.images || []).forEach((img) => {
+      if (!(img instanceof File)) {
+        // image as string url or object
+        if (typeof img === 'string') {
+          const alt = existingImageAltMap[img];
+          if (alt !== undefined) updates.push({ url: img, alt: (alt || '').trim() });
+        } else if (img && typeof img === 'object') {
+          const key = img.public_id || img.publicId || img.url || img.secure_url;
+          const alt = existingImageAltMap[key];
+          if (key && alt !== undefined) updates.push({ public_id: img.public_id || img.publicId || undefined, url: img.url || img.secure_url || undefined, alt: (alt || '').trim() });
+        }
+      }
+    });
+    if (updates.length > 0) {
+      submissionData.append('imageAltUpdates', JSON.stringify(updates));
+    }
 
     // Add existing image references (support string URLs and objects { url, public_id })
     const existingImageRefs = (formData.images || [])
@@ -596,6 +638,25 @@ const EditProductForm = ({
           className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
         />
       </div>
+
+      {/* Expanded alt editor for variant images */}
+      {expandedVariantAlt && (
+        <div className="mt-3 p-3 border rounded-md bg-gray-50">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">Variant Image Alt Text</span>
+            <button type="button" className="text-sm text-blue-600" onClick={() => setExpandedVariantAlt(null)}>Close</button>
+          </div>
+          <textarea
+            rows={3}
+            value={formData.variants[expandedVariantAlt.vi]?.values[expandedVariantAlt.vxi]?.alt || ''}
+            onChange={(e)=>{
+              handleVariantChange(expandedVariantAlt.vi, expandedVariantAlt.vxi, 'alt', e.target.value);
+            }}
+            placeholder="Describe this variant image for accessibility and SEO"
+            className="w-full border px-3 py-2 rounded-md"
+          />
+        </div>
+      )}
 
       {/* Volume Price Tiers */}
       <div className="mb-6">
@@ -1178,7 +1239,7 @@ const EditProductForm = ({
                     className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
                   />
                   {value.image && (
-                    <div className="mt-3 relative inline-block">
+                    <div className="mt-3 relative inline-block w-28 h-32 border rounded-md bg-white">
                       <img
                         src={
                           value.image instanceof File
@@ -1186,7 +1247,7 @@ const EditProductForm = ({
                             : value.image
                         }
                         alt="Variant Preview"
-                        className="w-24 h-24 object-cover rounded-md border"
+                        className="w-28 h-24 object-cover rounded-t-md border-b"
                       />
                       <button
                         type="button"
@@ -1205,6 +1266,17 @@ const EditProductForm = ({
                       >
                         ×
                       </button>
+                      {/* Compact alt input under variant tile */}
+                      <input
+                        type="text"
+                        value={value.alt || ''}
+                        onChange={(e)=> {
+                          handleVariantChange(variantIndex, valueIndex, 'alt', e.target.value);
+                        }}
+                        onFocus={() => setExpandedVariantAlt({ vi: variantIndex, vxi: valueIndex })}
+                        placeholder="Alt..."
+                        className="absolute bottom-0 left-0 right-0 text-[10px] px-2 py-1 outline-none"
+                      />
                     </div>
                   )}
                 </div>
@@ -1291,12 +1363,12 @@ const EditProductForm = ({
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="relative w-24 h-24 rounded-md overflow-hidden"
+                          className="relative w-24 h-28 rounded-md overflow-hidden border border-gray-200 bg-white"
                         >
                           <img
                             src={preview}
                             alt="Preview"
-                            className="w-full h-full object-cover"
+                            className="w-full h-20 object-cover"
                           />
                           <button
                             type="button"
@@ -1305,6 +1377,29 @@ const EditProductForm = ({
                           >
                             <IoTrash />
                           </button>
+                          {/* Compact alt input under tile */}
+                          <input
+                            type="text"
+                            value={(() => {
+                              const base = formData.images[index];
+                              if (base instanceof File) return newImageAltMap[base.name] || '';
+                              const key = typeof base === 'string' ? base : (base?.public_id || base?.publicId || base?.url || base?.secure_url);
+                              return existingImageAltMap[key] || '';
+                            })()}
+                            onChange={(e) => {
+                              const base = formData.images[index];
+                              const val = e.target.value;
+                              if (base instanceof File) {
+                                setNewImageAltMap(prev => ({ ...prev, [base.name]: val }));
+                              } else {
+                                const key = typeof base === 'string' ? base : (base?.public_id || base?.publicId || base?.url || base?.secure_url);
+                                if (key) setExistingImageAltMap(prev => ({ ...prev, [key]: val }));
+                              }
+                            }}
+                            onFocus={() => setExpandedAltIndex(index)}
+                            placeholder="Alt..."
+                            className="absolute bottom-0 left-0 right-0 text-[10px] px-2 py-1 border-t outline-none"
+                          />
                         </div>
                       )}
                     </Draggable>
@@ -1315,7 +1410,60 @@ const EditProductForm = ({
             </Droppable>
           </DragDropContext>
         </div>
+        {/* Expanded alt editor for product images */}
+        {expandedAltIndex !== null && (
+          <div className="mt-3 p-3 border rounded-md bg-gray-50">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Image {expandedAltIndex + 1} Alt Text</span>
+              <button type="button" className="text-sm text-blue-600" onClick={() => setExpandedAltIndex(null)}>Close</button>
+            </div>
+            <textarea
+              rows={3}
+              value={(() => {
+                const base = formData.images[expandedAltIndex];
+                if (base instanceof File) return newImageAltMap[base.name] || '';
+                const key = typeof base === 'string' ? base : (base?.public_id || base?.publicId || base?.url || base?.secure_url);
+                return existingImageAltMap[key] || '';
+              })()}
+              onChange={(e)=>{
+                const base = formData.images[expandedAltIndex];
+                const val = e.target.value;
+                if (base instanceof File) {
+                  setNewImageAltMap(prev => ({ ...prev, [base.name]: val }));
+                } else {
+                  const key = typeof base === 'string' ? base : (base?.public_id || base?.publicId || base?.url || base?.secure_url);
+                  if (key) setExistingImageAltMap(prev => ({ ...prev, [key]: val }));
+                }
+              }}
+              placeholder="Describe this image for accessibility and SEO"
+              className="w-full border px-3 py-2 rounded-md"
+            />
+          </div>
+        )}
       </div>
+
+      {/* Alt text for newly added images */}
+      {formData.images?.some(img => img instanceof File) && (
+        <div className="mb-4">
+          <label className="block font-medium mb-2">Alt text for new images</label>
+          <div className="space-y-2">
+            {formData.images.map((img, idx) => (
+              img instanceof File ? (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 truncate max-w-[140px]">{img.name}</span>
+                  <input
+                    type="text"
+                    value={newImageAltMap[img.name] || ''}
+                    onChange={(e)=> setNewImageAltMap(prev => ({ ...prev, [img.name]: e.target.value }))}
+                    placeholder="Describe this image (SEO alt text)"
+                    className="flex-1 border px-3 py-2 rounded-md"
+                  />
+                </div>
+              ) : null
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Free shipping */}
       <div className="mb-4">
