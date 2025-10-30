@@ -29,12 +29,11 @@ const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
   const containerRef = useRef(null);
-  const zoomWrapMobileRef = useRef(null);
-  const zoomWrapDesktopRef = useRef(null);
   const [availableHeight, setAvailableHeight] = useState(null);
   // Mobile detection with responsive behavior
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
   const [mountSlider, setMountSlider] = useState(false);
+  const [autoplayEnabled, setAutoplayEnabled] = useState(false);
   
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
@@ -107,7 +106,7 @@ const Banner = React.memo(() => {
         },
       },
     },
-    [autoplay(4000)]
+    autoplayEnabled ? [autoplay(4000)] : []
   );
 
   // Mobile-first dimensions for better LCP
@@ -220,47 +219,15 @@ const Banner = React.memo(() => {
     setImageLoadedStates({});
   }, [banners]);
 
-  // Initial mount zoom-out (no scroll): animate from 1.12 -> 1.0
-  useEffect(() => {
-    const elM = zoomWrapMobileRef.current;
-    const elD = zoomWrapDesktopRef.current;
-    const applyStart = (el) => {
-      if (!el) return;
-      el.style.transform = 'scale(1.12)';
-      el.style.transformOrigin = 'center top';
-    };
-    const animateToOne = (el) => {
-      if (!el) return;
-      el.style.transition = 'transform 800ms ease-out';
-      el.style.transform = 'scale(1)';
-    };
-    applyStart(elM);
-    applyStart(elD);
-    const id = requestAnimationFrame(() => {
-      // double rAF to ensure styles applied before transition
-      requestAnimationFrame(() => {
-        animateToOne(elM);
-        animateToOne(elD);
-      });
-    });
-    const cleanup = () => {
-      cancelAnimationFrame(id);
-      if (elM) elM.style.transition = '';
-      if (elD) elD.style.transition = '';
-    };
-    const to = setTimeout(cleanup, 1000);
-    return () => { cleanup(); clearTimeout(to); };
-  }, []);
+  // Removed mount zoom to avoid repainting LCP
+  useEffect(() => {}, []);
 
   // Scroll-based zoom disabled: using only mount animation
 
-  // Mount slider after initial render if there are multiple banners
+  // Mount slider immediately (if multiple banners). Autoplay stays disabled for stable LCP.
   useEffect(() => {
-    const resolvedBanners = banners.length ? banners : staticBanners;
-    if (resolvedBanners.length > 1) {
-      const id = requestAnimationFrame(() => setMountSlider(true));
-      return () => cancelAnimationFrame(id);
-    }
+    const resolved = banners.length ? banners : staticBanners;
+    if (resolved.length > 1) setMountSlider(true);
   }, [banners]);
 
   const handleDotClick = useCallback((index) => {
@@ -299,12 +266,35 @@ const Banner = React.memo(() => {
     );
   }, [bannerDimensions]);
 
+  // Prefetch helper for the next slide to avoid visible loading when autoplay starts
+  const prefetchBannerImage = useCallback((banner) => {
+    try {
+      if (!banner?.image) return;
+      const w = typeof window !== 'undefined' ? (window.innerWidth <= 640 ? 480 : (window.innerWidth <= 1024 ? 1024 : 1440)) : 1440;
+      const h = w === 480 ? bannerDimensions.mobile.height : (w === 1024 ? bannerDimensions.tablet.height : bannerDimensions.desktop.height);
+      const url = getOptimizedImageUrl(banner.image, w, h, 'auto');
+      const img = new Image();
+      img.decoding = 'async';
+      img.loading = 'eager';
+      img.src = url;
+    } catch {}
+  }, [getOptimizedImageUrl, bannerDimensions]);
+
   const handleImageLoad = useCallback((bannerId, isLCP) => {
     setImageLoadedStates(prev => ({ ...prev, [bannerId]: true }));
-    if (isLCP && typeof window !== 'undefined' && window.performance?.mark) {
-      window.performance.mark('lcp-banner-loaded');
+    if (isLCP) {
+      if (typeof window !== 'undefined' && window.performance?.mark) {
+        window.performance.mark('lcp-banner-loaded');
+      }
+      // Prefetch the next slide image and start autoplay shortly after LCP settles
+      const list = (banners.length ? banners : staticBanners);
+      if (list.length > 1) {
+        const next = list[1];
+        prefetchBannerImage(next);
+      }
+      setTimeout(() => setAutoplayEnabled(true), 1800);
     }
-  }, []);
+  }, [banners, prefetchBannerImage]);
 
   const handleImageError = useCallback((bannerId) => {
     console.error('Error loading banner image:', bannerId);
@@ -313,7 +303,7 @@ const Banner = React.memo(() => {
 
   const renderMobileBanner = useCallback((banner, isLCP = false) => {
     return (
-      <div className="hero-banner w-full" ref={zoomWrapMobileRef} style={{ willChange: 'transform' }}>
+      <div className="hero-banner w-full">
         <img
           src={getOptimizedImageUrl(
             banner.image,
@@ -351,7 +341,7 @@ const Banner = React.memo(() => {
     return (
       <div className="hero-banner w-full">
         {/* No skeleton for banner images - immediate display for LCP */}
-        <picture className="block w-full" ref={zoomWrapDesktopRef} style={{ willChange: 'transform' }}>
+        <picture className="block w-full">
           {/* Mobile-first: Load smallest image first */}
           <source
             media="(max-width: 640px)"
@@ -414,41 +404,7 @@ const Banner = React.memo(() => {
     return `slider-${resolvedBanners.length}-${ids}`;
   }, [resolvedBanners]);
 
-  // Add preconnect and preload for LCP banner (inside component)
-  useEffect(() => {
-    const lcp = firstBanner;
-    if (!lcp || !lcp.image) return;
-    const head = document.head;
-    const pre = document.createElement('link');
-    pre.rel = 'preconnect';
-    pre.href = 'https://res.cloudinary.com';
-    pre.crossOrigin = '';
-    head.appendChild(pre);
-    let link;
-    if (!lcp.image.startsWith('/')) {
-      link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.imageSrcset = [
-        getOptimizedImageUrl(lcp.image, 640, bannerDimensions.mobile.height, 'avif') + ' 640w',
-        getOptimizedImageUrl(lcp.image, 1024, bannerDimensions.tablet.height, 'avif') + ' 1024w',
-        getOptimizedImageUrl(lcp.image, 1440, bannerDimensions.desktop.height, 'avif') + ' 1440w',
-      ].join(', ');
-      link.imageSizes = '100vw';
-      head.appendChild(link);
-    } else {
-      // Preload local asset directly
-      link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.href = lcp.image;
-      head.appendChild(link);
-    }
-    return () => {
-      try { head.removeChild(pre); } catch {}
-      try { head.removeChild(link); } catch {}
-    };
-  }, [firstBanner, getOptimizedImageUrl, bannerDimensions]);
+  // Prefetch/preload removed per request to stabilize LCP and avoid duplicate downloads
 
   const renderDots = useCallback(() => (
     <div className="absolute left-1/2 -translate-x-1/2 bottom-4 z-20">

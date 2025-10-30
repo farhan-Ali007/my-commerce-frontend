@@ -12,7 +12,7 @@ const ShowcaseCategories = ({
   categorySlug,
   categoryName,
   categoryImage ,
-  limit = 8,
+  limit = 6,
   lazy = true, // Enable lazy loading by default
   priority = false, // Set to true for first/critical categories
 }) => {
