@@ -35,7 +35,6 @@ const Banner = React.memo(() => {
   // Mobile detection with responsive behavior
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
   const [mountSlider, setMountSlider] = useState(false);
-  const [containerHeight, setContainerHeight] = useState(0);
   
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
@@ -187,34 +186,7 @@ const Banner = React.memo(() => {
     */
   }, [preloaded]);
 
-  // Precisely size banner: fit under sticky header and respect image aspect ratio
-  useEffect(() => {
-    const update = () => {
-      const viewportH = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
-      const top = containerRef.current ? containerRef.current.getBoundingClientRect().top : 0;
-      const available = Math.max(200, viewportH - top);
-      const h = available;
-      setContainerHeight(h);
-    };
-
-    update();
-    const onResize = () => update();
-    const onScroll = () => update();
-    window.addEventListener('resize', onResize, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
-    let ro;
-    try {
-      ro = new ResizeObserver(update);
-      if (containerRef.current) ro.observe(containerRef.current);
-    } catch {}
-    const id = setTimeout(update, 100);
-    return () => {
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('scroll', onScroll);
-      if (ro) try { ro.disconnect(); } catch {}
-      clearTimeout(id);
-    };
-  }, [bannerDimensions.desktop.height, bannerDimensions.desktop.width]);
+  // Removed container height measurement to avoid layout reflows; intrinsic sizing is used
 
   useEffect(() => {
     mounted.current = true;
@@ -300,7 +272,7 @@ const Banner = React.memo(() => {
     if (imageUrl.startsWith('/')) return imageUrl;
     const sep = imageUrl.includes('?') ? '&' : '?';
     // Cloudinary: auto format/quality, DPR, fit, strip metadata
-    const q = 'q_auto:good';
+    const q = width <= 640 ? 'q_auto:eco' : 'q_auto:good';
     const f = `f_${format}`; // 'auto'|'avif'|'webp'
     return `${imageUrl}${sep}${f}&${q}&dpr=auto&w=${width}${height ? `&h=${height}` : ''}&c=fit&fl=force_strip`;
   }, []);
@@ -398,6 +370,16 @@ const Banner = React.memo(() => {
             )}
             type="image/avif"
           />
+          <source
+            media="(min-width: 1025px)"
+            srcSet={getOptimizedImageUrl(
+              banner.image,
+              1600,
+              bannerDimensions.desktop.height,
+              'avif'
+            )}
+            type="image/avif"
+          />
           <img
             src={getOptimizedImageUrl(
               banner.image,
@@ -426,6 +408,32 @@ const Banner = React.memo(() => {
     const ids = (resolvedBanners || []).map(b => b?._id || '').join('-');
     return `slider-${resolvedBanners.length}-${ids}`;
   }, [resolvedBanners]);
+
+  // Add preconnect and preload for LCP banner (inside component)
+  useEffect(() => {
+    const lcp = firstBanner;
+    if (!lcp || !lcp.image || lcp.image.startsWith('/')) return;
+    const head = document.head;
+    const pre = document.createElement('link');
+    pre.rel = 'preconnect';
+    pre.href = 'https://res.cloudinary.com';
+    pre.crossOrigin = '';
+    head.appendChild(pre);
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.imageSrcset = [
+      getOptimizedImageUrl(lcp.image, 640, bannerDimensions.mobile.height, 'avif') + ' 640w',
+      getOptimizedImageUrl(lcp.image, 1024, bannerDimensions.tablet.height, 'avif') + ' 1024w',
+      getOptimizedImageUrl(lcp.image, 1600, bannerDimensions.desktop.height, 'avif') + ' 1600w',
+    ].join(', ');
+    link.imageSizes = '100vw';
+    head.appendChild(link);
+    return () => {
+      try { head.removeChild(pre); } catch {}
+      try { head.removeChild(link); } catch {}
+    };
+  }, [firstBanner, getOptimizedImageUrl, bannerDimensions]);
 
   const renderDots = useCallback(() => (
     <div className="absolute left-1/2 -translate-x-1/2 bottom-4 z-20">
