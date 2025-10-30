@@ -7,7 +7,7 @@ import { getHomepageBanners } from "../functions/homepage";
 const staticBanners = [
   {
     _id: 'custom1',
-    image: '/customBanner1.webp',
+    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761820035/banners/enao0qlopdotymwwtpbs.png',
     link: '#',
     alt: 'Custom Banner 1',
     priority: true, // Mark as LCP candidate
@@ -16,7 +16,7 @@ const staticBanners = [
   },
   {
     _id: 'custom2',
-    image: '/customBanner2.webp',
+    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761820069/banners/iqsh9whgxytdxdflpzds.png',
     link: '#',
     alt: 'Custom Banner 2',
     priority: false,
@@ -325,6 +325,8 @@ const Banner = React.memo(() => {
           loading={isLCP ? 'eager' : 'lazy'}
           decoding="async"
           fetchpriority={isLCP ? 'high' : 'low'}
+          width={bannerDimensions.mobile.width}
+          height={bannerDimensions.mobile.height}
           className="w-full h-auto"
           style={{ display: 'block' }}
           onLoad={() => handleImageLoad(banner._id, isLCP)}
@@ -375,7 +377,7 @@ const Banner = React.memo(() => {
             media="(min-width: 1025px)"
             srcSet={getOptimizedImageUrl(
               banner.image,
-              1600,
+              1440,
               bannerDimensions.desktop.height,
               'avif'
             )}
@@ -384,7 +386,7 @@ const Banner = React.memo(() => {
           <img
             src={getOptimizedImageUrl(
               banner.image,
-              1600,
+              1440,
               bannerDimensions.desktop.height,
               'auto'
             )}
@@ -393,6 +395,8 @@ const Banner = React.memo(() => {
             decoding="async"
             fetchpriority={isLCP ? 'high' : 'low'}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+            width={bannerDimensions.desktop.width}
+            height={bannerDimensions.desktop.height}
             className="w-full h-auto"
             style={{ display: 'block' }}
             onLoad={() => handleImageLoad(banner._id, isLCP)}
@@ -413,23 +417,33 @@ const Banner = React.memo(() => {
   // Add preconnect and preload for LCP banner (inside component)
   useEffect(() => {
     const lcp = firstBanner;
-    if (!lcp || !lcp.image || lcp.image.startsWith('/')) return;
+    if (!lcp || !lcp.image) return;
     const head = document.head;
     const pre = document.createElement('link');
     pre.rel = 'preconnect';
     pre.href = 'https://res.cloudinary.com';
     pre.crossOrigin = '';
     head.appendChild(pre);
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.imageSrcset = [
-      getOptimizedImageUrl(lcp.image, 640, bannerDimensions.mobile.height, 'avif') + ' 640w',
-      getOptimizedImageUrl(lcp.image, 1024, bannerDimensions.tablet.height, 'avif') + ' 1024w',
-      getOptimizedImageUrl(lcp.image, 1600, bannerDimensions.desktop.height, 'avif') + ' 1600w',
-    ].join(', ');
-    link.imageSizes = '100vw';
-    head.appendChild(link);
+    let link;
+    if (!lcp.image.startsWith('/')) {
+      link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.imageSrcset = [
+        getOptimizedImageUrl(lcp.image, 640, bannerDimensions.mobile.height, 'avif') + ' 640w',
+        getOptimizedImageUrl(lcp.image, 1024, bannerDimensions.tablet.height, 'avif') + ' 1024w',
+        getOptimizedImageUrl(lcp.image, 1440, bannerDimensions.desktop.height, 'avif') + ' 1440w',
+      ].join(', ');
+      link.imageSizes = '100vw';
+      head.appendChild(link);
+    } else {
+      // Preload local asset directly
+      link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = lcp.image;
+      head.appendChild(link);
+    }
     return () => {
       try { head.removeChild(pre); } catch {}
       try { head.removeChild(link); } catch {}
