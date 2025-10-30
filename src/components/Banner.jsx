@@ -311,7 +311,7 @@ const Banner = React.memo(() => {
     setImageLoadedStates(prev => ({ ...prev, [bannerId]: true })); // Show skeleton instead of broken image
   }, []);
 
-  const renderMobileBanner = useCallback((banner) => {
+  const renderMobileBanner = useCallback((banner, isLCP = false) => {
     return (
       <div className="hero-banner w-full" ref={zoomWrapMobileRef} style={{ willChange: 'transform' }}>
         <img
@@ -322,12 +322,12 @@ const Banner = React.memo(() => {
             'auto'
           )}
           alt={banner.alt || 'Banner'}
-          loading="eager"
-          decoding="sync"
-          fetchpriority="high"
+          loading={isLCP ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchpriority={isLCP ? 'high' : 'low'}
           className="w-full h-auto"
           style={{ display: 'block' }}
-          onLoad={() => handleImageLoad(banner._id, true)}
+          onLoad={() => handleImageLoad(banner._id, isLCP)}
           onError={() => handleImageError(banner._id)}
         />
       </div>
@@ -337,7 +337,8 @@ const Banner = React.memo(() => {
   const renderBannerImage = useCallback((banner, index) => {
     // Use simple mobile banner for better performance
     if (isMobile) {
-      return renderMobileBanner(banner);
+      const isLCP = index === 0 || banner.priority;
+      return renderMobileBanner(banner, isLCP);
     }
     
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
@@ -383,14 +384,14 @@ const Banner = React.memo(() => {
           <img
             src={getOptimizedImageUrl(
               banner.image,
-              bannerDimensions.desktop.width,
+              1600,
               bannerDimensions.desktop.height,
               'auto'
             )}
             alt={banner.alt || `Banner ${index + 1}`}
-            loading="eager"
-            decoding="sync"
-            fetchpriority="high"
+            loading={isLCP ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchpriority={isLCP ? 'high' : 'low'}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
             className="w-full h-auto"
             style={{ display: 'block' }}
