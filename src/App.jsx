@@ -7,6 +7,7 @@ import NotFound from "./Pages/NotFound";
 import AdminRoute from "./components/AdminRoute";
 import MetaPixelTracker from './components/MetaPixelTracker';
 import Navbar from "./components/Navbar";
+import CategoryBarSection from "./components/CategoryBarSection";
 import Popup from "./components/Popup";
 import { getUserAPI } from "./functions/auth";
 import { recordVisit } from "./functions/traffic";
@@ -105,8 +106,13 @@ const App = () => {
       )}
       
       <div className="flex flex-col">
-        {/* Conditionally render Navbar */}
-        {!shouldHideNavbar && <Navbar />}
+        {/* Conditionally render Navbar and Category Bar */}
+        {!shouldHideNavbar && (
+          <>
+            <Navbar />
+            <CategoryBarSection />
+          </>
+        )}
         
         {/* Popup Component - appears on all pages */}
         <Popup />

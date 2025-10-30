@@ -50,20 +50,13 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
             } else {
                 const categoryElement = categoryRefs.current[category._id];
                 if (categoryElement) {
-                    // Batch layout read and state writes across frames to avoid forced reflow
-                    window.requestAnimationFrame(() => {
-                        const rect = categoryElement.getBoundingClientRect();
-                        window.requestAnimationFrame(() => {
-                            setModalPosition({
-                                top: rect.bottom + window.scrollY,
-                                left: rect.left + window.scrollX,
-                            });
-                            setModalState({ isOpen: true, selectedCategory: category });
-                        });
+                    const rect = categoryElement.getBoundingClientRect();
+                    setModalPosition({
+                        top: rect.bottom + 6,
+                        left: rect.left,
                     });
-                } else {
-                    setModalState({ isOpen: true, selectedCategory: category });
                 }
+                setModalState({ isOpen: true, selectedCategory: category });
             }
         }
     }, [modalState.selectedCategory, setModalPosition, setModalState]);
@@ -89,19 +82,14 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
             } else {
                 const categoryElement = categoryRefs.current[category._id];
                 if (categoryElement) {
-                    window.requestAnimationFrame(() => {
-                        const rect = categoryElement.getBoundingClientRect();
-                        window.requestAnimationFrame(() => {
-                            setModalPosition({
-                                top: rect.bottom + window.scrollY,
-                                left: rect.left + window.scrollX,
-                            });
-                            setModalState({ isOpen: true, selectedCategory: category });
-                        });
+                    const rect = categoryElement.getBoundingClientRect();
+                    setModalPosition({
+                        top: rect.bottom,
+                        left: rect.left,
                     });
-                } else {
-                    setModalState({ isOpen: true, selectedCategory: category });
                 }
+
+                setModalState({ isOpen: true, selectedCategory: category });
             }
         } else {
             if (category.slug) {
@@ -148,6 +136,27 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
         visible: { opacity: 1 },
         exit: { opacity: 1 }
     }), [allowMotion]);
+
+    // Ensure modal stays within the viewport bounds once it mounts
+    useEffect(() => {
+        if (!modalState.isOpen) return;
+        const el = modalRef.current;
+        if (!el) return;
+        const { innerWidth, innerHeight } = window;
+        const rect = el.getBoundingClientRect();
+        let left = modalPosition.left;
+        let top = modalPosition.top;
+        const padding = 8;
+        if (rect.width) {
+            left = Math.min(Math.max(left, padding), Math.max(padding, innerWidth - rect.width - padding));
+        }
+        if (rect.height) {
+            top = Math.min(Math.max(top, padding), Math.max(padding, innerHeight - rect.height - padding));
+        }
+        if (left !== modalPosition.left || top !== modalPosition.top) {
+            setModalPosition({ left, top });
+        }
+    }, [modalState.isOpen, modalPosition.left, modalPosition.top, setModalPosition]);
 
     const subcategoryVariants = useMemo(() => allowMotion ? ({
         hidden: { opacity: 0, x: -10, scale: 0.9 },
@@ -222,7 +231,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                         animate="visible"
                         exit="exit"
                         style={{
-                            position: 'absolute',
+                            position: 'fixed',
                             top: `${modalPosition.top}px`,
                             left: `${modalPosition.left}px`,
                             borderRadius: "8px",
@@ -282,7 +291,7 @@ const CategoryBar = ({ categories, modalPosition, setModalPosition, modalState, 
                     <div
                         key="modal"
                         style={{
-                            position: 'absolute',
+                            position: 'fixed',
                             top: `${modalPosition.top}px`,
                             left: `${modalPosition.left}px`,
                             borderRadius: "8px",

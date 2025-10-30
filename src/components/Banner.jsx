@@ -12,7 +12,7 @@ const staticBanners = [
     alt: 'Custom Banner 1',
     priority: true, // Mark as LCP candidate
     width: 1920,
-    height: 550,
+    height: 680,
   },
   {
     _id: 'custom2',
@@ -21,16 +21,22 @@ const staticBanners = [
     alt: 'Custom Banner 2',
     priority: false,
     width: 1920,
-    height: 550,
+    height: 680,
   },
 ];
 
 const Banner = React.memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderRef = useRef(null);
+  const containerRef = useRef(null);
+  const zoomWrapMobileRef = useRef(null);
+  const zoomWrapDesktopRef = useRef(null);
+  const [availableHeight, setAvailableHeight] = useState(null);
   // Mobile detection with responsive behavior
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
   const [mountSlider, setMountSlider] = useState(false);
+  const [containerHeight, setContainerHeight] = useState(0);
+  
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
     let timeoutId;
@@ -89,6 +95,7 @@ const Banner = React.memo(() => {
       });
     });
   }, []);
+  
   const [sliderContainerRef, instanceRef] = useKeenSlider(
     {
       loop: true,
@@ -106,10 +113,12 @@ const Banner = React.memo(() => {
 
   // Mobile-first dimensions for better LCP
   const bannerDimensions = useMemo(() => ({
-    mobile: { width: 480, height: 140 },
-    tablet: { width: 1024, height: 320 },
-    desktop: { width: 1920, height: 550 }
+    // Keep aspect ratio ~1920x680 across breakpoints (~2.82:1)
+    mobile: { width: 480, height: 170 },
+    tablet: { width: 1024, height: 362 },
+    desktop: { width: 1920, height: 680 }
   }), []);
+  
   const aspectRatio = useMemo(() =>
     bannerDimensions.desktop.width / bannerDimensions.desktop.height,
     [bannerDimensions]
@@ -124,7 +133,7 @@ const Banner = React.memo(() => {
     // Use preloaded banners if available, otherwise use static banners for LCP
     return preloaded.length > 0 ? preloaded : staticBanners;
   });
-  // console.log("Banners----->", banners)
+  
   const [loading, setLoading] = useState(() => {
     if (typeof window !== 'undefined' && window.__BANNER_CACHE) {
       return false;
@@ -132,6 +141,7 @@ const Banner = React.memo(() => {
     // Never show loading since we always have static banners
     return false;
   });
+  
   const [error, setError] = useState(null);
   const [imageLoadedStates, setImageLoadedStates] = useState({});
   const mounted = useRef(false);
@@ -175,7 +185,36 @@ const Banner = React.memo(() => {
       // Keep static banners on API failure
     }
     */
-  }, []);
+  }, [preloaded]);
+
+  // Precisely size banner: fit under sticky header and respect image aspect ratio
+  useEffect(() => {
+    const update = () => {
+      const viewportH = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+      const top = containerRef.current ? containerRef.current.getBoundingClientRect().top : 0;
+      const available = Math.max(200, viewportH - top);
+      const h = available;
+      setContainerHeight(h);
+    };
+
+    update();
+    const onResize = () => update();
+    const onScroll = () => update();
+    window.addEventListener('resize', onResize, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    let ro;
+    try {
+      ro = new ResizeObserver(update);
+      if (containerRef.current) ro.observe(containerRef.current);
+    } catch {}
+    const id = setTimeout(update, 100);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onScroll);
+      if (ro) try { ro.disconnect(); } catch {}
+      clearTimeout(id);
+    };
+  }, [bannerDimensions.desktop.height, bannerDimensions.desktop.width]);
 
   useEffect(() => {
     mounted.current = true;
@@ -183,10 +222,65 @@ const Banner = React.memo(() => {
     return () => { mounted.current = false; };
   }, [fetchBanners]);
 
+  // Calculate available viewport height below the banner top (accounts for sticky header/category bars)
+  useEffect(() => {
+    const update = () => {
+      if (!containerRef.current) return;
+      const top = containerRef.current.getBoundingClientRect().top;
+      const vh = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+      const h = Math.max(0, Math.floor(vh - top));
+      setAvailableHeight(h);
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    // Recompute after fonts/layout settle
+    const id = setTimeout(update, 100);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+      clearTimeout(id);
+    };
+  }, []);
+
   // Reset image loaded states when banners change
   useEffect(() => {
     setImageLoadedStates({});
   }, [banners]);
+
+  // Initial mount zoom-out (no scroll): animate from 1.12 -> 1.0
+  useEffect(() => {
+    const elM = zoomWrapMobileRef.current;
+    const elD = zoomWrapDesktopRef.current;
+    const applyStart = (el) => {
+      if (!el) return;
+      el.style.transform = 'scale(1.12)';
+      el.style.transformOrigin = 'center top';
+    };
+    const animateToOne = (el) => {
+      if (!el) return;
+      el.style.transition = 'transform 800ms ease-out';
+      el.style.transform = 'scale(1)';
+    };
+    applyStart(elM);
+    applyStart(elD);
+    const id = requestAnimationFrame(() => {
+      // double rAF to ensure styles applied before transition
+      requestAnimationFrame(() => {
+        animateToOne(elM);
+        animateToOne(elD);
+      });
+    });
+    const cleanup = () => {
+      cancelAnimationFrame(id);
+      if (elM) elM.style.transition = '';
+      if (elD) elD.style.transition = '';
+    };
+    const to = setTimeout(cleanup, 1000);
+    return () => { cleanup(); clearTimeout(to); };
+  }, []);
+
+  // Scroll-based zoom disabled: using only mount animation
 
   // Mount slider after initial render if there are multiple banners
   useEffect(() => {
@@ -201,15 +295,14 @@ const Banner = React.memo(() => {
     instanceRef.current?.moveToIdx(index);
   }, [instanceRef]);
 
-  const getOptimizedImageUrl = useCallback((imageUrl, width, height) => {
+  const getOptimizedImageUrl = useCallback((imageUrl, width, height, format = 'auto') => {
     if (!imageUrl) return '';
     if (imageUrl.startsWith('/')) return imageUrl;
     const sep = imageUrl.includes('?') ? '&' : '?';
-    // Mobile-optimized: aggressive compression for mobile, better quality for desktop
-    const isMobile = width <= 640;
-    const quality = isMobile ? 'q_auto:low' : 'q_auto:good';
-    const format = 'f_webp'; // Force WebP for better compression
-    return `${imageUrl}${sep}${format}&${quality}&dpr=auto&w=${width}&h=${height}&c=fill`;
+    // Cloudinary: auto format/quality, DPR, fit, strip metadata
+    const q = 'q_auto:good';
+    const f = `f_${format}`; // 'auto'|'avif'|'webp'
+    return `${imageUrl}${sep}${f}&${q}&dpr=auto&w=${width}${height ? `&h=${height}` : ''}&c=fit&fl=force_strip`;
   }, []);
 
   const renderBannerSkeleton = useCallback(() => {
@@ -246,34 +339,30 @@ const Banner = React.memo(() => {
     setImageLoadedStates(prev => ({ ...prev, [bannerId]: true })); // Show skeleton instead of broken image
   }, []);
 
-  // Mobile-optimized simple banner render
   const renderMobileBanner = useCallback((banner) => {
-    if (!banner?.image) return null;
-    
     return (
-      <div className="banner-container w-full" style={{ height: 'auto', overflow: 'visible' }}>
+      <div className="hero-banner w-full" ref={zoomWrapMobileRef} style={{ willChange: 'transform' }}>
         <img
-          src={banner.image}
+          src={getOptimizedImageUrl(
+            banner.image,
+            bannerDimensions.mobile.width,
+            bannerDimensions.mobile.height,
+            'auto'
+          )}
           alt={banner.alt || 'Banner'}
           loading="eager"
           decoding="sync"
           fetchpriority="high"
           className="w-full h-auto"
-          style={{ 
-            display: 'block',
-            objectFit: 'contain',
-            height: 'auto',
-            maxHeight: 'none',
-            minHeight: 'auto'
-          }}
+          style={{ display: 'block' }}
+          onLoad={() => handleImageLoad(banner._id, true)}
+          onError={() => handleImageError(banner._id)}
         />
       </div>
     );
-  }, []);
+  }, [bannerDimensions, getOptimizedImageUrl, handleImageLoad, handleImageError]);
 
   const renderBannerImage = useCallback((banner, index) => {
-    if (!banner?.image) return renderBannerSkeleton();
-    
     // Use simple mobile banner for better performance
     if (isMobile) {
       return renderMobileBanner(banner);
@@ -285,40 +374,43 @@ const Banner = React.memo(() => {
     const imageLoaded = imageLoadedStates[banner._id] || banner.image?.startsWith('/') || true;
 
     return (
-      <div className="banner-container w-full">
+      <div className="hero-banner w-full">
         {/* No skeleton for banner images - immediate display for LCP */}
-        <picture className="block w-full h-auto">
+        <picture className="block w-full" ref={zoomWrapDesktopRef} style={{ willChange: 'transform' }}>
           {/* Mobile-first: Load smallest image first */}
           <source
             media="(max-width: 640px)"
             srcSet={getOptimizedImageUrl(
               banner.image,
               bannerDimensions.mobile.width,
-              bannerDimensions.mobile.height
+              bannerDimensions.mobile.height,
+              'avif'
             )}
-            type="image/webp"
+            type="image/avif"
           />
           <source
             media="(max-width: 1024px)"
             srcSet={getOptimizedImageUrl(
               banner.image,
               bannerDimensions.tablet.width,
-              bannerDimensions.tablet.height
+              bannerDimensions.tablet.height,
+              'avif'
             )}
-            type="image/webp"
+            type="image/avif"
           />
           <img
             src={getOptimizedImageUrl(
               banner.image,
               bannerDimensions.desktop.width,
-              bannerDimensions.desktop.height
+              bannerDimensions.desktop.height,
+              'auto'
             )}
             alt={banner.alt || `Banner ${index + 1}`}
             loading="eager"
             decoding="sync"
             fetchpriority="high"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
-            className="w-full h-auto object-cover object-center"
+            className="w-full h-auto"
             style={{ display: 'block' }}
             onLoad={() => handleImageLoad(banner._id, isLCP)}
             onError={() => handleImageError(banner._id)}
@@ -326,7 +418,7 @@ const Banner = React.memo(() => {
         </picture>
       </div>
     );
-  }, [bannerDimensions, getOptimizedImageUrl, renderBannerSkeleton, imageLoadedStates, handleImageLoad, handleImageError]);
+  }, [bannerDimensions, getOptimizedImageUrl, renderBannerSkeleton, imageLoadedStates, handleImageLoad, handleImageError, isMobile, renderMobileBanner]);
 
   const resolvedBanners = banners.length ? banners : staticBanners;
   const firstBanner = resolvedBanners[0];
@@ -336,21 +428,19 @@ const Banner = React.memo(() => {
   }, [resolvedBanners]);
 
   const renderDots = useCallback(() => (
-    <div className="flex justify-center my-2">
-      {resolvedBanners.map((_, index) => (
-        <button
-          key={index}
-          className={`min-w-[10px] min-h-[30px] w-6 h-6 md:h-8 md:w-8 rounded-full cursor-pointer  transition-all duration-200 ease-out flex items-center justify-center hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent`}
-          onClick={() => handleDotClick(index)}
-          aria-label={`Go to slide ${index + 1}`}
-          type="button"
-        >
-          <div className={`w-3 h-3 rounded-full transition-all duration-200 ${index === currentSlide
-              ? 'bg-secondary w-3 h-3 shadow-lg'
-              : 'bg-primary hover:bg-primary/80'
-            }`} />
-        </button>
-      ))}
+    <div className="absolute left-1/2 -translate-x-1/2 bottom-4 z-20">
+      <div className="flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 shadow-md backdrop-blur-[2px]">
+        {resolvedBanners.map((_, index) => (
+          <button
+            key={index}
+            className="w-3 h-3 rounded-full focus:outline-none focus:ring-2 focus:ring-white/40"
+            onClick={() => handleDotClick(index)}
+            aria-label={`Go to slide ${index + 1}`}
+            type="button"
+            style={{ backgroundColor: index === currentSlide ? '#f59e0b' : 'rgba(255,255,255,0.7)' }}
+          />
+        ))}
+      </div>
     </div>
   ), [resolvedBanners, currentSlide, handleDotClick]);
 
@@ -373,7 +463,7 @@ const Banner = React.memo(() => {
   // }
 
   return (
-    <div className="relative w-full mx-auto" style={{ height: 'auto', overflow: 'visible' }}>
+    <div ref={containerRef} className="relative w-full mx-auto" style={{ height: 'auto', overflow: 'visible' }}>
       <div className="relative w-full" style={{ height: 'auto', overflow: 'visible' }}>
         {!mountSlider ? (
           <div className="w-full" style={{ height: 'auto', overflow: 'visible' }}>
@@ -396,7 +486,6 @@ const Banner = React.memo(() => {
                   className="block w-full group"
                   target="_self"
                   rel="noopener noreferrer"
-                  style={{ height: 'auto' }}
                 >
                   {renderBannerImage(banner, index)}
                 </a>
