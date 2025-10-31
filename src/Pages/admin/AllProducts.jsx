@@ -91,14 +91,29 @@ const AllProducts = () => {
       setDeletingProductId(String(id));
       const response = await deleteProduct(id);
       toast.success(response?.message);
+      // Remove from current lists
       setProducts((prevProducts) => prevProducts.filter((product) => product._id !== id));
       setSearchResults((prevResults) => prevResults.filter((product) => product._id !== id));
-      // Hard refresh as a fallback to ensure UI state is fully reset
-      setTimeout(() => {
-        try {
-          window.location.reload();
-        } catch {}
-      }, 0);
+      // Update total count
+      setTotalProducts((t) => Math.max(0, (t || 0) - 1));
+      setSearchTotal((t) => Math.max(0, (t || 0) - 1));
+
+      // If not searching, try to keep the page filled
+      if (!isSearching) {
+        // After a small timeout to ensure state has applied, decide whether to fetch more
+        setTimeout(() => {
+          const startIdx = (page - 1) * PAGE_SIZE;
+          const endIdx = startIdx + PAGE_SIZE;
+          const remaining = (prev => prev.slice(startIdx, endIdx))(products);
+          if (remaining.length === 0 && page > 1) {
+            // If the current page became empty, go back one page
+            setPage(p => Math.max(1, p - 1));
+          } else if (remaining.length < PAGE_SIZE && hasMore) {
+            // Fetch more to top-up current view
+            fetchProducts(page);
+          }
+        }, 0);
+      }
     } catch (error) {
       toast.error("Failed to delete product.");
     } finally {
