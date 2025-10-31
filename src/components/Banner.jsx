@@ -7,7 +7,7 @@ import { getHomepageBanners } from "../functions/homepage";
 const staticBanners = [
   {
     _id: 'custom1',
-    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761891051/banners/pdrodoi3i8cmivl6ypeh.webp?f_avif&q_auto:good&dpr=1&w=1366&h=680&c=fit&fl=force_strip',
+    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761894276/banners/etanztngb40zfk57dap3.webp?f_avif&q_auto:good&dpr=1&w=1366&h=680&c=fit&fl=force_strip',
     link: '#',
     alt: 'Custom Banner 1',
     priority: true, // Mark as LCP candidate
@@ -16,7 +16,7 @@ const staticBanners = [
   },
   {
     _id: 'custom2',
-    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761891062/banners/ubnkzncux8vxkqhzoxkz.webp?f_avif&q_auto:good&dpr=1&w=1366&h=680&c=fit&fl=force_strip',
+    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761894290/banners/cutkr5s1mqwvjkwcemhj.webp?f_avif&q_auto:good&dpr=1&w=1366&h=680&c=fit&fl=force_strip',
     link: '#',
     alt: 'Custom Banner 2',
     priority: false,
@@ -36,7 +36,7 @@ const Banner = React.memo(() => {
   const [autoplayEnabled, setAutoplayEnabled] = useState(false);
   const [firstBannerLoaded, setFirstBannerLoaded] = useState(false);
   const prefetchedUrlsRef = useRef(new Set());
-  
+
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
     let timeoutId;
@@ -95,7 +95,7 @@ const Banner = React.memo(() => {
       });
     });
   }, []);
-  
+
   const [sliderContainerRef, instanceRef] = useKeenSlider(
     {
       loop: true,
@@ -118,7 +118,7 @@ const Banner = React.memo(() => {
     tablet: { width: 1024, height: 362 },
     desktop: { width: 1920, height: 680 }
   }), []);
-  
+
   const aspectRatio = useMemo(() =>
     bannerDimensions.desktop.width / bannerDimensions.desktop.height,
     [bannerDimensions]
@@ -133,7 +133,7 @@ const Banner = React.memo(() => {
     // Use preloaded banners if available, otherwise use static banners for LCP
     return preloaded.length > 0 ? preloaded : staticBanners;
   });
-  
+
   const [loading, setLoading] = useState(() => {
     if (typeof window !== 'undefined' && window.__BANNER_CACHE) {
       return false;
@@ -141,7 +141,7 @@ const Banner = React.memo(() => {
     // Never show loading since we always have static banners
     return false;
   });
-  
+
   const [error, setError] = useState(null);
   const [imageLoadedStates, setImageLoadedStates] = useState({});
   const mounted = useRef(false);
@@ -222,7 +222,7 @@ const Banner = React.memo(() => {
   }, [banners]);
 
   // Removed mount zoom to avoid repainting LCP
-  useEffect(() => {}, []);
+  useEffect(() => { }, []);
 
   // Scroll-based zoom disabled: using only mount animation
 
@@ -283,7 +283,7 @@ const Banner = React.memo(() => {
       img.decoding = 'async';
       img.loading = 'eager';
       img.src = url;
-    } catch {}
+    } catch { }
   }, [getOptimizedImageUrl, bannerDimensions]);
 
   const handleImageLoad = useCallback((bannerId, isLCP) => {
@@ -340,7 +340,7 @@ const Banner = React.memo(() => {
       const isNext = firstBannerLoaded && index === 1; // prioritize second slide after first loads
       return renderMobileBanner(banner, isLCP, isNext);
     }
-    
+
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
     const isLCP = index === 0 || banner.priority; // First image or priority flag is LCP candidate
     const isNext = firstBannerLoaded && index === 1; // prioritize second slide after first loads

@@ -31,6 +31,7 @@ import { addItemToCart } from "../../functions/cart";
 import { getProductBySlug, getRelatedProducts } from "../../functions/product";
 import { recordProductView } from "../../functions/traffic";
 import { getProductSchemaData } from "../../helpers/getProductSchema";
+import { getProductFaqSchema } from "../../helpers/getProductFaqSchema";
 import useFacebookPixel from "../../hooks/useFacebookPixel";
 import useWhatsAppTracking from "../../hooks/useWhatsAppTracking";
 import { addToCart } from "../../store/cartSlice";
@@ -1167,6 +1168,10 @@ const SingleProduct = () => {
     return getProductSchemaData(product, currentPrice);
   }, [product, currentPrice]);
 
+  const faqSchema = useMemo(() => {
+    return getProductFaqSchema(product);
+  }, [product]);
+
   // Now do early returns
   if (loading) return <SingleProductSkeleton />;
   if (!product)
@@ -1212,6 +1217,9 @@ const SingleProduct = () => {
         <link rel="canonical" href={window.location.href} />
         <meta name="robots" content="index, follow" />
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
+        {faqSchema && (
+          <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+        )}
       </Helmet>
 
       <div className="flex flex-col gap-0 lg:flex-row">
