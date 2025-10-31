@@ -20,7 +20,7 @@ import {
 import { LuAlarmClock } from "react-icons/lu";
 import { TiShoppingCart } from "react-icons/ti";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import ReviewsDrawer from "../../components/reviews/ReviewsDrawer";
 import RightEdgeTab from "../../components/reviews/RightEdgeTab";
 import SpecificationsDrawer from "../../components/reviews/SpecificationsDrawer";
@@ -88,6 +88,14 @@ const SingleProduct = () => {
 
   const dispatch = useDispatch();
   const { slug } = useParams();
+  const { search } = useLocation();
+  const regionId = useMemo(() => {
+    try {
+      const q = new URLSearchParams(search);
+      const v = q.get('region_id');
+      return v && v.trim().length >= 2 ? v.trim() : null;
+    } catch { return null; }
+  }, [search]);
   const navigateTo = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const userId = user?._id;
@@ -211,6 +219,20 @@ const SingleProduct = () => {
   }, [afterImageSentinelRef.current]);
   const currentPrice = useMemo(() => {
     if (!product) return 0;
+    // Resolve base price with regional override if present
+    const regionalObj = regionId
+      ? (
+          product?.regionalPricing?.[regionId] ||
+          product?.regionPricing?.[regionId] ||
+          product?.regions?.[regionId] ||
+          null
+        )
+      : null;
+    const regionalPrice = regionalObj && typeof regionalObj.price === 'number'
+      ? regionalObj.price
+      : (regionalObj && typeof regionalObj.finalPrice === 'number'
+          ? regionalObj.finalPrice
+          : null);
 
     // If volume tiers are enabled and a tier is selected, show that tier's price
     if (
@@ -250,12 +272,15 @@ const SingleProduct = () => {
       }
     }
 
-    // If any variant is selected and has a price, use the sum of variant prices
-    // Otherwise, use the base price
-    return hasVariantPrice
-      ? variantPriceSum
-      : product.salePrice || product.price;
-  }, [selectedVariants, product, selectedTierIndex]);
+    // Base price: prefer regional, then salePrice, then price
+    const base =
+      (typeof regionalPrice === 'number' ? regionalPrice : null) ??
+      product.salePrice ??
+      product.price;
+
+    // If any variant is selected and has a price, use the sum of variant prices; otherwise use base
+    return hasVariantPrice ? variantPriceSum : base;
+  }, [selectedVariants, product, selectedTierIndex, regionId]);
 
   // Compute each tier's discount relative to the previous tier's price
   const tiersWithDiscount = useMemo(() => {
@@ -532,7 +557,7 @@ const SingleProduct = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getProductBySlug(slug);
+      const response = await getProductBySlug(slug, { regionId });
       setProduct(response?.product);
       setOriginalPrice(
         response?.product?.salePrice || response?.product?.price
@@ -589,7 +614,7 @@ const SingleProduct = () => {
       // Ensure loading is false after fetch attempt (success or failure)
       setLoading(false);
     }
-  }, [slug, handleImageLoad]);
+  }, [slug, regionId, handleImageLoad]);
 
   // Effects
   useEffect(() => {

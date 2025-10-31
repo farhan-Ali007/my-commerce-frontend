@@ -62,10 +62,12 @@ export const updateProduct = async (slug, data) => {
     }
 }
 
-export const getProductBySlug = async (slug) => {
+export const getProductBySlug = async (slug, { regionId } = {}) => {
     try {
-        // console.log("Coming slug from param----> ", slug)
-        const response = await axios.get(`${BASE_URL}/product/${slug}`, { withCredentials: true });
+        const response = await axios.get(`${BASE_URL}/product/${slug}`, {
+            withCredentials: true,
+            params: regionId ? { regionId } : undefined,
+        });
         return response?.data;
     } catch (error) {
         console.log("Error in getting product by slug", error);

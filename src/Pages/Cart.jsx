@@ -5,7 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { addItemToCart } from "../functions/cart";
 import { truncateTitle } from "../helpers/truncateTitle";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp, FaCheckCircle } from "react-icons/fa";
+import { FiTruck } from "react-icons/fi";
 import { clearCart } from "../functions/cart";
 import {
   clearCartRedux,
@@ -114,11 +115,19 @@ const Cart = () => {
     0
   );
 
-  const deliveryCharges = cartData.length > 0 && cartData.every((item) => item.freeShipping)
-    ? 0
-    : (cartData.length > 0 ? 250 : 0);
+  const FREE_THRESHOLD = 4000;
+  const deliveryCharges = (() => {
+    if (cartData.length === 0) return 0;
+    // Threshold-based free delivery
+    if (totalPrice >= FREE_THRESHOLD) return 0;
+    // Fallback: all items have freeShipping
+    if (cartData.every((item) => item.freeShipping)) return 0;
+    return 250;
+  })();
 
   const totalBill = totalPrice + deliveryCharges;
+  const remainingForFree = Math.max(0, FREE_THRESHOLD - totalPrice);
+  const progressPct = Math.min(100, Math.round((totalPrice / FREE_THRESHOLD) * 100));
 
   const handleCheckout = async () => {
     try {
@@ -327,6 +336,24 @@ const Cart = () => {
               </h2>
               <div className="w-full max-w-sm mt-0 mb-4 bg-white shadow-md md:sticky md:top-20">
                 <div className="p-4 space-y-3">
+                  {/* Free Delivery Badge */}
+                  <div className={`rounded-md border ${remainingForFree === 0 ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'} p-3`}> 
+                    <div className="flex items-center gap-2">
+                      {remainingForFree === 0 ? (
+                        <FaCheckCircle className="text-green-600" size={18} />
+                      ) : (
+                        <FiTruck className="text-amber-600" size={18} />
+                      )}
+                      <p className={`text-sm font-semibold ${remainingForFree === 0 ? 'text-green-700' : 'text-amber-700'}`}>
+                        {remainingForFree === 0 ? 'Free delivery applied' : `Spend Rs. ${remainingForFree} more to get Free Delivery`}
+                      </p>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="mt-2 h-2 w-full bg-gray-200 rounded">
+                      <div className={`h-2 rounded ${remainingForFree === 0 ? 'bg-green-500' : 'bg-amber-500'}`} style={{ width: `${progressPct}%` }} />
+                    </div>
+                    <div className="mt-1 text-xs text-gray-600">Threshold: Rs. {FREE_THRESHOLD}</div>
+                  </div>
                   <div className="flex justify-between text-base md:text-lg text-primary">
                     <p>SubTotal</p>
                     <p>Rs. {totalPrice}</p>
