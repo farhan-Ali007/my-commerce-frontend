@@ -7,7 +7,7 @@ function stripHtml(html) {
 export const getProductSchemaData = (product, currentPrice) => {
     try {
         const url = typeof window !== 'undefined' ? window.location.href : 'https://etimadmart.com';
-        
+
         // Collect all images: main product images + variant images
         const mainImages = Array.isArray(product?.images)
             ? product.images.filter(img => typeof img === 'string' && img.startsWith('http'))
@@ -15,7 +15,7 @@ export const getProductSchemaData = (product, currentPrice) => {
 
         // Robust variant image extraction - handle different possible structures
         let variantImages = [];
-        
+
         if (product?.variants && Array.isArray(product.variants)) {
             product.variants.forEach(variant => {
                 if (variant?.values && Array.isArray(variant.values)) {
@@ -27,7 +27,7 @@ export const getProductSchemaData = (product, currentPrice) => {
                 }
             });
         }
-        
+
         const allImages = [...mainImages, ...variantImages];
         const images = allImages.length > 0 ? allImages : ['/default-product-image.jpg'];
 
@@ -51,7 +51,7 @@ export const getProductSchemaData = (product, currentPrice) => {
                     }
                 });
             }
-            
+
             return {
                 "@type": "Product",
                 "name": `${product.title} - ${variant.name}`,
@@ -64,6 +64,8 @@ export const getProductSchemaData = (product, currentPrice) => {
                     "@type": "Offer",
                     "price": variant.values?.[0]?.price || currentPrice || product.price,
                     "priceCurrency": "PKR",
+                    "areaServed": "PK", // ← ADD THIS
+                    "availableDeliveryMethod": "http://schema.org/ParcelService",
                     "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
                     "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
                     "seller": {

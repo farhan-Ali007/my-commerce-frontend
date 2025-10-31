@@ -189,7 +189,7 @@ const AdminBanner = () => {
                     className="w-full bg-secondary/80  hover:bg-secondary text-primary py-2 rounded-lg transition"
                     disabled={loading}
                 >
-                    {editMode ? "Update Banner (1920x680)" : "Add Banner (1920x680)"}
+                    {editMode ? "Update Banner (1920x600)" : "Add Banner (1920x600)"}
                 </button>
             </form>
 

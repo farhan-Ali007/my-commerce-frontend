@@ -7,21 +7,21 @@ import { getHomepageBanners } from "../functions/homepage";
 const staticBanners = [
   {
     _id: 'custom1',
-    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761820035/banners/enao0qlopdotymwwtpbs.png',
+    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761891051/banners/pdrodoi3i8cmivl6ypeh.webp?f_avif&q_auto:good&dpr=1&w=1366&h=680&c=fit&fl=force_strip',
     link: '#',
     alt: 'Custom Banner 1',
     priority: true, // Mark as LCP candidate
     width: 1920,
-    height: 680,
+    height: 600,
   },
   {
     _id: 'custom2',
-    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761820069/banners/iqsh9whgxytdxdflpzds.png',
+    image: 'https://res.cloudinary.com/dmcgfwmuf/image/upload/v1761891062/banners/ubnkzncux8vxkqhzoxkz.webp?f_avif&q_auto:good&dpr=1&w=1366&h=680&c=fit&fl=force_strip',
     link: '#',
     alt: 'Custom Banner 2',
     priority: false,
     width: 1920,
-    height: 680,
+    height: 600,
   },
 ];
 
@@ -34,6 +34,8 @@ const Banner = React.memo(() => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
   const [mountSlider, setMountSlider] = useState(false);
   const [autoplayEnabled, setAutoplayEnabled] = useState(false);
+  const [firstBannerLoaded, setFirstBannerLoaded] = useState(false);
+  const prefetchedUrlsRef = useRef(new Set());
   
   // Autoplay plugin for Keen (pauses on hover, when page is hidden, and when offscreen)
   const autoplay = useCallback((delay = 1000) => (slider) => {
@@ -224,11 +226,11 @@ const Banner = React.memo(() => {
 
   // Scroll-based zoom disabled: using only mount animation
 
-  // Mount slider immediately (if multiple banners). Autoplay stays disabled for stable LCP.
+  // Mount slider only after the first (LCP) image has fully loaded
   useEffect(() => {
     const resolved = banners.length ? banners : staticBanners;
-    if (resolved.length > 1) setMountSlider(true);
-  }, [banners]);
+    if (firstBannerLoaded && resolved.length > 1) setMountSlider(true);
+  }, [banners, firstBannerLoaded]);
 
   const handleDotClick = useCallback((index) => {
     instanceRef.current?.moveToIdx(index);
@@ -241,7 +243,8 @@ const Banner = React.memo(() => {
     // Cloudinary: auto format/quality, DPR, fit, strip metadata
     const q = width <= 640 ? 'q_auto:eco' : 'q_auto:good';
     const f = `f_${format}`; // 'auto'|'avif'|'webp'
-    return `${imageUrl}${sep}${f}&${q}&dpr=auto&w=${width}${height ? `&h=${height}` : ''}&c=fit&fl=force_strip`;
+    const dpr = width >= 1024 ? 'dpr=1' : 'dpr=auto';
+    return `${imageUrl}${sep}${f}&${q}&${dpr}&w=${width}${height ? `&h=${height}` : ''}&c=fit&fl=force_strip`;
   }, []);
 
   const renderBannerSkeleton = useCallback(() => {
@@ -270,9 +273,12 @@ const Banner = React.memo(() => {
   const prefetchBannerImage = useCallback((banner) => {
     try {
       if (!banner?.image) return;
-      const w = typeof window !== 'undefined' ? (window.innerWidth <= 640 ? 480 : (window.innerWidth <= 1024 ? 1024 : 1440)) : 1440;
+      const vw = typeof window !== 'undefined' ? window.innerWidth : 1366;
+      const w = vw <= 640 ? 480 : (vw <= 1024 ? 1024 : 1366);
       const h = w === 480 ? bannerDimensions.mobile.height : (w === 1024 ? bannerDimensions.tablet.height : bannerDimensions.desktop.height);
-      const url = getOptimizedImageUrl(banner.image, w, h, 'auto');
+      const url = getOptimizedImageUrl(banner.image, w, h, 'avif');
+      if (prefetchedUrlsRef.current.has(url)) return;
+      prefetchedUrlsRef.current.add(url);
       const img = new Image();
       img.decoding = 'async';
       img.loading = 'eager';
@@ -283,6 +289,7 @@ const Banner = React.memo(() => {
   const handleImageLoad = useCallback((bannerId, isLCP) => {
     setImageLoadedStates(prev => ({ ...prev, [bannerId]: true }));
     if (isLCP) {
+      setFirstBannerLoaded(true);
       if (typeof window !== 'undefined' && window.performance?.mark) {
         window.performance.mark('lcp-banner-loaded');
       }
@@ -292,7 +299,7 @@ const Banner = React.memo(() => {
         const next = list[1];
         prefetchBannerImage(next);
       }
-      setTimeout(() => setAutoplayEnabled(true), 1800);
+      setTimeout(() => setAutoplayEnabled(true), 5000);
     }
   }, [banners, prefetchBannerImage]);
 
@@ -301,7 +308,7 @@ const Banner = React.memo(() => {
     setImageLoadedStates(prev => ({ ...prev, [bannerId]: true })); // Show skeleton instead of broken image
   }, []);
 
-  const renderMobileBanner = useCallback((banner, isLCP = false) => {
+  const renderMobileBanner = useCallback((banner, isLCP = false, isNext = false) => {
     return (
       <div className="hero-banner w-full">
         <img
@@ -312,9 +319,9 @@ const Banner = React.memo(() => {
             'auto'
           )}
           alt={banner.alt || 'Banner'}
-          loading={isLCP ? 'eager' : 'lazy'}
+          loading={isLCP || isNext ? 'eager' : 'lazy'}
           decoding="async"
-          fetchpriority={isLCP ? 'high' : 'low'}
+          fetchpriority={(isLCP || isNext) ? 'high' : 'low'}
           width={bannerDimensions.mobile.width}
           height={bannerDimensions.mobile.height}
           className="w-full h-auto"
@@ -330,11 +337,13 @@ const Banner = React.memo(() => {
     // Use simple mobile banner for better performance
     if (isMobile) {
       const isLCP = index === 0 || banner.priority;
-      return renderMobileBanner(banner, isLCP);
+      const isNext = firstBannerLoaded && index === 1; // prioritize second slide after first loads
+      return renderMobileBanner(banner, isLCP, isNext);
     }
     
     const paddingTopPercentage = (bannerDimensions.desktop.height / bannerDimensions.desktop.width) * 100;
     const isLCP = index === 0 || banner.priority; // First image or priority flag is LCP candidate
+    const isNext = firstBannerLoaded && index === 1; // prioritize second slide after first loads
     // For static banners, assume they're preloaded and ready
     const imageLoaded = imageLoadedStates[banner._id] || banner.image?.startsWith('/') || true;
 
@@ -367,7 +376,7 @@ const Banner = React.memo(() => {
             media="(min-width: 1025px)"
             srcSet={getOptimizedImageUrl(
               banner.image,
-              1440,
+              1366,
               bannerDimensions.desktop.height,
               'avif'
             )}
@@ -376,14 +385,14 @@ const Banner = React.memo(() => {
           <img
             src={getOptimizedImageUrl(
               banner.image,
-              1440,
+              1366,
               bannerDimensions.desktop.height,
               'auto'
             )}
             alt={banner.alt || `Banner ${index + 1}`}
-            loading={isLCP ? 'eager' : 'lazy'}
+            loading={isLCP || isNext ? 'eager' : 'lazy'}
             decoding="async"
-            fetchpriority={isLCP ? 'high' : 'low'}
+            fetchpriority={(isLCP || isNext) ? 'high' : 'low'}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
             width={bannerDimensions.desktop.width}
             height={bannerDimensions.desktop.height}
