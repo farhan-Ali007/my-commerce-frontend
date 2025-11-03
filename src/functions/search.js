@@ -105,3 +105,19 @@ export const filterProductsByBrand = async (brand, page = 1, limit = 16) => {
 }
 
 
+// Combined filter endpoint (no query required)
+export const filterCombined = async (params) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/search/filter/combined`, {
+            params,
+            withCredentials: true,
+            paramsSerializer: (p) => new URLSearchParams(p).toString(),
+        });
+        return response?.data;
+    } catch (error) {
+        console.log('Error in combined filter request', error);
+        throw error;
+    }
+}
+
+

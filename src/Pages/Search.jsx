@@ -13,10 +13,6 @@ import { getAllBrands } from '../functions/brand';
 import { getAllCategories } from '../functions/categories';
 import {
   searchProduct,
-  filterByPrice,
-  filterByPriceRange,
-  filterByRating,
-  filterProductsByBrand,
   getMinMaxPrice,
 } from '../functions/search';
 

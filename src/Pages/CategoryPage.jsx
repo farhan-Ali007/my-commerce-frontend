@@ -9,13 +9,8 @@ import FilterDrawer from "../components/drawers/FilterDrawer";
 import { getAllBrands } from "../functions/brand";
 import { getAllCategories } from "../functions/categories";
 import {
-  filterByCategory,
-  filterByPrice,
-  filterByPriceRange,
-  filterByRating,
-  filterProductsByBrand,
-  filterBySubcategory,
   getMinMaxPrice,
+  filterCombined,
 } from "../functions/search";
 import { Helmet } from "react-helmet-async";
 import getCategorySchema from "../helpers/getCategorySchema";
@@ -104,26 +99,20 @@ const CategoryPage = () => {
   const fetchFilteredProducts = async (page = 1) => {
     setLoading(true);
     try {
-      let response;
+      const params = { page, limit: 16 };
 
-      if (subcategorySlug) {
-        response = await filterBySubcategory(subcategorySlug, page);
-      } else if (priceFilter) {
-        response = await filterByPrice({ price: priceFilter, page });
-      } else if (categoryFilter.length > 0) {
-        response = await filterByCategory({ categories: categoryFilter, page });
-      } else if (ratingFilter > 0) {
-        response = await filterByRating({ rating: ratingFilter, page });
-      } else if (brandFilter) {
-        response = await filterProductsByBrand(brandFilter, page);
-      } else if (minPrice && maxPrice) {
-        response = await filterByPriceRange(
-          { min: minPrice, max: maxPrice },
-          page
-        );
-      } else {
-        response = await filterByCategory({ categories: categoryFilter, page });
+      if (categoryFilter.length > 0) params.categories = categoryFilter;
+      if (subcategorySlug) params.subcategory = subcategorySlug;
+      if (brandFilter) params.brand = brandFilter;
+      if (ratingFilter) params.rating = ratingFilter;
+      if (minPrice != null && maxPrice != null) {
+        params.minPrice = minPrice;
+        params.maxPrice = maxPrice;
       }
+      if (priceFilter === "low") params.sort = "price_asc";
+      if (priceFilter === "high") params.sort = "price_desc";
+
+      const response = await filterCombined(params);
 
       setProducts(response?.products || []);
       setTotalPages(response?.totalPages || 0);
@@ -183,27 +172,28 @@ const CategoryPage = () => {
   const handlePriceChange = (e) => {
     const value = e.target.value;
     setPriceFilter(value);
-    setCategoryFilter([]);
-    setRatingFilter(null);
-    setBrandFilter(null);
     setIsFilterOpen(false);
   };
 
   const handleCategoryChange = (e) => {
     const value = e.target.value;
     setCategoryFilter(value ? [value] : []);
-    setPriceFilter("");
-    setRatingFilter(null);
-    setBrandFilter(null);
     setIsFilterOpen(false);
+  };
+
+  // Mobile drawer multi-select toggle
+  const handleCategoryChangeMobile = (e) => {
+    const value = e.target.value;
+    if (e.target.checked) {
+      setCategoryFilter((prev) => Array.from(new Set([...(prev || []), value])));
+    } else {
+      setCategoryFilter((prev) => (prev || []).filter((cat) => cat !== value));
+    }
   };
 
   const handleRatingChange = (e) => {
     const value = Number(e.target.value);
     setRatingFilter((prev) => (prev === value ? null : value));
-    setPriceFilter("");
-    setCategoryFilter([]);
-    setBrandFilter(null);
     setIsFilterOpen(false);
   };
 
@@ -216,19 +206,12 @@ const CategoryPage = () => {
     setPriceRange(value);
     setMinPrice(value[0]);
     setMaxPrice(value[1]);
-    setPriceFilter("");
-    setCategoryFilter([]);
-    setRatingFilter(null);
-    setBrandFilter(null);
     setIsFilterOpen(false);
   };
 
   const handleBrandChange = (e) => {
     const value = e.target.value;
     setBrandFilter((prev) => (prev === value ? null : value));
-    setRatingFilter(null);
-    setPriceFilter("");
-    setCategoryFilter([]);
     setIsFilterOpen(false);
   };
 
@@ -335,7 +318,7 @@ const CategoryPage = () => {
           priceFilter={priceFilter}
           handlePriceChange={handlePriceChange}
           categoryFilter={categoryFilter}
-          handleCategoryChange={handleCategoryChange}
+          handleCategoryChange={handleCategoryChangeMobile}
           categories={categories}
           priceRange={priceRange}
           handlePriceRangeChange={handlePriceRangeChange}

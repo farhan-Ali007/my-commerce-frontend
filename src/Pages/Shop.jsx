@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { IoChevronDown, IoFilter } from "react-icons/io5";
 import RangeSlider from 'react-range-slider-input';
@@ -8,14 +9,12 @@ import FilterDrawer from "../components/drawers/FilterDrawer";
 import { getAllBrands } from '../functions/brand';
 import { getAllCategories } from "../functions/categories";
 import { getAllProducts } from "../functions/product";
+
 import {
-    filterByCategory,
-    filterByPrice,
-    filterByPriceRange,
-    filterByRating,
-    filterProductsByBrand,
-    getMinMaxPrice
+    getMinMaxPrice,
+    filterCombined
 } from "../functions/search";
+
 import { Helmet } from 'react-helmet-async';
 import getShopSchema from '../helpers/getShopSchema';
 
@@ -27,7 +26,6 @@ const Shop = () => {
     const [ratingFilter, setRatingFilter] = useState(null);
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
-    // console.log("Products in shop page----->", products);
     const [loading, setLoading] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [brandFilter, setBrandFilter] = useState(null);
@@ -86,29 +84,36 @@ const Shop = () => {
     const fetchFilteredProducts = async (page = 1) => {
         setLoading(true);
         try {
-            let response;
             const defaultMin = 100;
             const defaultMax = 10000;
             const isDefaultPriceRange = minPrice === defaultMin && maxPrice === defaultMax;
 
-            if (priceFilter) {
-                response = await filterByPrice({ price: priceFilter, page });
-            }
-            else if (categoryFilter.length > 0) {
-                response = await filterByCategory({ categories: categoryFilter, page });
-            }
-            else if (ratingFilter > 0) {
-                response = await filterByRating({ rating: ratingFilter, page });
-            }
-            else if (brandFilter) {
-                response = await filterProductsByBrand(brandFilter, page);
-            }
-            else if (!isDefaultPriceRange) {
-                response = await filterByPriceRange({ min: minPrice, max: maxPrice }, page);
-            }
-            else {
+            const isAnyFilterActive =
+                (categoryFilter && categoryFilter.length > 0) ||
+                !!brandFilter ||
+                !!ratingFilter ||
+                !!priceFilter ||
+                !isDefaultPriceRange;
+
+            let response;
+
+            if (isAnyFilterActive) {
+                const params = { page, limit: 16 };
+                if (categoryFilter.length > 0) params.categories = categoryFilter;
+                if (brandFilter) params.brand = brandFilter;
+                if (ratingFilter) params.rating = ratingFilter;
+                if (!isDefaultPriceRange) {
+                    params.minPrice = minPrice;
+                    params.maxPrice = maxPrice;
+                }
+                if (priceFilter === "low") params.sort = "price_asc";
+                if (priceFilter === "high") params.sort = "price_desc";
+
+                response = await filterCombined(params);
+            } else {
                 response = await getAllProducts(page, 16);
             }
+
             setProducts(response?.products || []);
             setTotalPages(response?.totalPages || 0);
             setCurrentPage(response?.currentPage || 1);
@@ -167,27 +172,27 @@ const Shop = () => {
     const handlePriceChange = (e) => {
         const value = e.target.value;
         setPriceFilter(value);
-        setCategoryFilter([]);
-        setRatingFilter(null);
-        setBrandFilter(null);
         setIsFilterOpen(false);
     };
 
     const handleCategoryChange = (e) => {
         const value = e.target.value;
         setCategoryFilter(value ? [value] : []);
-        setPriceFilter("");
-        setRatingFilter(null);
-        setBrandFilter(null);
         setIsFilterOpen(false);
+    };
+
+    const handleCategoryChangeMobile = (e) => {
+        const value = e.target.value;
+        if (e.target.checked) {
+            setCategoryFilter((prev) => Array.from(new Set([...(prev || []), value])));
+        } else {
+            setCategoryFilter((prev) => (prev || []).filter((cat) => cat !== value));
+        }
     };
 
     const handleRatingChange = (e) => {
         const value = Number(e.target.value);
-        setRatingFilter(prev => (prev === value ? null : value));
-        setPriceFilter("");
-        setCategoryFilter([]);
-        setBrandFilter(null);
+        setRatingFilter((prev) => (prev === value ? null : value));
         setIsFilterOpen(false);
     };
 
@@ -200,19 +205,12 @@ const Shop = () => {
         setPriceRange(value);
         setMinPrice(value[0]);
         setMaxPrice(value[1]);
-        setPriceFilter("");
-        setCategoryFilter([]);
-        setRatingFilter(null);
-        setBrandFilter(null);
         setIsFilterOpen(false);
     };
 
     const handleBrandChange = (e) => {
         const value = e.target.value;
-        setBrandFilter(prev => (prev === value ? null : value));
-        setRatingFilter(null);
-        setPriceFilter("");
-        setCategoryFilter([]);
+        setBrandFilter((prev) => (prev === value ? null : value));
         setIsFilterOpen(false);
     };
 
@@ -283,7 +281,7 @@ const Shop = () => {
                     priceFilter={priceFilter}
                     handlePriceChange={handlePriceChange}
                     categoryFilter={categoryFilter}
-                    handleCategoryChange={handleCategoryChange}
+                    handleCategoryChange={handleCategoryChangeMobile}
                     categories={categories}
                     priceRange={priceRange}
                     handlePriceRangeChange={handlePriceRangeChange}
