@@ -145,6 +145,14 @@ export const getProductSchemaData = (product, currentPrice) => {
                 "@type": "Offer",
                 "price": currentPrice || product.price,
                 "priceCurrency": "PKR",
+                "areaServed": "PK",
+                "availableAtOrFrom": {
+                    "@type": "Place",
+                    "address": {
+                        "@type": "PostalAddress",
+                        "addressCountry": "PK"
+                    }
+                },
                 "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
                 "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
                 "seller": {

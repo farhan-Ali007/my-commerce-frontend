@@ -1230,6 +1230,14 @@ const SingleProduct = () => {
           }
         />
         <meta property="og:url" content={window.location.href} />
+        
+        {/* Product-specific meta tags for currency */}
+        <meta property="product:price:amount" content={currentPrice || product.price} />
+        <meta property="product:price:currency" content="PKR" />
+        <meta property="og:price:amount" content={currentPrice || product.price} />
+        <meta property="og:price:currency" content="PKR" />
+        <meta property="og:locale" content="en_PK" />
+        <meta property="og:availability" content={product.stock > 0 ? "instock" : "out of stock"} />
 
         <meta
           name="twitter:image"
