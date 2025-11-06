@@ -489,18 +489,18 @@
               // Robust pixel initialization with conflict handling
               try {
                 // Initialize the correct pixel ID
-                fbq('init', '4178050992439851');
+                fbq('init', '2204362540002843');
                 console.log('🔧 Meta Pixel initialized for domain:', w.location.hostname);
                 
                 // Verify initialization worked
                 setTimeout(function() {
-                  if (w.fbq && w.fbq._fbq && w.fbq._fbq.pixelsByID && w.fbq._fbq.pixelsByID['4178050992439851']) {
-                    console.log('✅ Pixel 4178050992439851 successfully initialized');
+                  if (w.fbq && w.fbq._fbq && w.fbq._fbq.pixelsByID && w.fbq._fbq.pixelsByID['2204362540002843']) {
+                    console.log('✅ Pixel 2204362540002843 successfully initialized');
                   } else {
-                    console.error('❌ Pixel 4178050992439851 failed to initialize');
+                    console.error('❌ Pixel 2204362540002843 failed to initialize');
                     // Try alternative initialization
                     console.log('🔄 Attempting alternative initialization...');
-                    fbq('init', '4178050992439851', {}, { agent: 'plethora' });
+                    fbq('init', '2204362540002843', {}, { agent: 'plethora' });
                   }
                 }, 500);
                 
@@ -508,7 +508,7 @@
                 console.error('❌ Pixel initialization error:', initError);
                 // Fallback initialization
                 console.log('🔄 Attempting fallback initialization...');
-                w.fbq('init', '4178050992439851');
+                w.fbq('init', '2204362540002843');
               }
               
               // Debug: Check if there are multiple pixels
@@ -554,7 +554,7 @@
                 var scripts = d.querySelectorAll('script');
                 var duplicateFound = false;
                 for (var i = 0; i < scripts.length; i++) {
-                  if (scripts[i].innerHTML && scripts[i].innerHTML.includes('4178050992439851')) {
+                  if (scripts[i].innerHTML && scripts[i].innerHTML.includes('2204362540002843')) {
                     console.warn('🚨 Found duplicate pixel in script:', scripts[i]);
                     duplicateFound = true;
                   }
@@ -595,9 +595,26 @@
           
           console.log('🔍 Meta Pixel Debug Info:');
           console.log('- Domain:', w.location.hostname);
+          console.log('- Protocol:', w.location.protocol);
           console.log('- Is Production:', isProduction);
           console.log('- fbq exists:', typeof w.fbq);
           console.log('- fbq function:', typeof w.fbq === 'function');
+          console.log('- User Agent:', navigator.userAgent.substring(0, 50) + '...');
+          
+          // Check if script loaded
+          var fbScript = d.querySelector('script[src*="fbevents.js"]');
+          console.log('- FB Script loaded:', !!fbScript);
+          
+          // Check for blockers
+          if (!fbScript || typeof w.fbq !== 'function') {
+            console.error('⚠️ Meta Pixel blocked or failed to load');
+            console.log('🔍 Possible causes:');
+            console.log('1. Ad blocker or privacy extension');
+            console.log('2. Browser privacy settings (Safari ITP, Firefox ETP)');
+            console.log('3. CSP headers blocking scripts');
+            console.log('4. Network/firewall blocking Facebook domains');
+            console.log('5. CORS or SSL certificate issues');
+          }
           
           if (w.fbq && typeof w.fbq === 'function') {
             console.log('✅ Meta Pixel loaded successfully on', w.location.hostname);
