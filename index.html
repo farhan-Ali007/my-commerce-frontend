@@ -489,18 +489,18 @@
               // Robust pixel initialization with conflict handling
               try {
                 // Initialize the correct pixel ID
-                fbq('init', '2204362540002843');
+                fbq('init', '4178050992439851');
                 console.log('🔧 Meta Pixel initialized for domain:', w.location.hostname);
                 
                 // Verify initialization worked
                 setTimeout(function() {
-                  if (w.fbq && w.fbq._fbq && w.fbq._fbq.pixelsByID && w.fbq._fbq.pixelsByID['2204362540002843']) {
-                    console.log('✅ Pixel 2204362540002843 successfully initialized');
+                  if (w.fbq && w.fbq._fbq && w.fbq._fbq.pixelsByID && w.fbq._fbq.pixelsByID['4178050992439851']) {
+                    console.log('✅ Pixel 4178050992439851 successfully initialized');
                   } else {
-                    console.error('❌ Pixel 2204362540002843 failed to initialize');
+                    console.error('❌ Pixel 4178050992439851 failed to initialize');
                     // Try alternative initialization
                     console.log('🔄 Attempting alternative initialization...');
-                    fbq('init', '2204362540002843', {}, { agent: 'plethora' });
+                    fbq('init', '4178050992439851', {}, { agent: 'plethora' });
                   }
                 }, 500);
                 
@@ -508,7 +508,7 @@
                 console.error('❌ Pixel initialization error:', initError);
                 // Fallback initialization
                 console.log('🔄 Attempting fallback initialization...');
-                w.fbq('init', '2204362540002843');
+                w.fbq('init', '4178050992439851');
               }
               
               // Debug: Check if there are multiple pixels
@@ -525,12 +525,12 @@
                     
                     if (pixelIds.length > 1) {
                       console.warn('⚠️ Multiple pixels detected:', pixelIds);
-                      console.log('✅ Expected: 2204362540002843');
-                      console.log('❌ Unexpected pixels:', pixelIds.filter(id => id !== '2204362540002843'));
+                      console.log('✅ Expected: 4178050992439851');
+                      console.log('❌ Unexpected pixels:', pixelIds.filter(id => id !== '4178050992439851'));
                       
                       // Try to disable the duplicate pixel
                       pixelIds.forEach(function(id) {
-                        if (id !== '2204362540002843') {
+                        if (id !== '4178050992439851') {
                           console.log('🚫 Attempting to disable duplicate pixel:', id);
                           try {
                             delete w.fbq._fbq.pixelsByID[id];
@@ -554,7 +554,7 @@
                 var scripts = d.querySelectorAll('script');
                 var duplicateFound = false;
                 for (var i = 0; i < scripts.length; i++) {
-                  if (scripts[i].innerHTML && scripts[i].innerHTML.includes('2204362540002843')) {
+                  if (scripts[i].innerHTML && scripts[i].innerHTML.includes('4178050992439851')) {
                     console.warn('🚨 Found duplicate pixel in script:', scripts[i]);
                     duplicateFound = true;
                   }
@@ -734,7 +734,7 @@
         height="1"
         width="1"
         style="display: none"
-        src="https://www.facebook.com/tr?id=2204362540002843&ev=PageView&noscript=1"
+        src="https://www.facebook.com/tr?id=4178050992439851&ev=PageView&noscript=1"
     /></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
