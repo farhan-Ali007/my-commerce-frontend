@@ -243,11 +243,18 @@ const Checkout = () => {
       setLoading(true);
       const response = await placeOrder(orderData);
 
-      // Meta Pixel Purchase event
+      // Meta Pixel Purchase event with all required parameters
       track('Purchase', {
-        value: orderData.totalPrice,
+        value: parseFloat(orderData.totalPrice),
         currency: 'PKR',
-        content_ids: orderData.cartSummary.map(item => item.productId)
+        content_ids: orderData.cartSummary.map(item => item.productId || item._id),
+        content_type: 'product',
+        num_items: orderData.cartSummary.length
+      });
+      
+      console.log('✅ Purchase event tracked:', {
+        value: orderData.totalPrice,
+        items: orderData.cartSummary.length
       });
 
       // Clear cart after successful order
@@ -269,8 +276,8 @@ const Checkout = () => {
         duration: 10000,
       });
       try { sessionStorage.setItem('fromCheckout', '1'); } catch {}
-      try { localStorage.setItem('fromCheckout', '1'); } catch {}
-      try { localStorage.setItem('lastOrderTs', String(Date.now())); } catch {}
+      setCouponCode("");
+      setCouponDiscount(0);
       // Persist guestId for guest order history in case cookies are blocked
       try {
         // Prefer top-level guestId, then order.guestId as fallback
@@ -284,9 +291,14 @@ const Checkout = () => {
       } catch {}
       const oid = response?.order?._id;
       const dest = oid ? `/order-history?from=checkout&orderId=${encodeURIComponent(oid)}` : "/order-history?from=checkout";
-      navigateTo(dest, {
-        state: { orderId: response?.data?.order?._id, fromCheckout: true },
-      });
+      
+      // CRITICAL: Wait for Purchase event to be sent before navigating
+      // This prevents the tracking request from being cancelled
+      setTimeout(() => {
+        navigateTo(dest, {
+          state: { orderId: response?.data?.order?._id, fromCheckout: true },
+        });
+      }, 500); // 500ms delay ensures tracking completes
     } catch (error) {
       console.error("Order placement error:", error);
       toast.error(

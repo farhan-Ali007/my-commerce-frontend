@@ -618,24 +618,7 @@
           
           if (w.fbq && typeof w.fbq === 'function') {
             console.log('✅ Meta Pixel loaded successfully on', w.location.hostname);
-            
-            // Test pixel functionality
-            try {
-              if (!isProduction) {
-                w.fbq('track', 'CustomEvent', { test: 'pixel_loaded', environment: 'development' });
-                console.log('🧪 Test event sent (development)');
-              } else {
-                console.log('🚀 Production Meta Pixel ready for real events');
-                // Send a minimal test event to verify connection
-                w.fbq('trackCustom', 'ProductionPixelTest', { 
-                  domain: w.location.hostname,
-                  timestamp: Date.now()
-                });
-                console.log('🧪 Production test event sent');
-              }
-            } catch (testError) {
-              console.error('❌ Error sending test event:', testError);
-            }
+            console.log('🚀 Meta Pixel ready -', isProduction ? 'Production Mode' : 'Development Mode');
           } else {
             console.warn('❌ Meta Pixel failed to load');
             console.log('🔍 Debugging info:');

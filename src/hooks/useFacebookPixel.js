@@ -40,6 +40,20 @@ const useFacebookPixel = () => {
     const isProduction = window.location.hostname !== 'localhost' && 
                         !window.location.hostname.includes('127.0.0.1');
     
+    // Always log Purchase events for debugging
+    if (event === 'Purchase') {
+      console.log('💰 Purchase Event Tracking:', {
+        environment: isProduction ? 'PRODUCTION' : 'DEVELOPMENT',
+        domain: window.location.hostname,
+        event: event,
+        data: data
+      });
+    }
+    
+    if (isProduction && event === 'Purchase') {
+      console.log('🚀 PRODUCTION Purchase Event:', data, 'Domain:', window.location.hostname);
+    }
+
     if (isProduction) {
       // console.log('🚀 PRODUCTION Meta Pixel Event:', event, data, 'Domain:', window.location.hostname);
     } else {
@@ -112,11 +126,17 @@ const useFacebookPixel = () => {
       }
     };
 
-    // Critical events (AddToCart, Purchase) track immediately but with small delay to ensure pixel is ready
-    const criticalEvents = ['AddToCart', 'Purchase', 'InitiateCheckout', 'StartConversation'];
+    // Critical events (Purchase, AddToCart) track IMMEDIATELY for reliable delivery
+    const criticalEvents = ['Purchase', 'AddToCart', 'InitiateCheckout'];
     if (criticalEvents.includes(event)) {
-      // Small delay to ensure pixel is fully initialized
-      setTimeout(trackEvent, 100);
+      // Purchase events: Track immediately, no delay
+      if (event === 'Purchase') {
+        console.log('💰 Tracking Purchase IMMEDIATELY (no delay)');
+        trackEvent(); // Execute immediately
+      } else {
+        // Other critical events: Small delay to ensure pixel is ready
+        setTimeout(trackEvent, 50);
+      }
     } else {
       // Non-critical events can be deferred
       if (window.requestIdleCallback) {
