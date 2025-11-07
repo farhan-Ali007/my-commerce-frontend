@@ -163,7 +163,7 @@ const SingleProduct = () => {
         return src === url;
       });
       if (found && typeof found === 'object' && found.alt) return found.alt;
-    } catch {}
+    } catch { }
     return product?.title || 'Product Image';
   }, [product]);
 
@@ -179,7 +179,7 @@ const SingleProduct = () => {
           }
         }
       }
-    } catch {}
+    } catch { }
     return 'Variant Image';
   }, [product, getImageUrl]);
 
@@ -193,7 +193,7 @@ const SingleProduct = () => {
       });
       // Record product view for analytics
       recordProductView(product._id);
-      
+
       // Set initial image if not already set
       if (!selectedImage && product.images && product.images.length > 0) {
         const firstImage = getImageUrl(product.images[0]);
@@ -222,17 +222,17 @@ const SingleProduct = () => {
     // Resolve base price with regional override if present
     const regionalObj = regionId
       ? (
-          product?.regionalPricing?.[regionId] ||
-          product?.regionPricing?.[regionId] ||
-          product?.regions?.[regionId] ||
-          null
-        )
+        product?.regionalPricing?.[regionId] ||
+        product?.regionPricing?.[regionId] ||
+        product?.regions?.[regionId] ||
+        null
+      )
       : null;
     const regionalPrice = regionalObj && typeof regionalObj.price === 'number'
       ? regionalObj.price
       : (regionalObj && typeof regionalObj.finalPrice === 'number'
-          ? regionalObj.finalPrice
-          : null);
+        ? regionalObj.finalPrice
+        : null);
 
     // If volume tiers are enabled and a tier is selected, show that tier's price
     if (
@@ -369,13 +369,13 @@ const SingleProduct = () => {
   // Smooth image transition function
   const changeImageWithTransition = useCallback((newImageURL) => {
     if (newImageURL === selectedImage || !newImageURL) return;
-    
+
     console.log('Transitioning from:', selectedImage, 'to:', newImageURL); // Debug log
-    
+
     // Set previous image and start transition
     setPreviousImage(selectedImage);
     setIsTransitioning(true);
-    
+
     // Preload new image if not already loaded
     if (!loadedImages.has(newImageURL)) {
       const img = new Image();
@@ -383,7 +383,7 @@ const SingleProduct = () => {
       img.onload = () => {
         handleImageLoad(newImageURL);
         setSelectedImage(newImageURL);
-        
+
         // End transition after animation completes
         setTimeout(() => {
           setIsTransitioning(false);
@@ -392,7 +392,7 @@ const SingleProduct = () => {
       };
     } else {
       setSelectedImage(newImageURL);
-      
+
       // End transition after animation completes
       setTimeout(() => {
         setIsTransitioning(false);
@@ -538,8 +538,8 @@ const SingleProduct = () => {
   // Data fetching
   const fetchRelatedProducts = useCallback(async () => {
     try {
-      const categoryId = product.categories?.length > 0 
-        ? product.categories[0]._id 
+      const categoryId = product.categories?.length > 0
+        ? product.categories[0]._id
         : product.category?._id;
       const response = await getRelatedProducts(
         categoryId,
@@ -594,7 +594,7 @@ const SingleProduct = () => {
         if (firstTier?.image) {
           setSelectedImage(
             getImageUrl(firstTier.image) ||
-              getImageUrl(response.product.images?.[0])
+            getImageUrl(response.product.images?.[0])
           );
         } else if (response?.product?.images?.length) {
           setSelectedImage(getImageUrl(response.product.images[0]));
@@ -949,7 +949,7 @@ const SingleProduct = () => {
         currentPrice,
         tierPrice: product?.volumeTiers?.[selectedTierIndex]?.price ?? null,
       });
-    } catch {}
+    } catch { }
     let cartItemsToAdd = [];
     Object.entries(selectedVariants).forEach(([variantName, values]) => {
       const variant = productVariants.find((v) => v.name === variantName);
@@ -1048,12 +1048,12 @@ const SingleProduct = () => {
             })),
             deliveryCharges: cartPayload.deliveryCharges,
           });
-        } catch {}
+        } catch { }
         await addItemToCart(userId, cartPayload);
         // Debug: after API call
         try {
           console.log("[BuyNow] addItemToCart completed");
-        } catch {}
+        } catch { }
         cartItemsToAdd.forEach((cartItem) => dispatch(addToCart(cartItem)));
         track("AddToCart", {
           content_ids: [product._id],
@@ -1230,7 +1230,7 @@ const SingleProduct = () => {
           }
         />
         <meta property="og:url" content={window.location.href} />
-        
+
         {/* Product-specific meta tags for currency */}
         <meta property="product:price:amount" content={currentPrice || product.price} />
         <meta property="product:price:currency" content="PKR" />
@@ -1269,7 +1269,7 @@ const SingleProduct = () => {
               {previousImage && isTransitioning && (
                 <div
                   className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-out"
-                  style={{ 
+                  style={{
                     zIndex: 1,
                     opacity: 0
                   }}
@@ -1281,11 +1281,11 @@ const SingleProduct = () => {
                   />
                 </div>
               )}
-              
+
               {/* Current main image */}
               <div
                 className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-out"
-                style={{ 
+                style={{
                   zIndex: 2,
                   opacity: loadedImages.has(selectedImage) && selectedImage ? 1 : 0
                 }}
@@ -1300,7 +1300,7 @@ const SingleProduct = () => {
                   onLoad={() => handleImageLoad(selectedImage)}
                 />
               </div>
-              
+
               {/* Loading placeholder */}
               {!loadedImages.has(selectedImage) && selectedImage && (
                 <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center" style={{ zIndex: 3 }}>
@@ -1316,9 +1316,8 @@ const SingleProduct = () => {
                     width: "280px",
                     height: "280px",
                     zIndex: 2000,
-                    backgroundImage: `url(${
-                      selectedImage || "https://via.placeholder.com/500"
-                    })`,
+                    backgroundImage: `url(${selectedImage || "https://via.placeholder.com/500"
+                      })`,
                     backgroundSize: `${zoomStyle.backgroundSize || "auto"}`,
                     backgroundPosition: `-${zoomStyle.backgroundX}px -${zoomStyle.backgroundY}px`,
                     pointerEvents: "none",
@@ -1354,11 +1353,10 @@ const SingleProduct = () => {
               {product?.images?.map((image, index) => (
                 <div
                   key={index}
-                  className={`h-16 w-16 bg-slate-200 rounded p-1 cursor-pointer flex-shrink-0 ${
-                    selectedImage === getImageUrl(image)
+                  className={`h-16 w-16 bg-slate-200 rounded p-1 cursor-pointer flex-shrink-0 ${selectedImage === getImageUrl(image)
                       ? "border-2 border-primary"
                       : "border-none"
-                  }`}
+                    }`}
                   onMouseEnter={() =>
                     handleMouseEnterProduct(getImageUrl(image))
                   }
@@ -1570,11 +1568,10 @@ const SingleProduct = () => {
                 onClick={() => handleQuantityChange("decrease")}
                 disabled={selectedQuantity === 1}
                 aria-label="Decrease quantity"
-                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${
-                  selectedQuantity === 1
+                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === 1
                     ? "bg-gray-300"
                     : "bg-secondary opacity-70"
-                }`}
+                  }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -1585,11 +1582,10 @@ const SingleProduct = () => {
                 onClick={() => handleQuantityChange("increase")}
                 aria-label="Increase quantity"
                 disabled={selectedQuantity === product.stock}
-                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${
-                  selectedQuantity === product.stock
+                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === product.stock
                     ? "bg-gray-300"
                     : "bg-secondary opacity-70"
-                }`}
+                  }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -1697,11 +1693,10 @@ const SingleProduct = () => {
                 onClick={() => handleQuantityChange("decrease")}
                 disabled={selectedQuantity === 1}
                 aria-label="Decrease quantity"
-                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${
-                  selectedQuantity === 1
+                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === 1
                     ? "bg-gray-300"
                     : "bg-secondary opacity-70"
-                }`}
+                  }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -1712,11 +1707,10 @@ const SingleProduct = () => {
                 onClick={() => handleQuantityChange("increase")}
                 aria-label="Increase quantity"
                 disabled={selectedQuantity === product.stock}
-                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${
-                  selectedQuantity === product.stock
+                className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === product.stock
                     ? "bg-gray-300"
                     : "bg-secondary opacity-70"
-                }`}
+                  }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -1788,11 +1782,10 @@ const SingleProduct = () => {
                           if (tier?.image)
                             setSelectedImage(getImageUrl(tier.image));
                         }}
-                        className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-md ${
-                          isSelected
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-md ${isSelected
                             ? "border-primary ring-1 ring-primary bg-primary/10"
                             : "border-gray-200"
-                        }`}
+                          }`}
                       >
                         {/* Leading check badge */}
                         {isSelected ? (
@@ -1807,7 +1800,7 @@ const SingleProduct = () => {
                             tier.image
                               ? getImageUrl(tier.image)
                               : getImageUrl(product?.images?.[0]) ||
-                                "https://via.placeholder.com/60"
+                              "https://via.placeholder.com/60"
                           }
                           alt={`Tier ${tier.quantity}`}
                           className="w-14 h-14 rounded object-cover"
@@ -1858,57 +1851,56 @@ const SingleProduct = () => {
           {/* Variants */}
           {productVariants && productVariants.length > 0
             ? productVariants.map((variant, index) => (
-                <motion.div
-                  key={index}
-                  className="gap-2 mb-3 "
-                  variants={itemVariants}
-                >
-                  <h3 className="font-semibold hidden lg:block capitalize text-md text-secondary font-space">
-                    {variant.name}
-                  </h3>
-                  <div className="hidden lg:flex  flex-wrap items-center gap-3">
-                    {variant.values.map((value, idx) =>
-                      value.image ? (
-                        <motion.div
-                          key={idx}
-                          className="flex flex-col items-center cursor-pointer"
-                          onClick={() =>
-                            handleVariantChange(variant.name, value.value)
-                          }
-                          onMouseEnter={(e) =>
-                            handleVariantImageMouseEnter(value.image, e)
-                          } // Pass event object
-                          onMouseLeave={handleVariantImageMouseLeave}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <div
-                            className={`relative overflow-hidden ${
-                              selectedVariants[variant.name]?.includes(
-                                value.value
-                              )
-                                ? "ring-2 ring-primary ring-offset-1"
-                                : "border border-gray-300"
+              <motion.div
+                key={index}
+                className="gap-2 mb-3 "
+                variants={itemVariants}
+              >
+                <h3 className="font-semibold hidden lg:block capitalize text-md text-secondary font-space">
+                  {variant.name}
+                </h3>
+                <div className="hidden lg:flex  flex-wrap items-center gap-3">
+                  {variant.values.map((value, idx) =>
+                    value.image ? (
+                      <motion.div
+                        key={idx}
+                        className="flex flex-col items-center cursor-pointer"
+                        onClick={() =>
+                          handleVariantChange(variant.name, value.value)
+                        }
+                        onMouseEnter={(e) =>
+                          handleVariantImageMouseEnter(value.image, e)
+                        } // Pass event object
+                        onMouseLeave={handleVariantImageMouseLeave}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <div
+                          className={`relative overflow-hidden ${selectedVariants[variant.name]?.includes(
+                            value.value
+                          )
+                              ? "ring-2 ring-primary ring-offset-1"
+                              : "border border-gray-300"
                             }`}
-                          >
-                            <img
-                              src={
-                                value.image ||
-                                variant.image ||
-                                "https://via.placeholder.com/50"
-                              }
-                              alt={value.alt || value.value}
-                              className="object-cover w-12 h-12"
-                              onError={(e) =>
-                                (e.target.src =
-                                  "https://via.placeholder.com/50")
-                              } // Fallback image on error
-                              width="48"
-                              height="48"
-                            />
-                            {selectedVariants[variant.name]?.includes(
-                              value.value
-                            ) && (
+                        >
+                          <img
+                            src={
+                              value.image ||
+                              variant.image ||
+                              "https://via.placeholder.com/50"
+                            }
+                            alt={value.alt || value.value}
+                            className="object-cover w-12 h-12"
+                            onError={(e) =>
+                            (e.target.src =
+                              "https://via.placeholder.com/50")
+                            } // Fallback image on error
+                            width="48"
+                            height="48"
+                          />
+                          {selectedVariants[variant.name]?.includes(
+                            value.value
+                          ) && (
                               <div className="absolute bottom-0 right-0 flex items-center justify-center w-5 h-5 bg-secondary">
                                 <svg
                                   className="w-3 h-3 text-white"
@@ -1925,48 +1917,47 @@ const SingleProduct = () => {
                                 </svg>
                               </div>
                             )}
-                          </div>
-                          <span className="mt-1 text-sm text-primary capitalize font-poppins">
-                            {value.value}
-                          </span>
-                        </motion.div>
-                      ) : (
-                        <motion.button
-                          key={idx}
-                          onClick={() =>
-                            handleVariantChange(variant.name, value.value)
-                          }
-                          className={`px-4 py-2 capitalize border  transition duration-200 ease-in-out
-                                                ${
-                                                  selectedVariants[
-                                                    variant.name
-                                                  ]?.includes(value.value)
-                                                    ? "bg-secondary text-white shadow-md border-primary border-2"
-                                                    : "bg-secondary text-primary border-gray-300"
-                                                }
-                                                `}
-                          whileHover={{
-                            scale: 1.05,
-                            backgroundColor: selectedVariants[
-                              variant.name
-                            ]?.includes(value.value)
-                              ? undefined
-                              : "#FFB829",
-                            color: selectedVariants[variant.name]?.includes(
-                              value.value
-                            )
-                              ? undefined
-                              : "#000000",
-                          }}
-                          whileTap={{ scale: 0.95 }}
-                        >
+                        </div>
+                        <span className="mt-1 text-sm text-primary capitalize font-poppins">
                           {value.value}
-                        </motion.button>
-                      )
-                    )}
-                  </div>
-                </motion.div>
-              ))
+                        </span>
+                      </motion.div>
+                    ) : (
+                      <motion.button
+                        key={idx}
+                        onClick={() =>
+                          handleVariantChange(variant.name, value.value)
+                        }
+                        className={`px-4 py-2 capitalize border  transition duration-200 ease-in-out
+                                                ${selectedVariants[
+                            variant.name
+                          ]?.includes(value.value)
+                            ? "bg-secondary text-white shadow-md border-primary border-2"
+                            : "bg-secondary text-primary border-gray-300"
+                          }
+                                                `}
+                        whileHover={{
+                          scale: 1.05,
+                          backgroundColor: selectedVariants[
+                            variant.name
+                          ]?.includes(value.value)
+                            ? undefined
+                            : "#FFB829",
+                          color: selectedVariants[variant.name]?.includes(
+                            value.value
+                          )
+                            ? undefined
+                            : "#000000",
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {value.value}
+                      </motion.button>
+                    )
+                  )}
+                </div>
+              </motion.div>
+            ))
             : null}
 
           {/* Actions */}
@@ -2059,26 +2050,27 @@ const SingleProduct = () => {
       <div ref={afterImageSentinelRef} className="h-1 w-full" />
 
       {/* Right Edge Tabs (Desktop always visible, Mobile when sentinel visible) */}
-      <RightEdgeTab
-        onClick={() => setReviewsOpen(true)}
-        label="Reviews"
-        positionClass="top-[44%]"
-        translateClass="-translate-y-1/2"
-        mobileVisible={mobileTabsVisible}
-      />
-       
-        <RightEdgeTab
-          onClick={() => setFaqsOpen(true)}
-          label="FAQs"
-          positionClass="top-[calc(54%)]"
-          translateClass=""
-          mobileVisible={mobileTabsVisible}
-        />
+
       <RightEdgeTab
         onClick={() => setSpecsOpen(true)}
         label="Specs"
-        positionClass="top-[calc(68%)]"
+        positionClass="top-[40%]"
         translateClass=""
+        mobileVisible={mobileTabsVisible}
+      />
+
+      <RightEdgeTab
+        onClick={() => setFaqsOpen(true)}
+        label="FAQs"
+        positionClass="top-[calc(54%)]"
+        translateClass=""
+        mobileVisible={mobileTabsVisible}
+      />
+      <RightEdgeTab
+        onClick={() => setReviewsOpen(true)}
+        label="Reviews"
+        positionClass="top-[calc(74%)]"
+        translateClass="-translate-y-1/2"
         mobileVisible={mobileTabsVisible}
       />
 
@@ -2261,7 +2253,7 @@ const SingleProduct = () => {
                             // Preview and select
                             setPreviewImage(
                               getImageUrl(val.image) ||
-                                "https://via.placeholder.com/300"
+                              "https://via.placeholder.com/300"
                             );
                             handleVariantChange(activeVariant.name, val.value);
                           }

@@ -68,12 +68,24 @@ div[class*="react-modern-drawer"] {
   width: 100%;
   height: 100%;
 }
-/* remove the style from description in product page*/
-.product-description ul,
+/* Product description list styles - properly styled with bullets */
+.product-description ul {
+  list-style-type: disc !important;
+  margin-left: 1.5rem;
+  padding-left: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.product-description ol {
+  list-style-type: decimal !important;
+  margin-left: 1.5rem;
+  padding-left: 0.5rem;
+  margin-bottom: 1rem;
+}
+
 .product-description li {
-  list-style: none !important;
-  margin-left: 0;
-  padding-left: 0;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
 }
 
 /* Product description heading styles */
