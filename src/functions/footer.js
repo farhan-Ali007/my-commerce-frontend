@@ -6,7 +6,7 @@ export const getFooter = async () => {
     const response = await axios.get(`${BASE_URL}/footer/get`);
     return response?.data;
   } catch (error) {
-    console.log("Error in fetching footer data.")
+    // console.log("Error in fetching footer data.")
   }
 };
 

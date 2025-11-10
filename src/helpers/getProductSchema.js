@@ -54,8 +54,8 @@ export const getProductSchemaData = (product, currentPrice) => {
 
             return {
                 "@type": "Product",
-                "name": `${product.title} - ${variant.name}`,
-                "description": stripHtml(product.description) || `${product.title} - ${variant.name}`,
+                "name": `${product?.title} - ${variant.name}`,
+                "description": stripHtml(product?.description) || `${product?.title} - ${variant.name}`,
                 "image": variantImages.length > 0 ? variantImages : (mainImages.length > 0 ? [mainImages[0]] : ['/default-product-image.jpg']),
                 "productGroupID": product?.category?.slug || product?.category?.name || "default-group",
                 "url": url,
@@ -130,7 +130,7 @@ export const getProductSchemaData = (product, currentPrice) => {
         const schemaData = {
             "@context": "https://schema.org",
             "@type": "Product",
-            "name": product.title,
+            "name": product?.title,
             "description": stripHtml(product.description),
             "url": url,
             "image": images,

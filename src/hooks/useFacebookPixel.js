@@ -104,7 +104,7 @@ const useFacebookPixel = () => {
             const fbRequests = performance.getEntriesByName('https://www.facebook.com/tr');
             // console.log('🌐 Facebook network requests found:', fbRequests.length);
             if (fbRequests.length === 0) {
-              console.warn('⚠️ No Facebook network requests detected - events may not be reaching Facebook');
+              // console.warn('⚠️ No Facebook network requests detected - events may not be reaching Facebook');
             }
           }, 1000);
           

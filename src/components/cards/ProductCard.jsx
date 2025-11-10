@@ -8,6 +8,7 @@ import { addItemToCart } from '../../functions/cart';
 import { truncateTitle } from '../../helpers/truncateTitle';
 import useFacebookPixel from '../../hooks/useFacebookPixel';
 import { addToCart } from '../../store/cartSlice';
+import useTikTokPixel from "../../hooks/useTikTokPixel";
 
 const ProductCard = ({ product, backendCartItems = [] }) => {
     const dispatch = useDispatch();
@@ -24,6 +25,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     ), [product?.reviews]);
     const [isHovered, setIsHovered] = useState(false);
     const { track } = useFacebookPixel();
+    const {track : trackTikTok} = useTikTokPixel();
 
     const imageWidth = 180;
     const imageHeight = 180;
@@ -69,6 +71,13 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             toast.success("Product added to cart!");
             // Meta Pixel AddToCart event
             track('AddToCart', {
+                content_ids: [product._id],
+                content_name: product.title,
+                value: product.salePrice ? product.salePrice : product.price,
+                currency: 'PKR'
+            });
+            // TikTok Pixel AddToCart event
+            trackTikTok('AddToCart', {
                 content_ids: [product._id],
                 content_name: product.title,
                 value: product.salePrice ? product.salePrice : product.price,
@@ -127,6 +136,13 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             await addItemToCart(userId, cartPayload);
             // Meta Pixel InitiateCheckout event
             track('InitiateCheckout', {
+                content_ids: [product._id],
+                content_name: product.title,
+                value: product.salePrice ? product.salePrice : product.price,
+                currency: 'PKR'
+            });
+            // TikTok Pixel InitiateCheckout event
+            trackTikTok('InitiateCheckout', {
                 content_ids: [product._id],
                 content_name: product.title,
                 value: product.salePrice ? product.salePrice : product.price,

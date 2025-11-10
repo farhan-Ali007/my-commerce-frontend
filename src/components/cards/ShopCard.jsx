@@ -9,6 +9,7 @@ import { addToCart } from "../../store/cartSlice";
 import { addItemToCart } from "../../functions/cart";
 import { AiOutlineLoading } from "react-icons/ai";
 import useFacebookPixel from "../../hooks/useFacebookPixel";
+import useTikTokPixel from "../../hooks/useTikTokPixel";
 
 const ShopCard = ({ product }) => {
   const dispatch = useDispatch();
@@ -31,6 +32,7 @@ const ShopCard = ({ product }) => {
   const [loading, setLoading] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const { track } = useFacebookPixel();
+  const { track: trackTikTok } = useTikTokPixel();
 
   // Motion gating: disable heavy animations/hover on touch devices or when user prefers reduced motion
   const allowMotion = useMemo(() => {
@@ -161,16 +163,16 @@ const ShopCard = ({ product }) => {
     // If volume tiers exist, default to the first tier
     const firstTier =
       product?.volumeTierEnabled &&
-      Array.isArray(product?.volumeTiers) &&
-      product.volumeTiers.length > 0
+        Array.isArray(product?.volumeTiers) &&
+        product.volumeTiers.length > 0
         ? product.volumeTiers[0]
         : null;
     const priceToUse =
       typeof firstTier?.price === "number"
         ? firstTier.price
         : salePrice
-        ? salePrice
-        : price;
+          ? salePrice
+          : price;
     const imageToUse = firstTier?.image
       ? getImageUrl(firstTier.image)
       : getImageUrl(product?.images && product.images[0]);
@@ -207,6 +209,13 @@ const ShopCard = ({ product }) => {
         value: product.salePrice ? product.salePrice : product.price,
         currency: "PKR",
       });
+      // TikTok Pixel AddToCart event
+      trackTikTok("AddToCart", {
+        content_ids: [product._id],
+        content_name: product.title,
+        value: product.salePrice ? product.salePrice : product.price,
+        currency: "PKR",
+      });
     } catch (error) {
       setLoading(false);
       toast.error("Failed to add the product to the cart. Please try again.");
@@ -225,16 +234,16 @@ const ShopCard = ({ product }) => {
     // If volume tiers exist, default to the first tier
     const firstTier =
       product?.volumeTierEnabled &&
-      Array.isArray(product?.volumeTiers) &&
-      product.volumeTiers.length > 0
+        Array.isArray(product?.volumeTiers) &&
+        product.volumeTiers.length > 0
         ? product.volumeTiers[0]
         : null;
     const priceToUse =
       typeof firstTier?.price === "number"
         ? firstTier.price
         : product.salePrice
-        ? product.salePrice
-        : product.price;
+          ? product.salePrice
+          : product.price;
     const imageToUse = firstTier?.image
       ? getImageUrl(firstTier.image)
       : getImageUrl(product?.images && product.images[0]);
@@ -257,21 +266,19 @@ const ShopCard = ({ product }) => {
       // Combine with Redux cart and sync for logged-in users
       const computeKey = (item) =>
         item.cartItemId ||
-        `${item.productId}${
-          Array.isArray(item.selectedVariants) &&
+        `${item.productId}${Array.isArray(item.selectedVariants) &&
           item.selectedVariants.length > 0
-            ? "|" +
-              item.selectedVariants
-                .map(
-                  (v) =>
-                    `${v.name}:${
-                      Array.isArray(v.values)
-                        ? v.values.join(",")
-                        : v.values || ""
-                    }`
-                )
-                .join("|")
-            : ""
+          ? "|" +
+          item.selectedVariants
+            .map(
+              (v) =>
+                `${v.name}:${Array.isArray(v.values)
+                  ? v.values.join(",")
+                  : v.values || ""
+                }`
+            )
+            .join("|")
+          : ""
         }`;
       const existingItems = Array.isArray(currentCartItems)
         ? currentCartItems
@@ -300,6 +307,13 @@ const ShopCard = ({ product }) => {
       setLoading(false);
       // Meta Pixel InitiateCheckout event
       track("InitiateCheckout", {
+        content_ids: [product._id],
+        content_name: product.title,
+        value: product.salePrice ? product.salePrice : product.price,
+        currency: "PKR",
+      });
+      // TikTok Pixel InitiateCheckout event
+      trackTikTok("InitiateCheckout", {
         content_ids: [product._id],
         content_name: product.title,
         value: product.salePrice ? product.salePrice : product.price,
@@ -345,7 +359,7 @@ const ShopCard = ({ product }) => {
               variants={imageVariants}
               initial="initial"
               whileHover={allowMotion ? "hover" : undefined}
-              style={{ 
+              style={{
                 transformOrigin: 'center center',
                 willChange: 'transform'
               }}
@@ -354,7 +368,7 @@ const ShopCard = ({ product }) => {
             />
           </div>
         </Link>
-        
+
         {/* Hover buttons - positioned at bottom of image container */}
         {allowMotion && (
           <AnimatePresence>
@@ -407,8 +421,8 @@ const ShopCard = ({ product }) => {
       </div>
       {/* Mobile action buttons - shown on all screen sizes below the content */}
       <div className="flex lg:hidden justify-between gap-0 mx-0 mb-0">
-        <button 
-          onClick={handleAddToCart} 
+        <button
+          onClick={handleAddToCart}
           className="flex-1 bg-primary/95 text-white font-semibold py-2 text-xs hover:bg-primary transition-colors duration-200 shadow-lg"
         >
           {loading ? (
@@ -420,8 +434,8 @@ const ShopCard = ({ product }) => {
             "Add To Cart"
           )}
         </button>
-        <button 
-          onClick={handleByNow} 
+        <button
+          onClick={handleByNow}
           className="flex-1 bg-secondary/95 text-white font-semibold py-2 text-xs hover:bg-secondary transition-colors duration-200 shadow-lg"
         >
           {loading ? (

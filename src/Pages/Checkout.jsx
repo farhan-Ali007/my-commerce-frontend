@@ -9,6 +9,7 @@ import { validateCoupon as validateCouponApi } from "../functions/coupon";
 import { motion } from "framer-motion";
 import { clearCartRedux } from "../store/cartSlice";
 import useFacebookPixel from '../hooks/useFacebookPixel';
+import useTikTokPixel from '../hooks/useTikTokPixel';
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -28,6 +29,7 @@ const Checkout = () => {
   });
   const [rememberMe, setRememberMe] = useState(false);
   const { track } = useFacebookPixel();
+  const { track: trackTikTok } = useTikTokPixel();
   const [couponCode, setCouponCode] = useState("");
   const [couponApplying, setCouponApplying] = useState(false);
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -252,7 +254,16 @@ const Checkout = () => {
         num_items: orderData.cartSummary.length
       });
       
-      console.log('✅ Purchase event tracked:', {
+      // TikTok Pixel Purchase event (CompletePayment)
+      trackTikTok('Purchase', {
+        value: parseFloat(orderData.totalPrice),
+        currency: 'PKR',
+        content_ids: orderData.cartSummary.map(item => item.productId || item._id),
+        content_type: 'product',
+        num_items: orderData.cartSummary.length
+      });
+      
+      console.log('✅ Purchase events tracked (Meta + TikTok):', {
         value: orderData.totalPrice,
         items: orderData.cartSummary.length
       });

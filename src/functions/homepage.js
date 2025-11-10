@@ -112,11 +112,11 @@ export const getShowcaseProducts = async (categorySlug) => {
 // Performance monitoring function
 export const logPerformanceMetrics = (startTime, endTime, dataSize) => {
   const loadTime = endTime - startTime;
-  console.log('Homepage Performance Metrics:', {
-    loadTime: `${loadTime}ms`,
-    dataSize: `${(dataSize / 1024).toFixed(2)}KB`,
-    timestamp: new Date().toISOString()
-  });
+  // console.log('Homepage Performance Metrics:', {
+  //   loadTime: `${loadTime}ms`,
+  //   dataSize: `${(dataSize / 1024).toFixed(2)}KB`,
+  //   timestamp: new Date().toISOString()
+  // });
 
   // Send to analytics if available
   if (typeof gtag !== 'undefined') {

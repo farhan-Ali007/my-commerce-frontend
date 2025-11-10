@@ -33,6 +33,7 @@ import { recordProductView } from "../../functions/traffic";
 import { getProductSchemaData } from "../../helpers/getProductSchema";
 import { getProductFaqSchema } from "../../helpers/getProductFaqSchema";
 import useFacebookPixel from "../../hooks/useFacebookPixel";
+import useTikTokPixel from "../../hooks/useTikTokPixel";
 import useWhatsAppTracking from "../../hooks/useWhatsAppTracking";
 import { addToCart } from "../../store/cartSlice";
 
@@ -101,6 +102,7 @@ const SingleProduct = () => {
   const userId = user?._id;
   const currentCartItems = useSelector((state) => state.cart.products);
   const { track } = useFacebookPixel();
+  const { track: trackTikTok } = useTikTokPixel();
   const { trackWhatsAppAddToCart, trackWhatsAppOrder } = useWhatsAppTracking();
 
   // State management
@@ -191,6 +193,15 @@ const SingleProduct = () => {
         value: product.salePrice ? product.salePrice : product.price,
         currency: "PKR",
       });
+      
+      // TikTok Pixel ViewContent
+      trackTikTok("ViewContent", {
+        content_ids: [product._id],
+        content_name: product.title,
+        value: product.salePrice ? product.salePrice : product.price,
+        currency: "PKR",
+      });
+      
       // Record product view for analytics
       recordProductView(product._id);
 
@@ -895,6 +906,12 @@ const SingleProduct = () => {
       value: product.salePrice ? product.salePrice : product.price,
       currency: "PKR",
     });
+    trackTikTok("AddToCart", {
+      content_ids: [product._id],
+      content_name: product.title,
+      value: product.salePrice ? product.salePrice : product.price,
+      currency: "PKR",
+    });
 
     // WhatsApp tracking for add to cart
     trackWhatsAppAddToCart({
@@ -1061,12 +1078,24 @@ const SingleProduct = () => {
           value: product.salePrice ? product.salePrice : product.price,
           currency: "PKR",
         });
+        trackTikTok("AddToCart", {
+          content_ids: [product._id],
+          content_name: product.title,
+          value: product.salePrice ? product.salePrice : product.price,
+          currency: "PKR",
+        });
         toast.success("Proceeding to checkout...");
         navigateTo("/cart/checkout");
       } else {
         // For guest users, just add all to Redux
         cartItemsToAdd.forEach((cartItem) => dispatch(addToCart(cartItem)));
         track("AddToCart", {
+          content_ids: [product._id],
+          content_name: product.title,
+          value: product.salePrice ? product.salePrice : product.price,
+          currency: "PKR",
+        });
+        trackTikTok("AddToCart", {
           content_ids: [product._id],
           content_name: product.title,
           value: product.salePrice ? product.salePrice : product.price,
@@ -1169,6 +1198,14 @@ const SingleProduct = () => {
       content_name: product.title,
       content_category: 'Product Inquiry',
       source: 'product_page_whatsapp_button',
+      value: product.salePrice ? product.salePrice : product.price,
+      currency: "PKR",
+    });
+
+    // TikTok Pixel tracking - StartConversation event
+    trackTikTok("StartConversation", {
+      content_ids: [product._id],
+      content_name: product.title,
       value: product.salePrice ? product.salePrice : product.price,
       currency: "PKR",
     });
@@ -1354,8 +1391,8 @@ const SingleProduct = () => {
                 <div
                   key={index}
                   className={`h-16 w-16 bg-slate-200 rounded p-1 cursor-pointer flex-shrink-0 ${selectedImage === getImageUrl(image)
-                      ? "border-2 border-primary"
-                      : "border-none"
+                    ? "border-2 border-primary"
+                    : "border-none"
                     }`}
                   onMouseEnter={() =>
                     handleMouseEnterProduct(getImageUrl(image))
@@ -1569,8 +1606,8 @@ const SingleProduct = () => {
                 disabled={selectedQuantity === 1}
                 aria-label="Decrease quantity"
                 className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === 1
-                    ? "bg-gray-300"
-                    : "bg-secondary opacity-70"
+                  ? "bg-gray-300"
+                  : "bg-secondary opacity-70"
                   }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -1583,8 +1620,8 @@ const SingleProduct = () => {
                 aria-label="Increase quantity"
                 disabled={selectedQuantity === product.stock}
                 className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === product.stock
-                    ? "bg-gray-300"
-                    : "bg-secondary opacity-70"
+                  ? "bg-gray-300"
+                  : "bg-secondary opacity-70"
                   }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -1694,8 +1731,8 @@ const SingleProduct = () => {
                 disabled={selectedQuantity === 1}
                 aria-label="Decrease quantity"
                 className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === 1
-                    ? "bg-gray-300"
-                    : "bg-secondary opacity-70"
+                  ? "bg-gray-300"
+                  : "bg-secondary opacity-70"
                   }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -1708,8 +1745,8 @@ const SingleProduct = () => {
                 aria-label="Increase quantity"
                 disabled={selectedQuantity === product.stock}
                 className={`p-1 text-primary rounded-full text-2xl w-8 h-8 flex items-center justify-center ${selectedQuantity === product.stock
-                    ? "bg-gray-300"
-                    : "bg-secondary opacity-70"
+                  ? "bg-gray-300"
+                  : "bg-secondary opacity-70"
                   }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -1783,8 +1820,8 @@ const SingleProduct = () => {
                             setSelectedImage(getImageUrl(tier.image));
                         }}
                         className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-md ${isSelected
-                            ? "border-primary ring-1 ring-primary bg-primary/10"
-                            : "border-gray-200"
+                          ? "border-primary ring-1 ring-primary bg-primary/10"
+                          : "border-gray-200"
                           }`}
                       >
                         {/* Leading check badge */}
@@ -1879,8 +1916,8 @@ const SingleProduct = () => {
                           className={`relative overflow-hidden ${selectedVariants[variant.name]?.includes(
                             value.value
                           )
-                              ? "ring-2 ring-primary ring-offset-1"
-                              : "border border-gray-300"
+                            ? "ring-2 ring-primary ring-offset-1"
+                            : "border border-gray-300"
                             }`}
                         >
                           <img

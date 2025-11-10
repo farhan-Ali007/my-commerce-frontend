@@ -16,6 +16,7 @@ import {
 } from "../store/cartSlice";
 import { motion } from "framer-motion";
 import useFacebookPixel from "../hooks/useFacebookPixel";
+import useTikTokPixel from "../hooks/useTikTokPixel";
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -27,6 +28,7 @@ const Cart = () => {
   const userId = user?._id;
   const cartItems = useSelector((state) => state.cart.products);
   const { track } = useFacebookPixel();
+  const { track: trackTikTok } = useTikTokPixel();
   // console.log("cart items in redux---->", cartItems)
 
   const getImageUrl = (img) => {
@@ -60,6 +62,8 @@ const Cart = () => {
     const message = `Hello! I want to place an order. Here are my cart details:\n\n${productLines}\n\nDelivery Charges: Rs. ${deliveryCharges}\nTotal Bill: Rs. ${totalBill}`;
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
+    
+    // Meta Pixel tracking
     track("StartConversation", {
       content_name: 'WhatsApp Order',
       content_category: 'Cart Checkout',
@@ -67,6 +71,14 @@ const Cart = () => {
       value: totalBill,
       currency: "PKR",
       num_items: cartItems.length,
+      content_ids: cartItems.map((item) => item.productId),
+    });
+    
+    // TikTok Pixel tracking
+    trackTikTok("StartConversation", {
+      content_name: 'WhatsApp Order',
+      value: totalBill,
+      currency: "PKR",
       content_ids: cartItems.map((item) => item.productId),
     });
   };
@@ -156,6 +168,7 @@ const Cart = () => {
       console.log("Cart payload---->", cartPayload);
 
       await addItemToCart(userId, cartPayload);
+      
       // Meta Pixel InitiateCheckout event
       track("InitiateCheckout", {
         value: totalBill,
@@ -163,6 +176,14 @@ const Cart = () => {
         num_items: cartItems.length,
         content_ids: cartItems.map((item) => item.productId),
       });
+      
+      // TikTok Pixel InitiateCheckout event
+      trackTikTok("InitiateCheckout", {
+        value: totalBill,
+        currency: "PKR",
+        content_ids: cartItems.map((item) => item.productId),
+      });
+      
       toast.success("Cart saved successfully! Proceeding to checkout...");
       navigateTo("/cart/checkout");
     } catch (error) {

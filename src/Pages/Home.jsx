@@ -1,10 +1,11 @@
 import React, { Suspense, lazy, useEffect, useState, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Banner from '../components/Banner';
-import { FaWhatsapp } from 'react-icons/fa'; 
+import { FaWhatsapp } from 'react-icons/fa';
 import websiteSchema from '../helpers/getWebsiteSchema';
 import organizationSchema from '../helpers/getOrgSchema';
 import useFacebookPixel from '../hooks/useFacebookPixel';
+import useTikTokPixel from '../hooks/useTikTokPixel';
 
 // Lazy-load components with intersection observer for better performance
 const Categories = lazy(() => import('../components/Categories'));
@@ -36,7 +37,7 @@ const SectionSkeleton = ({ className = '', height = 'h-40 md:h-60' }) => (
 // Product section skeleton that matches actual layout
 const ProductSectionSkeleton = ({ count = 8, layout = 'horizontal' }) => {
   const ProductCardSkeleton = React.lazy(() => import('../components/skeletons/ProductCardSkeleton'));
-  
+
   return (
     <div className="w-full px-1 mt-4 overflow-hidden md:px-4 lg:px-6">
       {/* Section heading skeleton */}
@@ -45,7 +46,7 @@ const ProductSectionSkeleton = ({ count = 8, layout = 'horizontal' }) => {
         <div className="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
         <div className="flex-grow h-[0.5px] ml-4 bg-gray-200"></div>
       </div>
-      
+
       {/* Products skeleton */}
       {layout === 'horizontal' ? (
         <div className="flex gap-2 lg:gap-0 overflow-x-auto scrollbar-hide px-1 lg:px-0">
@@ -101,13 +102,13 @@ const LazySection = ({ children, fallback, height = '640px', className = '' }) =
   const [ref, isVisible] = useIntersectionObserver(0.1);
 
   return (
-    <div 
-      ref={ref} 
+    <div
+      ref={ref}
       className={className}
-      style={{ 
-        contentVisibility: 'auto', 
+      style={{
+        contentVisibility: 'auto',
         containIntrinsicSize: height,
-        minHeight: isVisible ? 'auto' : height 
+        minHeight: isVisible ? 'auto' : height
       }}
     >
       {isVisible ? (
@@ -143,6 +144,7 @@ const Home = () => {
   // Performance optimization: Preload critical data
   const [criticalDataLoaded, setCriticalDataLoaded] = useState(false);
   const { track } = useFacebookPixel();
+  const { track: trackTikTok } = useTikTokPixel();
 
   useEffect(() => {
     // Mark when critical above-the-fold content is ready
@@ -187,7 +189,7 @@ const Home = () => {
         <meta name="robots" content="index, follow" />
         <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
-        
+
         {/* Performance optimizations */}
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="preload" as="image" href="/trimmer.webp" />
@@ -195,13 +197,13 @@ const Home = () => {
         <link rel="preload" as="image" href="/beauty.webp" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="preload" as="image" href="/customBanner1.webp" fetchpriority="high" />
-        
+
         {/* Font optimizations */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" media="print" onLoad="this.media='all'" />
-        
+
         {/* Critical CSS for above-the-fold content */}
         <style>{`
           .hero-section { min-height: 400px; }
@@ -221,7 +223,7 @@ const Home = () => {
           @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
           .fade-in { animation: fadeIn 0.3s ease-out; }
         `}</style>
-        
+
         {/* Prefetch critical API endpoints */}
         <link rel="prefetch" href="/api/categories" />
         <link rel="prefetch" href="/api/products?featured=true&limit=8" />
@@ -236,7 +238,7 @@ const Home = () => {
       <Banner />
 
       {/* Categories - Load immediately as it's above the fold */}
-      <LazySection 
+      <LazySection
         fallback={<SectionSkeleton height="h-32 md:h-48" />}
         height="480px"
       >
@@ -244,15 +246,15 @@ const Home = () => {
       </LazySection>
 
       {/* Marquee - Low priority */}
-      <LazySection 
+      <LazySection
         fallback={<div className="h-16 bg-gray-100 animate-pulse rounded my-4"></div>}
         height="64px"
       >
-        <Marquee 
-          speed={50} 
-          pauseOnHover 
-          direction="left" 
-          gradient={false} 
+        <Marquee
+          speed={50}
+          pauseOnHover
+          direction="left"
+          gradient={false}
           className="text-2xl md:text-3xl font-semibold md:font-extrabold my-2 md:my-8 text-primary"
         >
           🔥 Sale 50% Off! 🔥 &nbsp; | &nbsp; Limited Time Offer! &nbsp; | &nbsp; New Arrivals Available Now! 🎉
@@ -260,7 +262,7 @@ const Home = () => {
       </LazySection>
 
       {/* Brands - Second priority */}
-      <LazySection 
+      <LazySection
         fallback={<SectionSkeleton height="h-32 md:h-40" />}
         height="480px"
       >
@@ -268,7 +270,7 @@ const Home = () => {
       </LazySection>
 
       {/* Featured Products - Third priority */}
-      <LazySection 
+      <LazySection
         fallback={<ProductSectionSkeleton count={8} layout="horizontal" />}
         height="640px"
       >
@@ -276,7 +278,7 @@ const Home = () => {
       </LazySection>
 
       {/* New Arrivals - Fourth priority */}
-      <LazySection 
+      <LazySection
         fallback={<ProductSectionSkeleton count={8} layout="horizontal" />}
         height="640px"
       >
@@ -284,7 +286,7 @@ const Home = () => {
       </LazySection>
 
       {/* Best Sellers - Fifth priority */}
-      <LazySection 
+      <LazySection
         fallback={<ProductSectionSkeleton count={5} layout="grid" />}
         height="800px"
       >
@@ -292,7 +294,7 @@ const Home = () => {
       </LazySection>
 
       {/* Showcase Categories - Lowest priority */}
-      <LazySection 
+      <LazySection
         fallback={<SectionSkeleton />}
         height="600px"
       >
@@ -317,6 +319,12 @@ const Home = () => {
           onClick={() => {
             // Track StartConversation event
             track('StartConversation', {
+              content_name: 'WhatsApp Contact',
+              content_category: 'Customer Support',
+              source: 'homepage_floating_button'
+            });
+            // TikTok Pixel StartConversation event
+            trackTikTok('StartConversation', {
               content_name: 'WhatsApp Contact',
               content_category: 'Customer Support',
               source: 'homepage_floating_button'
