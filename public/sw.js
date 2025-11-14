@@ -8,7 +8,6 @@ const STATIC_ASSETS = [
   '/static/js/bundle.js',
   '/static/css/main.css',
   '/trimmer.webp',
-  '/mehndi.webp',
   '/beauty.webp',
   '/loadingCard.png'
 ];
@@ -70,51 +69,8 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-
-  // Cache API responses for short time
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(cache => {
-        return cache.match(request).then(response => {
-          if (response) {
-            const cacheTime = response.headers.get('sw-cache-time');
-            if (cacheTime) {
-              const responseTime = new Date(cacheTime);
-              if (Date.now() - responseTime.getTime() < API_CACHE_TIME) {
-                return response;
-              }
-            }
-          }
-          
-          return fetch(request).then(fetchResponse => {
-            if (!fetchResponse) return fetchResponse;
-            // Only cache successful, same-origin GETs
-            const okToCache = fetchResponse.ok && (fetchResponse.type === 'basic' || fetchResponse.type === 'default');
-            if (okToCache) {
-              try {
-                const responseBody = fetchResponse.clone();
-                const headers = new Headers(fetchResponse.headers);
-                headers.set('sw-cache-time', new Date().toISOString());
-                const modifiedResponse = new Response(responseBody.body, {
-                  status: fetchResponse.status,
-                  statusText: fetchResponse.statusText,
-                  headers
-                });
-                cache.put(request, modifiedResponse.clone());
-              } catch (_) {}
-            }
-            return fetchResponse;
-          }).catch(() => caches.match(request));
-        });
-      })
-    );
-    return;
-  }
-
-  // Default: network first, fallback to cache
+  // Default: network first, fallback to cache for everything else
   event.respondWith(
-    fetch(request).catch(() => {
-      return caches.match(request);
-    })
+    fetch(request).catch(() => caches.match(request))
   );
 });
