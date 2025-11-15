@@ -5,7 +5,6 @@
 [functions]
   node_bundler = "esbuild"
 
-[edge_functions]
-  [[edge_functions]]
-    path = "/*"
-    function = "prerender"
+[[edge_functions]]
+  path = "/*"
+  function = "prerender"
