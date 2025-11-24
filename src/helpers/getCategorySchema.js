@@ -76,16 +76,22 @@ export default function getCategorySchema({
           "@type": "Brand",
           "name": product.brand?.name || "Etimad Mart"
         },
-        // Add aggregate rating if available
-        ...(product.averageRating && {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            "ratingValue": product.averageRating,
-            "reviewCount": product.reviews?.length || 0,
-            "bestRating": 5,
-            "worstRating": 1
-          }
-        })
+        // Add aggregate rating only when there is at least one review
+        ...(
+          product.averageRating &&
+          Array.isArray(product.reviews) &&
+          product.reviews.length > 0
+            ? {
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  "ratingValue": product.averageRating,
+                  "reviewCount": product.reviews.length,
+                  "bestRating": 5,
+                  "worstRating": 1,
+                },
+              }
+            : {}
+        )
       })),
     },
   };
