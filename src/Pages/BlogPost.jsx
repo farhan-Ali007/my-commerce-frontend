@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getBlogBySlug, getPublishedBlogs } from '../functions/blog';
 import NotFound from './NotFound';
 import { FaEye, FaCalendar, FaUser, FaArrowLeft } from 'react-icons/fa';
+import { getBlogSchema } from '../helpers/getBlogSchema';
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -52,6 +53,8 @@ const BlogPost = () => {
 
   if (error || !blog) return <NotFound />;
 
+  const blogSchema = getBlogSchema(blog);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
@@ -74,13 +77,19 @@ const BlogPost = () => {
         <meta name="twitter:title" content={blog.title} />
         <meta name="twitter:description" content={blog.metaDescription || blog.excerpt || ''} />
         {blog.featuredImage && <meta name="twitter:image" content={blog.featuredImage} />}
+        {blogSchema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
+          />
+        )}
       </Helmet>
 
       {/* Back Button */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <Link
-            to="/blog"
+            to="/blogs"
             className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
           >
             <FaArrowLeft /> Back to Blog
@@ -105,7 +114,7 @@ const BlogPost = () => {
 
         {/* Category Badge */}
         <Link
-          to={`/blog?category=${blog.category}`}
+          to={`/blogs?category=${blog.category}`}
           className="inline-block bg-blue-600 text-white text-sm font-semibold px-3 py-1 rounded-full mb-4 hover:bg-blue-700 transition"
         >
           {blog.category}
@@ -146,7 +155,7 @@ const BlogPost = () => {
 
         {/* Content */}
         <div
-          className="prose prose-lg max-w-none mb-8"
+          className="prose prose-lg max-w-none mb-8 blog-content"
           dangerouslySetInnerHTML={{ __html: blog.content }}
           style={{
             lineHeight: '1.8',
@@ -215,7 +224,7 @@ const BlogPost = () => {
               {relatedBlogs.map((related) => (
                 <Link
                   key={related._id}
-                  to={`/blog/${related.slug}`}
+                  to={`/blogs/${related.slug}`}
                   className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden group"
                 >
                   {related.featuredImage ? (

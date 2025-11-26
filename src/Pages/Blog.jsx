@@ -72,41 +72,12 @@ const Blog = () => {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <h1 className="text-4xl font-bold text-gray-900">Blog</h1>
+          <h1 className="text-4xl font-bold text-gray-900">Blogs</h1>
           <p className="text-gray-600 mt-2">Latest news, tips, and updates</p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-10">
-        {/* Category Filter */}
-        {categories.length > 0 && (
-          <div className="mb-8 flex flex-wrap gap-2">
-            <button
-              onClick={() => handleCategoryFilter('')}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                !selectedCategory
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border'
-              }`}
-            >
-              All
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => handleCategoryFilter(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                  selectedCategory === cat
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Error Message */}
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded mb-6">
@@ -124,8 +95,8 @@ const Blog = () => {
             {blogs.map((blog) => (
               <Link
                 key={blog._id}
-                to={`/blog/${blog.slug}`}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden group"
+                to={`/blogs/${blog.slug}`}
+                className="bg-white rounded-lg no-underline shadow hover:shadow-lg transition overflow-hidden group"
               >
                 {/* Featured Image */}
                 {blog.featuredImage ? (
@@ -139,7 +110,7 @@ const Blog = () => {
                     />
                   </div>
                 ) : (
-                  <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <div className="h-48 bg-gradient-to-br  from-blue-500 to-purple-600 flex items-center justify-center">
                     <span className="text-white text-4xl font-bold">
                       {blog.title.charAt(0)}
                     </span>
@@ -166,15 +137,15 @@ const Blog = () => {
                   )}
 
                   {/* Meta */}
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  {/* <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>{blog.author}</span>
                     <span>
                       {new Date(blog.publishedAt || blog.createdAt).toLocaleDateString()}
                     </span>
-                  </div>
+                  </div> */}
 
                   {/* Tags */}
-                  {blog.tags && blog.tags.length > 0 && (
+                  {/* {blog.tags && blog.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-3">
                       {blog.tags.slice(0, 3).map((tag) => (
                         <span
@@ -185,7 +156,7 @@ const Blog = () => {
                         </span>
                       ))}
                     </div>
-                  )}
+                  )} */}
                 </div>
               </Link>
             ))}

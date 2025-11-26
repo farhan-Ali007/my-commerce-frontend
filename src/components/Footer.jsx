@@ -148,6 +148,7 @@ const Footer = () => {
   const defaultQuickLinks = [
     { label: "About Us", url: "/about" },
     { label: "Shop", url: "/shop" },
+    { label: "Blogs", url: "/blogs" },
     { label: "Contact Us", url: "/contact-us" },
     { label: "Terms and Conditions", url: "/terms-and-conditions" },
     { label: "Privacy Policy", url: "/privacy-policy" },

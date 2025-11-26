@@ -253,7 +253,7 @@ const AdminBlog = () => {
               value={form.content}
               onChange={handleContentChange}
               theme="snow"
-              className="bg-white"
+              className="bg-white blog-quill-editor"
               modules={{
                 toolbar: [
                   [{ header: [1, 2, 3, false] }],

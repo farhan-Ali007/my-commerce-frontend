@@ -60,6 +60,25 @@ div[class*="react-modern-drawer"] {
 .ql-editor {
   min-height: 100% !important;
 }
+
+/* Admin blog editor: fixed-height Quill with sticky toolbar */
+.blog-quill-editor {
+  height: 24rem; /* roughly Tailwind h-96 */
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-quill-editor .ql-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #ffffff;
+}
+
+.blog-quill-editor .ql-container {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
  
 
 .image-zoom-container {
@@ -102,6 +121,25 @@ div[class*="react-modern-drawer"] {
 }
 
 .product-description h3 {
+  font-size: 1.25rem; /* ~20px */
+  line-height: 1.75rem;
+  font-weight: 600;
+}
+
+/* Blog post heading styles */
+.blog-content h1 {
+  font-size: 1.75rem; /* ~28px */
+  line-height: 2.25rem;
+  font-weight: 700;
+}
+
+.blog-content h2 {
+  font-size: 1.5rem; /* ~24px */
+  line-height: 2rem;
+  font-weight: 700;
+}
+
+.blog-content h3 {
   font-size: 1.25rem; /* ~20px */
   line-height: 1.75rem;
   font-weight: 600;

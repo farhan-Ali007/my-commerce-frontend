@@ -142,8 +142,8 @@ const App = () => {
             <Route path="/category/:categorySlug/subcategory/:subcategorySlug" element={<ProductsBySub />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/brand/:brandSlug" element={<ProductsByBrand />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/blogs" element={<Blog />} />
+            <Route path="/blogs/:slug" element={<BlogPost />} />
 
             {/* Protected Routes for Admin Only */}
             <Route element={<AdminRoute />}>
