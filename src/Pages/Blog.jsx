@@ -77,7 +77,7 @@ const Blog = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-10">
+      <div className="max-w-7xl mx-auto px-4 py-10 ">
         {/* Error Message */}
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded mb-6">
@@ -96,7 +96,7 @@ const Blog = () => {
               <Link
                 key={blog._id}
                 to={`/blogs/${blog.slug}`}
-                className="bg-white rounded-lg no-underline shadow hover:shadow-lg transition overflow-hidden group"
+                className="bg-white rounded-lg border no-underline shadow hover:shadow-lg transition overflow-hidden group"
               >
                 {/* Featured Image */}
                 {blog.featuredImage ? (
@@ -125,7 +125,7 @@ const Blog = () => {
                   </span> */}
 
                   {/* Title */}
-                  <h2 className="text-xl font-bold text-secondary mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+                  <h2 className="text-xl font-bold text-primary hover:text-secondary mb-2 line-clamp-2 group-hover:text-blue-600 transition">
                     {blog.title}
                   </h2>
 
