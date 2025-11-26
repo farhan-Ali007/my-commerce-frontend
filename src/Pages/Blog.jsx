@@ -104,7 +104,7 @@ const Blog = () => {
                     <img
                       src={blog.featuredImage}
                       alt={blog.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      className="w-full h-full p-1 rounded-lg object-cover  group-hover:scale-105 transition duration-300"
                       loading="lazy"
                       decoding="async"
                     />
@@ -120,18 +120,18 @@ const Blog = () => {
                 {/* Content */}
                 <div className="p-5">
                   {/* Category Badge */}
-                  <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded mb-2">
+                  {/* <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded mb-2">
                     {blog.category}
-                  </span>
+                  </span> */}
 
                   {/* Title */}
-                  <h2 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+                  <h2 className="text-xl font-bold text-secondary mb-2 line-clamp-2 group-hover:text-blue-600 transition">
                     {blog.title}
                   </h2>
 
                   {/* Excerpt */}
                   {blog.excerpt && (
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-3">
+                    <p className="text-gray-800 text-sm mb-3 line-clamp-3">
                       {blog.excerpt}
                     </p>
                   )}
