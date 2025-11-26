@@ -113,12 +113,12 @@ const BlogPost = () => {
         )}
 
         {/* Category Badge */}
-        <Link
+        {/* <Link
           to={`/blogs?category=${blog.category}`}
           className="inline-block bg-blue-600 text-white text-sm font-semibold px-3 py-1 rounded-full mb-4 hover:bg-blue-700 transition"
         >
           {blog.category}
-        </Link>
+        </Link> */}
 
         {/* Title */}
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -127,7 +127,7 @@ const BlogPost = () => {
 
         {/* Meta Information */}
         <div className="flex flex-wrap items-center gap-4 text-gray-600 text-sm mb-6 pb-6 border-b">
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <FaUser />
             <span>{blog.author}</span>
           </div>
@@ -139,7 +139,7 @@ const BlogPost = () => {
                 { year: 'numeric', month: 'long', day: 'numeric' }
               )}
             </span>
-          </div>
+          </div> */}
           <div className="flex items-center gap-2">
             <FaEye />
             <span>{blog.viewCount} views</span>
