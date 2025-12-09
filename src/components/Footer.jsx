@@ -326,6 +326,17 @@ const Footer = () => {
                   height="120"
                 />
               </div>
+              <div className="mt-4 flex flex-col items-center gap-2 w-full">
+                <div className="w-full">
+                  <img
+                    src="/pms.webp"
+                    alt="Our payment methods"
+                    className="w-full h-auto object-contain"
+                    width="300"
+                    height="90"
+                  />
+                </div>
+              </div>
             </motion.div>
           </div>
 
