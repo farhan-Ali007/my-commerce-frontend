@@ -257,8 +257,15 @@ const Home = () => {
           gradient={false}
           className="text-2xl md:text-3xl font-semibold md:font-extrabold my-2 md:my-8 text-primary"
         >
-          🔥 Sale 50% Off! 🔥 &nbsp; | &nbsp; Limited Time Offer! &nbsp; | &nbsp; New Arrivals Available Now! 🎉
+          <div className="flex items-center font-roboto space-x-10 md:space-x-16">
+            <span className="px-4">🔥 Cash On Delivery 🔥</span>
+            <span className="px-4">📦 Open Parcel Allowed</span>
+            <span className="px-4">☎️ 24/7 Support</span>
+            <span className="px-4">🚚 Free Delivery All Over Pakistan</span>
+          </div>
         </Marquee>
+
+
       </LazySection>
 
       {/* Brands - Second priority */}

@@ -316,6 +316,16 @@ const Footer = () => {
                   </motion.a>
                 ))}
               </div>
+              <span className="text-secondary font-semibold text-base">Our courier partners</span>
+              <div className="mt-2 flex justify-center">
+                <img
+                  src="/courier-partners.webp"
+                  alt="Our courier partners"
+                  className="h-[120px] w-auto max-w-full object-contain"
+                  width="550"
+                  height="120"
+                />
+              </div>
             </motion.div>
           </div>
 
@@ -422,6 +432,20 @@ const Footer = () => {
                   </a>
                 </motion.div>
               </div>
+              <div className="mt-6 flex flex-col items-center md:items-start gap-2 w-full">
+                {/* <span className="text-xl text-center md:text-start font-semibold text-secondary">
+                  Payment Methods
+                </span> */}
+                <div className="w-full max-w-xs md:max-w-sm">
+                  <img
+                    src="/pms.webp"
+                    alt="Our payment methods"
+                    className="w-full h-auto object-contain"
+                    width="300"
+                    height="90"
+                  />
+                </div>
+              </div>
             </motion.div>
 
             {/* Social Media Links */}
@@ -448,7 +472,22 @@ const Footer = () => {
                   </motion.a>
                 ))}
               </div>
+              <div className="mt-4 flex flex-col items-center md:items-start gap-2 w-full">
+                <span className="text-2xl text-center md:text-start font-semibold mb-4 text-secondary">
+                  Our Courier Partners
+                </span>
+                <div className="w-full max-w-xs md:max-w-sm">
+                  <img
+                    src="/courier-partners.webp"
+                    alt="Our courier partners"
+                    className="w-full h-auto object-contain"
+                    width="300"
+                    height="90"
+                  />
+                </div>
+              </div>
             </motion.div>
+
           </div>
         </motion.div>
       </div>
