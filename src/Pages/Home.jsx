@@ -261,7 +261,7 @@ const Home = () => {
             <span className="px-4">🔥 Cash On Delivery 🔥</span>
             <span className="px-4">📦 Open Parcel Allowed</span>
             <span className="px-4">☎️ 24/7 Support</span>
-            <span className="px-4">🚚 Free Delivery All Over Pakistan</span>
+            <span className="px-4">🚚 Fast Delivery All Over Pakistan</span>
           </div>
         </Marquee>
 
