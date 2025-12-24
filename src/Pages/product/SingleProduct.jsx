@@ -169,14 +169,14 @@ const SingleProduct = () => {
     return product?.title || 'Product Image';
   }, [product]);
 
-  // Deal of the Day active helper for visuals
+  // Deal of the Day active helper for visuals & pricing
+  // Active if flagged, has a DOD price, and the end time (if any) has not passed.
   const dodActive = useMemo(() => {
     if (!product?.isDod || product?.dodPrice == null) return false;
     const now = new Date();
-    if (product.dodStart && new Date(product.dodStart) > now) return false;
     if (product.dodEnd && new Date(product.dodEnd) < now) return false;
     return true;
-  }, [product?.isDod, product?.dodPrice, product?.dodStart, product?.dodEnd]);
+  }, [product?.isDod, product?.dodPrice, product?.dodEnd]);
 
   // Resolve alt for a variant image URL by scanning variant values
   const getVariantImageAlt = useCallback((url) => {
@@ -302,14 +302,8 @@ const SingleProduct = () => {
     const priceBeforeDod = hasVariantPrice ? variantPriceSum : base;
 
     // Deal of the Day override (does not override volume tiers above)
-    if (product.isDod && product.dodPrice != null) {
-      const now = new Date();
-      if (product.dodStart && new Date(product.dodStart) > now) {
-        return priceBeforeDod;
-      }
-      if (product.dodEnd && new Date(product.dodEnd) < now) {
-        return priceBeforeDod;
-      }
+    // Use the same rule as dodActive so timer and pricing stay in sync.
+    if (dodActive && product.dodPrice != null) {
       return Number(product.dodPrice);
     }
 

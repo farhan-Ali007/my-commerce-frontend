@@ -34,14 +34,14 @@ const ShopCard = ({ product }) => {
   const { track } = useFacebookPixel();
   const { track: trackTikTok } = useTikTokPixel();
 
-  // Deal of the Day helper
+  // Deal of the Day helper (single source of truth)
+  // Active if flagged, has a DOD price, and the end time (if any) has not passed.
   const dodActive = useMemo(() => {
     if (!product?.isDod || product?.dodPrice == null) return false;
     const now = new Date();
-    if (product.dodStart && new Date(product.dodStart) > now) return false;
     if (product.dodEnd && new Date(product.dodEnd) < now) return false;
     return true;
-  }, [product?.isDod, product?.dodPrice, product?.dodStart, product?.dodEnd]);
+  }, [product?.isDod, product?.dodPrice, product?.dodEnd]);
 
   // Motion gating: disable heavy animations/hover on touch devices or when user prefers reduced motion
   const allowMotion = useMemo(() => {
