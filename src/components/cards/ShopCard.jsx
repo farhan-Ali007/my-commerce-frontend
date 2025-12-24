@@ -34,6 +34,15 @@ const ShopCard = ({ product }) => {
   const { track } = useFacebookPixel();
   const { track: trackTikTok } = useTikTokPixel();
 
+  // Deal of the Day helper
+  const dodActive = useMemo(() => {
+    if (!product?.isDod || product?.dodPrice == null) return false;
+    const now = new Date();
+    if (product.dodStart && new Date(product.dodStart) > now) return false;
+    if (product.dodEnd && new Date(product.dodEnd) < now) return false;
+    return true;
+  }, [product?.isDod, product?.dodPrice, product?.dodStart, product?.dodEnd]);
+
   // Motion gating: disable heavy animations/hover on touch devices or when user prefers reduced motion
   const allowMotion = useMemo(() => {
     if (typeof window === 'undefined') return true;
@@ -167,12 +176,13 @@ const ShopCard = ({ product }) => {
         product.volumeTiers.length > 0
         ? product.volumeTiers[0]
         : null;
+    const basePrice = dodActive && product?.dodPrice != null
+      ? Number(product.dodPrice)
+      : (salePrice ? salePrice : price);
     const priceToUse =
       typeof firstTier?.price === "number"
         ? firstTier.price
-        : salePrice
-          ? salePrice
-          : price;
+        : basePrice;
     const imageToUse = firstTier?.image
       ? getImageUrl(firstTier.image)
       : getImageUrl(product?.images && product.images[0]);
@@ -206,14 +216,14 @@ const ShopCard = ({ product }) => {
       track("AddToCart", {
         content_ids: [product._id],
         content_name: product.title,
-        value: product.salePrice ? product.salePrice : product.price,
+        value: basePrice,
         currency: "PKR",
       });
       // TikTok Pixel AddToCart event
       trackTikTok("AddToCart", {
         content_ids: [product._id],
         content_name: product.title,
-        value: product.salePrice ? product.salePrice : product.price,
+        value: basePrice,
         currency: "PKR",
       });
     } catch (error) {
@@ -238,12 +248,13 @@ const ShopCard = ({ product }) => {
         product.volumeTiers.length > 0
         ? product.volumeTiers[0]
         : null;
+    const basePrice = dodActive && product?.dodPrice != null
+      ? Number(product.dodPrice)
+      : (product.salePrice ? product.salePrice : product.price);
     const priceToUse =
       typeof firstTier?.price === "number"
         ? firstTier.price
-        : product.salePrice
-          ? product.salePrice
-          : product.price;
+        : basePrice;
     const imageToUse = firstTier?.image
       ? getImageUrl(firstTier.image)
       : getImageUrl(product?.images && product.images[0]);
@@ -309,14 +320,14 @@ const ShopCard = ({ product }) => {
       track("InitiateCheckout", {
         content_ids: [product._id],
         content_name: product.title,
-        value: product.salePrice ? product.salePrice : product.price,
+        value: basePrice,
         currency: "PKR",
       });
       // TikTok Pixel InitiateCheckout event
       trackTikTok("InitiateCheckout", {
         content_ids: [product._id],
         content_name: product.title,
-        value: product.salePrice ? product.salePrice : product.price,
+        value: basePrice,
         currency: "PKR",
       });
       navigateTo("/cart/checkout");
@@ -368,6 +379,20 @@ const ShopCard = ({ product }) => {
             />
           </div>
         </Link>
+
+        {/* Deal of the Day banner */}
+        {dodActive && (
+          <div className="absolute top-2 left-1 z-20 transform -rotate-6 origin-top-left">
+            <div className="inline-flex flex-col items-center drop-shadow-md rounded-md overflow-hidden">
+              <div className="bg-gray-900 font-poppins text-[10px] md:text-xs text-white px-2 md:px-3 py-0.5 rounded-t-lg font-bold tracking-wide uppercase text-center">
+                Deal
+              </div>
+              <div className="bg-yellow-400 font-poppins text-[9px] md:text-[10px] text-black px-2 md:px-3 py-0.5 rounded-full font-semibold uppercase text-center">
+                Of the Day
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Hover buttons - positioned at bottom of image container */}
         {allowMotion && (
@@ -483,16 +508,21 @@ const ShopCard = ({ product }) => {
         </div>
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <p className="flex flex-col text-sm font-semibold text-primary/90">
-            {salePrice ? (
-              <span className="text-sm text-gray-500 line-through">
-                Rs. {price}
-              </span>
+            {dodActive && product?.dodPrice != null ? (
+              <>
+                <span className="text-sm text-gray-500 line-through">Rs. {salePrice ?? price}</span>
+                <span className="text-base text-red-600">Rs. {Number(product.dodPrice)}</span>
+              </>
+            ) : salePrice ? (
+              <>
+                <span className="text-sm text-gray-500 line-through">Rs. {price}</span>
+                <span>Rs. {salePrice}</span>
+              </>
             ) : (
               <span>Rs. {price}</span>
-            )}{" "}
-            Rs.{salePrice ?? price}
+            )}
           </p>
-          {salePrice && price && (
+          {price && (
             <span className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs font-semibold">
               <svg
                 className="w-3 h-3 text-green-500"
@@ -503,7 +533,15 @@ const ShopCard = ({ product }) => {
               >
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              {Math.floor(((price - salePrice) / price) * 100)}% Save
+              {(() => {
+                const original = Number(price) || 0;
+                const target = dodActive && product?.dodPrice != null
+                  ? Number(product.dodPrice)
+                  : (salePrice ?? null);
+                if (!original || !target || target >= original) return '0% Save';
+                const pct = Math.floor(((original - target) / original) * 100);
+                return `${pct}% Save`;
+              })()}
             </span>
           )}
         </div>

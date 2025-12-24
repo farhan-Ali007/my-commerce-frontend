@@ -169,6 +169,15 @@ const SingleProduct = () => {
     return product?.title || 'Product Image';
   }, [product]);
 
+  // Deal of the Day active helper for visuals
+  const dodActive = useMemo(() => {
+    if (!product?.isDod || product?.dodPrice == null) return false;
+    const now = new Date();
+    if (product.dodStart && new Date(product.dodStart) > now) return false;
+    if (product.dodEnd && new Date(product.dodEnd) < now) return false;
+    return true;
+  }, [product?.isDod, product?.dodPrice, product?.dodStart, product?.dodEnd]);
+
   // Resolve alt for a variant image URL by scanning variant values
   const getVariantImageAlt = useCallback((url) => {
     if (!url || !product?.variants) return 'Variant Image';
@@ -284,13 +293,27 @@ const SingleProduct = () => {
     }
 
     // Base price: prefer regional, then salePrice, then price
-    const base =
+    let base =
       (typeof regionalPrice === 'number' ? regionalPrice : null) ??
       product.salePrice ??
       product.price;
 
     // If any variant is selected and has a price, use the sum of variant prices; otherwise use base
-    return hasVariantPrice ? variantPriceSum : base;
+    const priceBeforeDod = hasVariantPrice ? variantPriceSum : base;
+
+    // Deal of the Day override (does not override volume tiers above)
+    if (product.isDod && product.dodPrice != null) {
+      const now = new Date();
+      if (product.dodStart && new Date(product.dodStart) > now) {
+        return priceBeforeDod;
+      }
+      if (product.dodEnd && new Date(product.dodEnd) < now) {
+        return priceBeforeDod;
+      }
+      return Number(product.dodPrice);
+    }
+
+    return priceBeforeDod;
   }, [selectedVariants, product, selectedTierIndex, regionId]);
 
   // Compute each tier's discount relative to the previous tier's price
@@ -690,44 +713,111 @@ const SingleProduct = () => {
   ]);
 
   useEffect(() => {
-    // Only run if product exists and has the required properties
-    if (!product || !product.specialOfferEnabled) {
+    // Unified countdown: Deal of the Day takes priority over Special Offer.
+    if (!product) {
       setOfferCountdown("");
       return;
     }
 
-    if (
-      product?.specialOfferEnabled &&
-      product?.specialOfferStart &&
-      product?.specialOfferEnd
-    ) {
-      const start = new Date(product.specialOfferStart);
-      const end = new Date(product.specialOfferEnd);
+    // Helper for a simple now -> end countdown (used for DOD)
+    const setupCountdownToEnd = (endRaw) => {
+      if (!endRaw) {
+        setOfferCountdown("");
+        return undefined;
+      }
+      const end = new Date(endRaw);
+      if (Number.isNaN(end.getTime())) {
+        setOfferCountdown("");
+        return undefined;
+      }
+
+      const interval = setInterval(() => {
+        const nowInner = new Date();
+        const diff = end - nowInner;
+        if (diff <= 0) {
+          // Time is over: clear countdown so UI hides
+          setOfferCountdown("");
+          clearInterval(interval);
+        } else {
+          const totalSeconds = Math.floor(diff / 1000);
+          const days = Math.floor(totalSeconds / (60 * 60 * 24));
+          const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+          const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+          const seconds = totalSeconds % 60;
+          const pad = (n) => String(n).padStart(2, '0');
+          setOfferCountdown(`${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+        }
+      }, 1000);
+      return interval;
+    };
+
+    // Helper for start/end window (used for special offer)
+    const setupCountdownWindow = (startRaw, endRaw) => {
+      if (!startRaw || !endRaw) {
+        setOfferCountdown("");
+        return undefined;
+      }
+      const start = new Date(startRaw);
+      const end = new Date(endRaw);
       const now = new Date();
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        setOfferCountdown("");
+        return undefined;
+      }
+
       if (now >= start && now <= end) {
         const interval = setInterval(() => {
-          const now = new Date();
-          const diff = end - now;
+          const nowInner = new Date();
+          const diff = end - nowInner;
           if (diff <= 0) {
-            setOfferCountdown("Offer ended");
+            // Time is over: clear countdown so UI hides
+            setOfferCountdown("");
             clearInterval(interval);
           } else {
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff / (1000 * 60)) % 60);
-            const seconds = Math.floor((diff / 1000) % 60);
-            setOfferCountdown(`${hours}h ${minutes}m ${seconds}s left`);
+            const totalSeconds = Math.floor(diff / 1000);
+            const days = Math.floor(totalSeconds / (60 * 60 * 24));
+            const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+            const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+            const seconds = totalSeconds % 60;
+            const pad = (n) => String(n).padStart(2, '0');
+            setOfferCountdown(`${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
           }
         }, 1000);
-        return () => clearInterval(interval);
-      } else if (now < start) {
-        setOfferCountdown("Offer not started");
-      } else {
-        setOfferCountdown("");
+        return interval;
       }
+
+      // Outside active window: hide countdown
+      setOfferCountdown("");
+      return undefined;
+    };
+
+    let intervalId;
+
+    // 1) Deal of the Day: only end time is required, takes priority
+    if (product.isDod && product.dodEnd) {
+      intervalId = setupCountdownToEnd(product.dodEnd);
+    }
+    // 2) Otherwise fall back to special offer countdown (start/end window)
+    else if (
+      product.specialOfferEnabled &&
+      product.specialOfferStart &&
+      product.specialOfferEnd
+    ) {
+      intervalId = setupCountdownWindow(
+        product.specialOfferStart,
+        product.specialOfferEnd
+      );
     } else {
       setOfferCountdown("");
     }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [
+    product?.isDod,
+    product?.dodEnd,
     product?.specialOfferEnabled,
     product?.specialOfferStart,
     product?.specialOfferEnd,
@@ -1631,46 +1721,62 @@ const SingleProduct = () => {
             </motion.div>
           )}
 
-          {/* Special Offer - Mobile (after quantity selector) */}
+          {/* Deal of the Day / Special Offer Timer - Mobile (after quantity selector) */}
           {(() => {
-            const now = new Date();
-            if (
+            // Decide which timer label to show based on active promotion
+            const hasDodTimer = product?.isDod && !!product?.dodEnd && !!offerCountdown;
+            const hasSpecialTimer =
+              !hasDodTimer &&
               product?.specialOfferEnabled &&
               product?.specialOfferStart &&
-              product?.specialOfferEnd
-            ) {
-              const start = new Date(product.specialOfferStart);
-              const end = new Date(product.specialOfferEnd);
-              if (
-                !isNaN(start.getTime()) &&
-                !isNaN(end.getTime()) &&
-                now >= start &&
-                now <= end
-              ) {
-                return (
-                  <motion.div
-                    variants={itemVariants}
-                    className="w-full flex justify-start mt-1 mb-2 lg:hidden"
-                  >
-                    <div className="flex items-center font-space text-base sm:text-lg border w-full max-w-[400px] my-2 border-primary shadow-sm px-4 py-2 gap-3 ">
-                      <span>
-                        <LuAlarmClock
-                          size={22}
-                          className="text-green-700 animate-zoom"
-                        />
-                      </span>
-                      <span className="px-3  y-1 bg-white text-green-700 font-bold rounded-full ">
-                        Special Offer
-                      </span>
-                      <span className="text-sm sm:text-base font-semibold text-green-700">
-                        {offerCountdown}
-                      </span>
-                    </div>
-                  </motion.div>
-                );
-              }
-            }
-            return null;
+              product?.specialOfferEnd &&
+              !!offerCountdown;
+
+            if (!hasDodTimer && !hasSpecialTimer) return null;
+
+            const label = hasDodTimer ? 'Deal of the Day' : 'Special Offer';
+
+            const parts =
+              typeof offerCountdown === 'string' && offerCountdown.includes(':')
+                ? offerCountdown.split(':')
+                : ['00', '00', '00', '00'];
+            const segments = [
+              { idx: 0, l: 'DAYS' },
+              { idx: 1, l: 'HRS' },
+              { idx: 2, l: 'MINS' },
+              { idx: 3, l: 'SECS' },
+            ];
+
+            return (
+              <motion.div
+                variants={itemVariants}
+                className="w-full flex justify-start mt-1 mb-2 lg:hidden"
+              >
+                <div className="flex items-center font-space text-base sm:text-lg border w-full max-w-[400px] my-2 border-primary bg-secondary/10 shadow-sm px-4 py-2 gap-3 ">
+                  <span>
+                    <LuAlarmClock
+                      size={22}
+                      className="text-primary animate-zoom"
+                    />
+                  </span>
+                  <span className="px-3 y-1 bg-secondary text-primary font-bold rounded-full ">
+                    {label}
+                  </span>
+                  <div className="flex items-end gap-2 text-primary font-semibold">
+                    {segments.map(({ idx, l }) => (
+                      <div key={l} className="flex flex-col items-center">
+                        <span className="text-sm sm:text-base font-bold tracking-wider">
+                          {parts[idx] || '00'}
+                        </span>
+                        <span className="text-[10px] sm:text-xs font-semibold tracking-wide">
+                          {l}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            );
           })()}
 
           {/* Desktop Price Block */}
@@ -1756,46 +1862,61 @@ const SingleProduct = () => {
             </motion.div>
           )}
 
-          {/* Special Offer - Desktop (after quantity selector) */}
+          {/* Deal of the Day / Special Offer Timer - Desktop (after quantity selector) */}
           {(() => {
-            const now = new Date();
-            if (
+            const hasDodTimer = product?.isDod && !!product?.dodEnd && !!offerCountdown;
+            const hasSpecialTimer =
+              !hasDodTimer &&
               product?.specialOfferEnabled &&
               product?.specialOfferStart &&
-              product?.specialOfferEnd
-            ) {
-              const start = new Date(product.specialOfferStart);
-              const end = new Date(product.specialOfferEnd);
-              if (
-                !isNaN(start.getTime()) &&
-                !isNaN(end.getTime()) &&
-                now >= start &&
-                now <= end
-              ) {
-                return (
-                  <motion.div
-                    variants={itemVariants}
-                    className="w-full flex  justify-start mt-1 mb-2 hidden lg:flex"
-                  >
-                    <div className="flex items-center font-space text-lg border min-w-[370px] my-4 border-primary shadow-sm px-4 py-2 gap-3">
-                      <span>
-                        <LuAlarmClock
-                          size={26}
-                          className="text-green-700 animate-zoom"
-                        />
-                      </span>
-                      <span className="px-3  y-1 bg-white text-green-700 font-bold rounded-full ">
-                        Special Offer
-                      </span>
-                      <span className="text-base font-semibold text-green-700">
-                        {offerCountdown}
-                      </span>
-                    </div>
-                  </motion.div>
-                );
-              }
-            }
-            return null;
+              product?.specialOfferEnd &&
+              !!offerCountdown;
+
+            if (!hasDodTimer && !hasSpecialTimer) return null;
+
+            const label = hasDodTimer ? 'Deal of the Day' : 'Special Offer';
+
+            const parts =
+              typeof offerCountdown === 'string' && offerCountdown.includes(':')
+                ? offerCountdown.split(':')
+                : ['00', '00', '00', '00'];
+            const segments = [
+              { idx: 0, l: 'DAYS' },
+              { idx: 1, l: 'HRS' },
+              { idx: 2, l: 'MINS' },
+              { idx: 3, l: 'SECS' },
+            ];
+
+            return (
+              <motion.div
+                variants={itemVariants}
+                className="w-full flex justify-start mt-1 mb-2 hidden lg:flex"
+              >
+                <div className="flex items-center font-space text-lg border min-w-[370px] my-4 border-primary bg-secondary/10 shadow-sm px-4 py-2 gap-3">
+                  <span>
+                    <LuAlarmClock
+                      size={26}
+                      className="text-primary animate-zoom"
+                    />
+                  </span>
+                  <span className="px-3 y-1 bg-secondary text-primary font-bold rounded-full ">
+                    {label}
+                  </span>
+                  <div className="flex items-end gap-3 text-primary font-semibold">
+                    {segments.map(({ idx, l }) => (
+                      <div key={l} className="flex flex-col items-center">
+                        <span className="text-lg md:text-xl font-bold tracking-wider">
+                          {parts[idx] || '00'}
+                        </span>
+                        <span className="text-[10px] md:text-xs font-semibold tracking-wide">
+                          {l}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            );
           })()}
 
           {/* Volume Price Tiers */}

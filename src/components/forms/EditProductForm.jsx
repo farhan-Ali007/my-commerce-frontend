@@ -54,6 +54,8 @@ const EditProductForm = ({
   const [tempSpecialOfferEnd, setTempSpecialOfferEnd] = useState(null);
   const [specialOfferStartSet, setSpecialOfferStartSet] = useState(false);
   const [specialOfferEndSet, setSpecialOfferEndSet] = useState(false);
+  // Deal of the Day local state helpers
+  const [dodEnabled, setDodEnabled] = useState(false);
   const quillRef = useRef();
   const [showRedirectsModal, setShowRedirectsModal] = useState(false);
   const [redirects, setRedirects] = useState([]);
@@ -61,6 +63,19 @@ const EditProductForm = ({
 
   useEffect(() => {
     if (defaultValues) {
+      const toDateTimeLocal = (value) => {
+        if (!value) return "";
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return "";
+        const pad = (n) => String(n).padStart(2, '0');
+        const year = d.getFullYear();
+        const month = pad(d.getMonth() + 1);
+        const day = pad(d.getDate());
+        const hours = pad(d.getHours());
+        const minutes = pad(d.getMinutes());
+        // Local datetime in the format expected by datetime-local
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      };
       // Transform defaultValues to match the formData structure
       const transformedVariants = defaultValues.variants.map((variant) => ({
         name: variant.name,
@@ -102,6 +117,11 @@ const EditProductForm = ({
               image: t.image || null,
             }))
           : [],
+        // Deal of the Day defaults
+        isDod: defaultValues.isDod || false,
+        dodPrice: defaultValues.dodPrice || "",
+        dodStart: toDateTimeLocal(defaultValues.dodStart),
+        dodEnd: toDateTimeLocal(defaultValues.dodEnd),
       });
 
       // Handle images: string URL, File, or object { url, publicId }
@@ -147,6 +167,8 @@ const EditProductForm = ({
       );
       setSpecialOfferStartSet(!!defaultValues.specialOfferStart);
       setSpecialOfferEndSet(!!defaultValues.specialOfferEnd);
+
+      setDodEnabled(!!defaultValues.isDod);
     }
   }, [defaultValues]);
 
@@ -511,11 +533,19 @@ const EditProductForm = ({
         submissionData.append("specialOfferEnd", formData.specialOfferEnd);
     }
 
+    // Deal of the Day payload
+    submissionData.append('isDod', formData.isDod);
+    if (formData.isDod && formData.dodPrice) {
+      submissionData.append('dodPrice', formData.dodPrice);
+      if (formData.dodStart) submissionData.append('dodStart', formData.dodStart);
+      if (formData.dodEnd) submissionData.append('dodEnd', formData.dodEnd);
+    }
+
     // Debug: Log freeShipping and also  all FormData entries
     // console.log("[EditProductForm] freeShipping value:", freeShipping);
-    for (let pair of submissionData.entries()) {
-      console.log(`[EditProductForm] FormData: ${pair[0]} =`, pair[1]);
-    }
+    // for (let pair of submissionData.entries()) {
+    //   console.log(`[EditProductForm] FormData: ${pair[0]} =`, pair[1]);
+    // }
 
     onSubmit(submissionData);
     setTimeout(() => {
@@ -801,6 +831,56 @@ const EditProductForm = ({
           className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
           placeholder="Auto-generated if left empty"
         />
+      </div>
+
+      {/* Deal of the Day */}
+      <div className="mb-6 border border-dashed border-gray-300 rounded-md p-4 bg-gray-50">
+        <label className="flex items-center gap-2 font-medium mb-3 text-primaryondary">
+          <input
+            type="checkbox"
+            checked={formData.isDod}
+            onChange={(e) => setFormData(prev => ({ ...prev, isDod: e.target.checked }))}
+            className="h-4 w-4"
+          />
+          <span>Enable Deal of the Day (special price)</span>
+        </label>
+
+        {formData.isDod && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">DOD Price</label>
+              <input
+                type="number"
+                min="0"
+                name="dodPrice"
+                value={formData.dodPrice}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                placeholder="Special price"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Start (optional)</label>
+              <input
+                type="datetime-local"
+                name="dodStart"
+                value={formData.dodStart}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">End (optional)</label>
+              <input
+                type="datetime-local"
+                name="dodEnd"
+                value={formData.dodEnd}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Description */}

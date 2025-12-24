@@ -17,15 +17,35 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
     const currentCartItems = useSelector((state) => state.cart.products);
     const userId = user?._id;
     const { images, title, averageRating, price, salePrice, slug, freeShipping } = product;
-    const off = useMemo(() => (
-        salePrice && price ? Math.floor(((price - salePrice) / price) * 100) : 0
-    ), [price, salePrice]);
+
+    // Deal of the Day helper
+    const dodActive = useMemo(() => {
+        if (!product?.isDod || product?.dodPrice == null) return false;
+        const now = new Date();
+        if (product.dodStart && new Date(product.dodStart) > now) return false;
+        if (product.dodEnd && new Date(product.dodEnd) < now) return false;
+        return true;
+    }, [product?.isDod, product?.dodPrice, product?.dodStart, product?.dodEnd]);
+
+    // Effective card price (ignores tiers; tiers override later when selected)
+    const cardBasePrice = useMemo(() => (
+        dodActive && product?.dodPrice != null
+            ? Number(product.dodPrice)
+            : (salePrice ?? price)
+    ), [dodActive, product?.dodPrice, salePrice, price]);
+
+    const off = useMemo(() => {
+        if (!price) return 0;
+        const target = dodActive && product?.dodPrice != null ? Number(product.dodPrice) : salePrice;
+        if (!target || target >= price) return 0;
+        return Math.floor(((price - target) / price) * 100);
+    }, [price, salePrice, dodActive, product?.dodPrice]);
     const totalReviews = useMemo(() => (
         Array.isArray(product?.reviews) ? product.reviews.length : 0
     ), [product?.reviews]);
     const [isHovered, setIsHovered] = useState(false);
     const { track } = useFacebookPixel();
-    const {track : trackTikTok} = useTikTokPixel();
+    const { track: trackTikTok } = useTikTokPixel();
 
     const imageWidth = 180;
     const imageHeight = 180;
@@ -51,7 +71,10 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
         const firstTier = (product?.volumeTierEnabled && Array.isArray(product?.volumeTiers) && product.volumeTiers.length > 0)
             ? product.volumeTiers[0]
             : null;
-        const priceToUse = (typeof firstTier?.price === 'number') ? firstTier.price : (product?.salePrice ? product?.salePrice : product?.price);
+        const basePrice = dodActive && product?.dodPrice != null
+            ? Number(product.dodPrice)
+            : (product?.salePrice ? product?.salePrice : product?.price);
+        const priceToUse = (typeof firstTier?.price === 'number') ? firstTier.price : basePrice;
         const imageToUse = firstTier?.image ? getImageUrl(firstTier.image) : getImageUrl(product?.images && product?.images[0]);
 
         const cartItem = {
@@ -101,7 +124,10 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
         const firstTier = (product?.volumeTierEnabled && Array.isArray(product?.volumeTiers) && product.volumeTiers.length > 0)
             ? product.volumeTiers[0]
             : null;
-        const priceToUse = (typeof firstTier?.price === 'number') ? firstTier.price : (product?.salePrice ? product?.salePrice : product?.price);
+        const basePrice = dodActive && product?.dodPrice != null
+            ? Number(product.dodPrice)
+            : (product?.salePrice ? product?.salePrice : product?.price);
+        const priceToUse = (typeof firstTier?.price === 'number') ? firstTier.price : basePrice;
         const imageToUse = firstTier?.image ? getImageUrl(firstTier.image) : getImageUrl(product?.images && product?.images[0]);
 
         const cartItem = {
@@ -118,7 +144,7 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
 
         try {
             // Combine with existing Redux cart and sync to backend
-            const computeKey = (item) => item.cartItemId || `${item.productId}${Array.isArray(item.selectedVariants) && item.selectedVariants.length>0 ? '|' + item.selectedVariants.map(v => `${v.name}:${Array.isArray(v.values)?v.values.join(','):v.values||''}`).join('|') : ''}`;
+            const computeKey = (item) => item.cartItemId || `${item.productId}${Array.isArray(item.selectedVariants) && item.selectedVariants.length > 0 ? '|' + item.selectedVariants.map(v => `${v.name}:${Array.isArray(v.values) ? v.values.join(',') : v.values || ''}`).join('|') : ''}`;
             const existingItems = Array.isArray(currentCartItems) ? currentCartItems : [];
             const combined = [...existingItems];
             const idx = combined.findIndex(i => computeKey(i) === computeKey(cartItem));
@@ -138,14 +164,14 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             track('InitiateCheckout', {
                 content_ids: [product._id],
                 content_name: product.title,
-                value: product.salePrice ? product.salePrice : product.price,
+                value: basePrice,
                 currency: 'PKR'
             });
             // TikTok Pixel InitiateCheckout event
             trackTikTok('InitiateCheckout', {
                 content_ids: [product._id],
                 content_name: product.title,
-                value: product.salePrice ? product.salePrice : product.price,
+                value: basePrice,
                 currency: 'PKR'
             });
             navigateTo("/cart/checkout");
@@ -302,9 +328,9 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
             <div className="relative w-full mb-0 lg:mb-2 overflow-hidden">
                 <Link to={`/product/${slug}`} className="block w-full">
                     {/* Square container to avoid horizontal gaps on mobile */}
-                    <div 
+                    <div
                         className="relative w-full overflow-hidden"
-                        style={{ 
+                        style={{
                             aspectRatio: '1 / 1',
                             height: 'auto'
                         }}
@@ -316,18 +342,32 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                             sizes={`(max-width: 768px) 50vw, ${imageWidth}px`}
                             alt={images[0].alt}
                             loading="lazy"
-                            decoding="async"  
+                            decoding="async"
                             variants={imageVariants}
                             initial="initial"
                             whileHover={allowMotion ? "hover" : undefined}
-                            style={{ 
+                            style={{
                                 transformOrigin: 'center center',
                                 willChange: 'transform'
                             }}
                         />
                     </div>
                 </Link>
-                
+
+                {/* Deal of the Day banner (replaces circular image badge) */}
+                {dodActive && (
+                    <div className="absolute top-3 left-1 z-20 transform -rotate-6 origin-top-left">
+                        <div className="inline-flex flex-col items-center drop-shadow-md rounded-md overflow-hidden">
+                            <div className="bg-gray-900 font-poppins text-[10px] md:text-xs text-white px-2 md:px-3 py-0.5 rounded-t-lg font-bold tracking-wide uppercase text-center">
+                                Deal
+                            </div>
+                            <div className="bg-yellow-400 font-poppins text-[9px] md:text-[10px] text-black px-2 md:px-3 py-0.5 rounded-full font-semibold uppercase text-center">
+                                Of the Day
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Hover buttons - positioned at bottom of image container */}
                 {allowMotion && (
                     <AnimatePresence>
@@ -402,12 +442,19 @@ const ProductCard = ({ product, backendCartItems = [] }) => {
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p className="flex flex-col text-sm font-semibold text-primary/90 leading-snug">
-                        {salePrice ? (
-                            <span className="text-sm text-gray-500 line-through">Rs. {price}</span>
+                        {dodActive && product?.dodPrice != null ? (
+                            <>
+                                <span className="text-sm text-gray-500 line-through">Rs. {salePrice ?? price}</span>
+                                <span className="text-base text-red-600">Rs. {Number(product.dodPrice)}</span>
+                            </>
+                        ) : salePrice ? (
+                            <>
+                                <span className="text-sm text-gray-500 line-through">Rs. {price}</span>
+                                <span>Rs. {salePrice}</span>
+                            </>
                         ) : (
                             <span>Rs. {price}</span>
-                        )}{' '}
-                        Rs.{salePrice ?? price}
+                        )}
                     </p>
                     {off && (
                         <span className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-200 rounded-full text-green-700 text-xs font-semibold whitespace-nowrap">

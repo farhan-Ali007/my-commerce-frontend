@@ -28,6 +28,11 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
         volumeTierEnabled: false,
         volumeTiers: [{ quantity: "", price: "", image: null }],
         faqs: [],
+        // Deal of the Day fields
+        isDod: false,
+        dodPrice: "",
+        dodStart: "",
+        dodEnd: "",
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [imageAlts, setImageAlts] = useState([]);
@@ -53,6 +58,10 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
             variants: [{ name: "", values: [{ value: "", image: "" }] }],
             metaDescription: "",
             faqs: [],
+            isDod: false,
+            dodPrice: "",
+            dodStart: "",
+            dodEnd: "",
         });
         imagePreviews.forEach((url) => URL.revokeObjectURL(url));
         // Revoke any variant preview URLs
@@ -307,6 +316,14 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                 return tier;
             });
         submissionData.append('volumeTiers', JSON.stringify(tiersPayload));
+
+        // Deal of the Day payload
+        submissionData.append('isDod', formData.isDod);
+        if (formData.isDod && formData.dodPrice) {
+            submissionData.append('dodPrice', formData.dodPrice);
+            if (formData.dodStart) submissionData.append('dodStart', formData.dodStart);
+            if (formData.dodEnd) submissionData.append('dodEnd', formData.dodEnd);
+        }
 
         // Product images and alts (backend expects req.files.images)
         const altsForImages = [];
@@ -735,6 +752,56 @@ const CreateProductForm = forwardRef(({ buttonText, onSubmit, formTitle, categor
                     onChange={handleChange}
                     className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
                 />
+            </div>
+
+            {/* Deal of the Day */}
+            <div className="mb-6 border border-dashed border-gray-300 rounded-md p-4 bg-gray-50">
+                <label className="flex items-center gap-2 font-medium mb-3 text-primaryondary">
+                    <input
+                        type="checkbox"
+                        checked={formData.isDod}
+                        onChange={(e) => setFormData(prev => ({ ...prev, isDod: e.target.checked }))}
+                        className="h-4 w-4"
+                    />
+                    <span>Enable Deal of the Day (special price)</span>
+                </label>
+
+                {formData.isDod && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">DOD Price</label>
+                            <input
+                                type="number"
+                                min="0"
+                                name="dodPrice"
+                                value={formData.dodPrice}
+                                onChange={handleChange}
+                                className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                                placeholder="Special price"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Start (optional)</label>
+                            <input
+                                type="datetime-local"
+                                name="dodStart"
+                                value={formData.dodStart}
+                                onChange={handleChange}
+                                className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">End (optional)</label>
+                            <input
+                                type="datetime-local"
+                                name="dodEnd"
+                                value={formData.dodEnd}
+                                onChange={handleChange}
+                                className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-300"
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Variants */}
